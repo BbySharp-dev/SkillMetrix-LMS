@@ -1,0 +1,58 @@
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.DotSettings.user
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# pnpm
+pnpm-lock.yaml
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Documentation
+docs/
+docs/
+
+# Local backend secrets
+SkillMetrix-LMS.API/appsettings.Development.json
+
+# Secrets and certs
+**/appsettings.*.json
+**/*secrets*.json
+**/*.pfx
+**/*.key
+**/*.pem
+**/*.crt
