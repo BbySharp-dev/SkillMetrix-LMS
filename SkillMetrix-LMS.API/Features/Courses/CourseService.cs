@@ -73,11 +73,10 @@ public class CourseService : ICourseService
 
     }
 
-    public async Task<Result<CourseResponseDto>> GetCourseByIdAsync(Guid id)
+    public async Task<Result<CourseResponseDto>> GetCourseByIdAsync(Guid id, Guid? currentUserId = null, string? currentUserRole = null)
     {
         var course = await _context.Courses
             .Where(c => !c.IsDeleted)
-            .Where(c => c.Status == CourseStatus.Published)
             .Include(c => c.Instructor)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id);
@@ -85,6 +84,15 @@ public class CourseService : ICourseService
         if (course == null)
         {
             return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
+        }
+
+        bool isPublished = course.Status == CourseStatus.Published;
+        bool isAdmin = currentUserRole == UserRole.Admin.ToString();
+        bool isOwnerInstructor = currentUserId.HasValue && course.InstructorId == currentUserId.Value;
+
+        if (!isPublished && !isAdmin && !isOwnerInstructor)
+        {
+             return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
         }
 
         var chapterCount = await _context.Chapters
@@ -112,11 +120,12 @@ public class CourseService : ICourseService
     public async Task<Result<CourseResponseDto>> CreateCourseAsync(CreateCourseDto dto)
     {
         var instructor = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == dto.InstructorId && u.Role == UserRole.Instructor);
+            .FirstOrDefaultAsync(u => u.Id == dto.InstructorId
+                && (u.Role == UserRole.Instructor || u.Role == UserRole.Admin));
 
         if (instructor == null)
         {
-            return Result<CourseResponseDto>.NotFound("Instructor not found or user is not an instructor");
+            return Result<CourseResponseDto>.NotFound("Instructor not found or user is not an instructor/admin");
         }
 
         var course = new Course
@@ -172,11 +181,12 @@ public class CourseService : ICourseService
         if (dto.InstructorId.HasValue && dto.InstructorId.Value != course.InstructorId)
         {
             var newInstructor = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == dto.InstructorId.Value && u.Role == UserRole.Instructor);
+                .FirstOrDefaultAsync(u => u.Id == dto.InstructorId.Value
+                    && (u.Role == UserRole.Instructor || u.Role == UserRole.Admin));
 
             if (newInstructor == null)
             {
-                return Result<CourseResponseDto>.NotFound("Instructor not found or user is not an instructor");
+                return Result<CourseResponseDto>.NotFound("Instructor not found or user is not an instructor/admin");
             }
 
             course.InstructorId = newInstructor.Id;

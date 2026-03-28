@@ -5,7 +5,7 @@ namespace SkillMetrix_LMS.API.Features.Courses;
 public interface ICourseService
 {
     Task<Result<PagedResponse<List<CourseResponseDto>>>> GetCoursesAsync(int pageNumber, int pageSize);
-    Task<Result<CourseResponseDto>> GetCourseByIdAsync(Guid id);
+    Task<Result<CourseResponseDto>> GetCourseByIdAsync(Guid id, Guid? currentUserId = null, string? currentUserRole = null);
     Task<Result<CourseResponseDto>> CreateCourseAsync(CreateCourseDto dto);
     Task<Result<CourseResponseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto);
     Task<Result> DeleteCourseAsync(Guid id);

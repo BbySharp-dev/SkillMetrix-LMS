@@ -43,7 +43,18 @@ public class CoursesController : BaseApiController
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCourse(Guid id)
     {
-        var result = await _courseService.GetCourseByIdAsync(id);
+        Guid? currentUserId = null;
+        string? currentUserRole = null;
+
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userIdClaim, out var parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
+        currentUserRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+        var result = await _courseService.GetCourseByIdAsync(id, currentUserId, currentUserRole);
 
         if (!result.IsSuccess)
         {
