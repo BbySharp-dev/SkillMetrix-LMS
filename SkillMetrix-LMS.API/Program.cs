@@ -23,12 +23,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-    ?? throw new InvalidOperationException("Database connection string not configured");
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Database connection string not configured");
 
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
-    ?? Environment.GetEnvironmentVariable("Jwt__SecretKey")
-    ?? throw new InvalidOperationException("JWT SecretKey not configured");
+    ?? Environment.GetEnvironmentVariable("Jwt__SecretKey");
+if (string.IsNullOrWhiteSpace(jwtSecretKey))
+    throw new InvalidOperationException("JWT SecretKey not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
     ?? Environment.GetEnvironmentVariable("Jwt__Issuer")
     ?? "SkillMetrixLMS";
@@ -70,11 +72,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireInstructorOrAdmin", policy =>
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("RequireInstructorOrAdmin", policy =>
         policy.RequireRole("Instructor", "Admin"));
-});
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
@@ -129,7 +129,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:5173" };
+     ?? ["http://localhost:5173"];
 
 builder.Services.AddCors(options =>
 {
