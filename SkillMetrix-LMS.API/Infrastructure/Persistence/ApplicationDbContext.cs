@@ -5,20 +5,17 @@ using SkillMetrix_LMS.API.Models;
 
 namespace SkillMetrix_LMS.API.Infrastructure.Persistence;
 
-public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
 
-    public DbSet<Course> Courses { get; set; }
-    public DbSet<Chapter> Chapters { get; set; }
-    public DbSet<Lesson> Lessons { get; set; }
-    public DbSet<Enrollment> Enrollments { get; set; }
-    public DbSet<UserLessonProgress> UserLessonProgresses { get; set; }
-    public DbSet<Transaction> Transactions { get; set; }
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Course> Courses { get; set; } = null!;
+    public DbSet<Chapter> Chapters { get; set; } = null!;
+    public DbSet<Lesson> Lessons { get; set; } = null!;
+    public DbSet<Enrollment> Enrollments { get; set; } = null!;
+    public DbSet<UserLessonProgress> UserLessonProgresses { get; set; } = null!;
+    public DbSet<Transaction> Transactions { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
