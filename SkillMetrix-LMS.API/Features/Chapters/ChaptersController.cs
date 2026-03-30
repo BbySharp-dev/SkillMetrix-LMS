@@ -69,4 +69,40 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
 
         return Ok(new ApiResponse<ChapterResponseDto>(result.Value!, "Chapter created"));
     }
+
+    /// <summary>
+    /// Thay đổi thứ tự (reorder) của một chapter trong khóa học.
+    /// </summary>
+    /// <param name="courseId">ID khóa học.</param>
+    /// <param name="id">ID của chapter cần thay đổi vị trí.</param>
+    /// <param name="dto">Thông tin vị trí cũ và vị trí mới.</param>
+    /// <returns>Trạng thái cập nhật.</returns>
+    /// <response code="200">Thay đổi thứ tự chương học thành công.</response>
+    /// <response code="400">Dữ liệu không hợp lệ (ví dụ: NewIndex nằm ngoài phạm vi).</response>
+    /// <response code="401">Không có quyền truy cập (Token không hợp lệ).</response>
+    /// <response code="403">Không có quyền cập nhật khóa học này (Chỉ Instructor hoặc Admin).</response>
+    /// <response code="404">Không tìm thấy chương học hoặc khóa học.</response>
+    [Authorize(Policy = "RequireInstructorOrAdmin")]
+    [HttpPut("{id}/reorder")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReorderChapter(Guid courseId, Guid id, ReorderDto dto)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        {
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+        }
+
+        var result = await _chapterService.ReorderChapterAsync(courseId, id, dto, actorId);
+        if (!result.IsSuccess)
+        {
+            return HandleError(result);
+        }
+
+        return Ok(new ApiResponse<object?>(null, "Chapter reordered"));
+    }
 }
