@@ -221,7 +221,6 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             CreatedAt = lesson.CreatedAt
         };
     }
-
     public async Task<Result> DeleteLessonAsync(Guid id, Guid actorId)
     {
         var lesson = await _context.Lessons
