@@ -71,6 +71,75 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     }
 
     /// <summary>
+    /// Cập nhật thông tin bài học.
+    /// </summary>
+    /// <param name="chapterId">ID chapter chứa lesson.</param>
+    /// <param name="id">ID của bài học cần cập nhật.</param>
+    /// <param name="dto">Thông tin cần cập nhật.</param>
+    /// <returns>Thông tin bài học sau khi cập nhật.</returns>
+    /// <response code="200">Cập nhật bài học thành công.</response>
+    /// <response code="400">Thông tin cung cấp không hợp lệ.</response>
+    /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
+    /// <response code="403">Không có quyền cập nhật bài học này.</response>
+    /// <response code="404">Không tìm thấy bài học.</response>
+    [Authorize(Policy = "RequireInstructorOrAdmin")]
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<LessonResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateLesson(Guid chapterId, Guid id, UpdateLessonDto dto)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        {
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+        }
+
+        var result = await _lessonService.UpdateLessonAsync(id, dto, actorId);
+        if (!result.IsSuccess)
+        {
+            return HandleError(result);
+        }
+
+        return Ok(new ApiResponse<LessonResponseDto>(result.Value!, "Lesson updated"));
+    }
+
+    /// <summary>
+    /// Xóa một bài học (xóa mềm).
+    /// </summary>
+    /// <param name="chapterId">ID chapter chứa lesson.</param>
+    /// <param name="id">ID của bài học cần xóa.</param>
+    /// <returns>Trạng thái thực thi.</returns>
+    /// <response code="200">Xóa bài học thành công.</response>
+    /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
+    /// <response code="403">Không có quyền xóa bài học này.</response>
+    /// <response code="404">Không tìm thấy bài học.</response>
+    [Authorize(Policy = "RequireInstructorOrAdmin")]
+    [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteLesson(Guid chapterId, Guid id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        {
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+        }
+
+        var result = await _lessonService.DeleteLessonAsync(id, actorId);
+        if (!result.IsSuccess)
+        {
+            return HandleError(result);
+        }
+
+        return Ok(new ApiResponse<object?>(null, "Lesson deleted"));
+    }
+
+    /// <summary>
     /// Upload video và gắn trực tiếp vào lesson.
     /// </summary>
     /// <param name="chapterId">ID chapter chứa lesson (phục vụ route ngữ cảnh).</param>
