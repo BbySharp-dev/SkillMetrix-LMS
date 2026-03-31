@@ -1,6 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
+using SkillMetrix_LMS.API.Features.Chapters;
+using SkillMetrix_LMS.API.DTOs.Responses;
+using SkillMetrix_LMS.API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace SkillMetrix_LMS.API.Features.Courses;
@@ -9,28 +11,63 @@ public class CourseService : ICourseService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<CourseService> _logger;
+    private readonly IChapterService _chapterService;
 
-    public CourseService(ApplicationDbContext context, ILogger<CourseService> logger)
+    public CourseService(ApplicationDbContext context, ILogger<CourseService> logger, IChapterService chapterService)
     {
         _context = context;
         _logger = logger;
+        _chapterService = chapterService;
     }
-    public async Task<Result<PagedResponse<List<CourseResponseDto>>>> GetCoursesAsync(int pageNumber, int pageSize)
+    public async Task<Result<PagedResponse<List<CourseResponseDto>>>> GetCoursesAsync(int pageNumber, int pageSize, CourseQueryDto query)
     {
         var baseQuery = _context.Courses
-            .Where(c => !c.IsDeleted)
-            .Where(c => c.Status == CourseStatus.Published);
+            .Include(c => c.Instructor)
+            .Where(c => !c.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(query.Status))
+        {
+            if (Enum.TryParse<CourseStatus>(query.Status, true, out var status))
+            {
+                baseQuery = baseQuery.Where(c => c.Status == status);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            baseQuery = baseQuery.Where(c => c.Title.Contains(query.Search));
+        }
+
+        if (query.InstructorId.HasValue)
+        {
+            baseQuery = baseQuery.Where(c => c.InstructorId == query.InstructorId);
+        }
+
+        if (query.MinPrice.HasValue)
+        {
+            baseQuery = baseQuery.Where(c => c.Price >= query.MinPrice);
+        }
+
+        if (query.MaxPrice.HasValue)
+        {
+            baseQuery = baseQuery.Where(c => c.Price <= query.MaxPrice);
+        }
 
         var totalRecords = await baseQuery.CountAsync();
 
+        baseQuery = query.SortBy switch
+        {
+            "price" => baseQuery.OrderBy(c => c.Price),
+            "rating" => baseQuery.OrderByDescending(c => c.Rating),
+            _ => baseQuery.OrderByDescending(c => c.CreatedAt)
+        };
+
         var courses = await baseQuery
-            .Include(c => c.Instructor)
-            .OrderByDescending(c => c.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .AsNoTracking()
             .ToListAsync();
-
+            
         var courseIds = courses.Select(c => c.Id).ToList();
 
         var chapterCounts = await _context.Chapters
@@ -92,7 +129,7 @@ public class CourseService : ICourseService
 
         if (!isPublished && !isAdmin && !isOwnerInstructor)
         {
-             return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
+            return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
         }
 
         var chapterCount = await _context.Chapters
@@ -265,6 +302,101 @@ public class CourseService : ICourseService
         course.IsDeleted = true;
         course.DeletedAt = DateTime.UtcNow;
 
+        await _context.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
+    public async Task<Result<CourseDetailResponseDto>> GetCourseDetailAsync(Guid id)
+    {
+        var course = await _context.Courses
+            .Include(c => c.Instructor)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+
+        if (course == null)
+        {
+            return Result<CourseDetailResponseDto>.NotFound("Course not found");
+        }
+
+        var curriculumnResult = await _chapterService.GetCurriculumAsync(id);
+        var curriculumn = curriculumnResult.IsSuccess
+            ? curriculumnResult.Value!
+            : new List<ChapterWithLessonsDto>();
+
+        return new CourseDetailResponseDto
+        {
+            Id = course.Id,
+            Title = course.Title,
+            Description = course.Description,
+            Price = course.Price,
+            Thumbnail = course.Thumbnail,
+            InstructorName = course.Instructor.FullName,
+            Status = course.Status.ToString(),
+            CreatedAt = course.CreatedAt,
+            PublishedAt = course.PublishedAt,
+            Curriculum = curriculumn
+        };
+    }
+
+    public async Task<Result> SubmitCourseAsync(Guid id, Guid actorId)
+    {
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        if (course == null)
+        {
+            return Result.NotFound("Course not found");
+        }
+
+        if (course.InstructorId != actorId)
+        {
+            return Result.Forbidden("You are allowed to sunmit this course");
+        }
+
+        course.Status = CourseStatus.Pending;
+        course.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
+    public async Task<Result> ApproveCourseAsync(Guid id, Guid actorId)
+    {
+        var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+        if (actor?.Role != UserRole.Moderator && actor?.Role != UserRole.Admin)
+        {
+            return Result.Forbidden("Only Moderator/Admin can approve courses");
+        }
+
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        if (course == null)
+        {
+            return Result.NotFound("Course not found");
+        }
+
+        course.Status = CourseStatus.Published;
+        course.PublishedAt = DateTime.UtcNow;
+        course.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
+    public async Task<Result> RejectCourseAsync(Guid id, Guid actorId, string reason)
+    {
+        var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+        if (actor?.Role != UserRole.Moderator && actor?.Role != UserRole.Admin)
+        {
+            return Result.Forbidden("Only Moderator/Admin can reject courses");
+        }
+
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        if (course == null)
+        {
+            return Result.NotFound("Course not found");
+        }
+
+        course.Status = CourseStatus.Rejected;
+        course.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         return Result.Success();
