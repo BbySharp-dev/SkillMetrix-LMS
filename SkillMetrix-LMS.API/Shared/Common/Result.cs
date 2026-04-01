@@ -14,65 +14,35 @@ public class Result<T>
     private Result() { }
 
     public static Result<T> Success(T value)
-    {
-        return new Result<T>
-        {
-            IsSuccess = true,
-            Value = value
-        };
-    }
+        => new Result<T> { IsSuccess = true, Value = value };
 
     public static Result<T> Failure(string errorMessage, ErrorType errorType = ErrorType.BusinessRule)
-    {
-        return new Result<T>
-        {
-            IsSuccess = false,
-            ErrorMessage = errorMessage,
-            ErrorType = errorType
-        };
-    }
+        => new Result<T> { IsSuccess = false, ErrorMessage = errorMessage, ErrorType = errorType };
 
-    // Helper methods cho các trường hợp thường dùng
+    // ─── Helper methods ───────────────────────────────────────────
     public static Result<T> NotFound(string errorMessage = "Resource not found")
-    {
-        return Failure(errorMessage, ErrorType.NotFound);
-    }
+        => Failure(errorMessage, ErrorType.NotFound);
 
     public static Result<T> ValidationError(string errorMessage)
-    {
-        return Failure(errorMessage, ErrorType.ValidationError);
-    }
+        => Failure(errorMessage, ErrorType.ValidationError);
 
     public static Result<T> Unauthorized(string errorMessage = "Unauthorized")
-    {
-        return Failure(errorMessage, ErrorType.Unauthorized);
-    }
+        => Failure(errorMessage, ErrorType.Unauthorized);
 
     public static Result<T> Forbidden(string errorMessage = "Forbidden")
-    {
-        return Failure(errorMessage, ErrorType.Forbidden);
-    }
+        => Failure(errorMessage, ErrorType.Forbidden);
 
     public static Result<T> Conflict(string errorMessage)
-    {
-        return Failure(errorMessage, ErrorType.Conflict);
-    }
+        => Failure(errorMessage, ErrorType.Conflict);
 
-    // Implicit operators: Cho phép return trực tiếp T thay vì Result<T>.Success(T)
-    // Giúp code ngắn gọn hơn: return dto; thay vì return Result<T>.Success(dto);
-    public static implicit operator Result<T>(T value)
-    {
-        return Success(value);
-    }
+    public static Result<T> BusinessRule(string errorMessage)
+        => Failure(errorMessage, ErrorType.BusinessRule);
 
-    // Implicit operator cho Result<T> -> T (chỉ dùng khi IsSuccess = true)
-    public static implicit operator T(Result<T> result)
-    {
-        return result.Value!;
-    }
+    // ─── Implicit operators ───────────────────────────────────────
+    public static implicit operator Result<T>(T value) => Success(value);
+    public static implicit operator T(Result<T> result) => result.Value!;
 }
 
-// Overload cho trường hợp không cần trả về data (void operations)
 public class Result
 {
     public bool IsSuccess { get; private set; }
@@ -82,43 +52,27 @@ public class Result
     private Result() { }
 
     public static Result Success()
-    {
-        return new Result { IsSuccess = true };
-    }
+        => new Result { IsSuccess = true };
 
     public static Result Failure(string errorMessage, ErrorType errorType = ErrorType.BusinessRule)
-    {
-        return new Result
-        {
-            IsSuccess = false,
-            ErrorMessage = errorMessage,
-            ErrorType = errorType
-        };
-    }
+        => new Result { IsSuccess = false, ErrorMessage = errorMessage, ErrorType = errorType };
 
-    // Helper methods cho các trường hợp thường dùng
+    // ─── Helper methods ───────────────────────────────────────────
     public static Result NotFound(string errorMessage = "Resource not found")
-    {
-        return Failure(errorMessage, ErrorType.NotFound);
-    }
+        => Failure(errorMessage, ErrorType.NotFound);
 
     public static Result ValidationError(string errorMessage)
-    {
-        return Failure(errorMessage, ErrorType.ValidationError);
-    }
+        => Failure(errorMessage, ErrorType.ValidationError);
 
     public static Result Unauthorized(string errorMessage = "Unauthorized")
-    {
-        return Failure(errorMessage, ErrorType.Unauthorized);
-    }
+        => Failure(errorMessage, ErrorType.Unauthorized);
 
     public static Result Forbidden(string errorMessage = "Forbidden")
-    {
-        return Failure(errorMessage, ErrorType.Forbidden);
-    }
+        => Failure(errorMessage, ErrorType.Forbidden);
 
     public static Result Conflict(string errorMessage)
-    {
-        return Failure(errorMessage, ErrorType.Conflict);
-    }
+        => Failure(errorMessage, ErrorType.Conflict);
+
+    public static Result BusinessRule(string errorMessage)
+        => Failure(errorMessage, ErrorType.BusinessRule);
 }
