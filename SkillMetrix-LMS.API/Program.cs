@@ -18,6 +18,7 @@ using SkillMetrix_LMS.API.Features.Chapters;
 using SkillMetrix_LMS.API.Features.Lessons;
 using SkillMetrix_LMS.API.Features.Upload;
 using SkillMetrix_LMS.API.Features.Transactions;
+using SkillMetrix_LMS.API.Features.Progress;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,6 +93,7 @@ builder.Services.AddScoped<IChapterService, ChapterService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
