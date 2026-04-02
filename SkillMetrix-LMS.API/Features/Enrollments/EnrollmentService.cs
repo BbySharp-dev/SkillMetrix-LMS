@@ -33,7 +33,7 @@ public class EnrollmentService : IEnrollmentService
 
         if (exists)
         {
-            return Result<EnrollmentResponseDto>.BusinessRule("Alreadly enrolled");
+            return Result<EnrollmentResponseDto>.BusinessRule("Already enrolled");
         }
 
         var enrollment = new Enrollment
