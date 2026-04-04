@@ -84,6 +84,26 @@ public class CoursesController : BaseApiController
         return Ok(new ApiResponse<CourseResponseDto>(result.Value!, "Course retrieved successfully"));
     }
 
+    /// <summary>
+    /// Lấy danh sách chương học và bài học (Curriculum) của một khóa học.
+    /// </summary>
+    /// <param name="id">ID của khóa học cần lấy giáo trình.</param>
+    /// <returns>Danh sách Chapter lồng bên trong là các Lesson.</returns>
+    /// <response code="200">Lấy dữ liệu Curriculum thành công.</response>
+    /// <response code="404">Không tìm thấy khóa học.</response>
+    [HttpGet("{id}/curriculum")]
+    [ProducesResponseType(typeof(ApiResponse<List<ChapterWithLessonsDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCurriculum(Guid id)
+    {
+        var result = await _chapterService.GetCurriculumAsync(id);
+        if (!result.IsSuccess)
+        {
+            return HandleError(result);
+        }
+
+        return Ok(new ApiResponse<List<ChapterWithLessonsDto>>(result.Value!, "Curriculum retrieved"));
+    }
 
     /// <summary>
     /// Tạo một khóa học mới.
@@ -270,26 +290,5 @@ public class CoursesController : BaseApiController
         }
 
         return Ok(new ApiResponse<object?>(null, "Course rejected successfully"));
-    }
-
-    /// <summary>
-    /// Lấy danh sách chương học và bài học (Curriculum) của một khóa học.
-    /// </summary>
-    /// <param name="courseId">ID của khóa học cần lấy giáo trình.</param>
-    /// <returns>Danh sách Chapter lồng bên trong là các Lesson.</returns>
-    /// <response code="200">Lấy dữ liệu Curriculum thành công.</response>
-    /// <response code="404">Không tìm thấy khóa học.</response>
-    [HttpGet("{courseId}/curriculum")]
-    [ProducesResponseType(typeof(ApiResponse<List<ChapterWithLessonsDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetCurriculum(Guid courseId)
-    {
-        var result = await _chapterService.GetCurriculumAsync(courseId);
-        if (!result.IsSuccess)
-        {
-            return HandleError(result);
-        }
-
-        return Ok(new ApiResponse<List<ChapterWithLessonsDto>>(result.Value!, "Curriculum retrieved"));
     }
 }
