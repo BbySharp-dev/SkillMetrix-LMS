@@ -23,5 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 
-# Generated API types
-src/api/types.ts
