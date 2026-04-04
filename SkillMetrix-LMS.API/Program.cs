@@ -83,9 +83,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<IFileUploadService, CloudinaryUploadService>();
 
-// Đăng ký Mapster để map Entity -> DTO tự động
 builder.Services.AddMapster();
-// Đăng ký Services
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<DataSeederService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -131,6 +129,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     c.SchemaFilter<RequestDtoExampleSchemaFilter>();
+
+    c.OrderActionsBy(apiDesc => OpenApiOrdering.ActionSortKey(apiDesc));
+    c.DocumentFilter<TagOrderDocumentFilter>();
 });
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -154,7 +155,11 @@ app.UseMiddleware<GlobalExceptionHandler>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "SkillMetrix LMS API v1");
+        options.ConfigObject.AdditionalItems["operationsSorter"] = "method";
+    });
     app.MapScalarApiReference("/scalar", options =>
     {
         options.Title = "SkillMetrix LMS API";

@@ -16,6 +16,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<UserLessonProgress> UserLessonProgresses { get; set; } = null!;
     public DbSet<Transaction> Transactions { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<CourseReview> CourseReviews { get; set; } = null!;
+    public DbSet<Quiz> Quizzes { get; set; } = null!;
+    public DbSet<QuizQuestion> QuizQuestions { get; set; } = null!;
+    public DbSet<QuizOption> QuizOptions { get; set; } = null!;
+    public DbSet<QuizAttempt> QuizAttempts { get; set; } = null!;
+    public DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; } = null!;
+    public DbSet<Certificate> Certificates { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -148,6 +155,104 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(t => t.Course)
             .WithMany()
             .HasForeignKey(t => t.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // CourseReview
+        builder.Entity<CourseReview>()
+            .HasIndex(r => r.CourseId);
+        builder.Entity<CourseReview>()
+            .HasIndex(r => r.UserId);
+        builder.Entity<CourseReview>()
+            .HasIndex(r => new { r.CourseId, r.UserId })
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
+        builder.Entity<CourseReview>()
+            .HasIndex(r => r.CreatedAt);
+
+        builder.Entity<CourseReview>()
+            .HasOne(r => r.Course)
+            .WithMany()
+            .HasForeignKey(r => r.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<CourseReview>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Quiz
+        builder.Entity<Quiz>()
+            .Property(q => q.PassingScore)
+            .HasColumnType("decimal(5,2)");
+
+        builder.Entity<Quiz>()
+            .HasIndex(q => q.CourseId);
+
+        builder.Entity<QuizQuestion>()
+            .Property(q => q.Point)
+            .HasColumnType("decimal(5,2)");
+
+        builder.Entity<QuizQuestion>()
+            .HasIndex(q => new { q.QuizId, q.OrderIndex });
+
+        builder.Entity<QuizOption>()
+            .HasIndex(o => new { o.QuestionId, o.OrderIndex });
+
+        builder.Entity<QuizAttempt>()
+            .Property(a => a.Score)
+            .HasColumnType("decimal(5,2)");
+
+        builder.Entity<QuizAttempt>()
+            .HasIndex(a => a.QuizId);
+        builder.Entity<QuizAttempt>()
+            .HasIndex(a => a.UserId);
+        builder.Entity<QuizAttempt>()
+            .HasIndex(a => a.StartedAt);
+
+        builder.Entity<QuizAttemptAnswer>()
+            .HasIndex(a => a.AttemptId);
+        builder.Entity<QuizAttemptAnswer>()
+            .HasIndex(a => a.QuestionId);
+        builder.Entity<QuizAttemptAnswer>()
+            .HasIndex(a => new { a.AttemptId, a.QuestionId })
+            .IsUnique();
+
+        // Composite FK: ensure SelectedOption belongs to Question
+        builder.Entity<QuizOption>()
+            .HasAlternateKey(o => new { o.Id, o.QuestionId });
+
+        builder.Entity<QuizAttemptAnswer>()
+            .HasOne(a => a.SelectedOption)
+            .WithMany()
+            .HasForeignKey(a => new { a.SelectedOptionId, a.QuestionId })
+            .HasPrincipalKey(o => new { o.Id, o.QuestionId })
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<QuizAttemptAnswer>()
+            .HasOne(a => a.Question)
+            .WithMany()
+            .HasForeignKey(a => a.QuestionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Certificate
+        builder.Entity<Certificate>()
+            .HasIndex(c => c.CertificateCode)
+            .IsUnique();
+        builder.Entity<Certificate>()
+            .HasIndex(c => new { c.UserId, c.CourseId })
+            .IsUnique();
+
+        builder.Entity<Certificate>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Certificate>()
+            .HasOne(c => c.Course)
+            .WithMany()
+            .HasForeignKey(c => c.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<RefreshToken>()

@@ -20,6 +20,29 @@ public class ProgressController : BaseApiController
     }
 
     /// <summary>
+    /// Lấy tiến độ học của user cho một bài học cụ thể.
+    /// </summary>
+    /// <param name="lessonId">ID của bài học cần xem tiến độ.</param>
+    /// <returns>Thông tin tiến độ: thời gian đã xem, trạng thái hoàn thành.</returns>
+    /// <response code="200">Lấy tiến độ thành công.</response>
+    /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
+    /// <response code="404">Bài học không tồn tại.</response>
+    [Authorize]
+    [HttpGet("lessons/{lessonId}/progress")]
+    public async Task<IActionResult> GetLessonProgress(Guid lessonId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized(new ApiResponse<object>("Invalid token."));
+
+        var result = await _progressService.GetLessonProgressAsync(lessonId, userId.Value);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<LessonProgressDto>(result.Value!, "Progress retrieved successfully."));
+    }
+
+    /// <summary>
     /// Cập nhật tiến độ học của user cho một bài học cụ thể.
     /// Tự động đánh dấu hoàn thành nếu đạt điều kiện.
     /// </summary>
@@ -43,29 +66,6 @@ public class ProgressController : BaseApiController
             return HandleError(result);
 
         return Ok(new ApiResponse<LessonProgressDto>(result.Value!, "Progress updated successfully."));
-    }
-
-    /// <summary>
-    /// Lấy tiến độ học của user cho một bài học cụ thể.
-    /// </summary>
-    /// <param name="lessonId">ID của bài học cần xem tiến độ.</param>
-    /// <returns>Thông tin tiến độ: thời gian đã xem, trạng thái hoàn thành.</returns>
-    /// <response code="200">Lấy tiến độ thành công.</response>
-    /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
-    /// <response code="404">Bài học không tồn tại.</response>
-    [Authorize]
-    [HttpGet("lessons/{lessonId}/progress")]
-    public async Task<IActionResult> GetLessonProgress(Guid lessonId)
-    {
-        var userId = GetCurrentUserId();
-        if (userId is null)
-            return Unauthorized(new ApiResponse<object>("Invalid token."));
-
-        var result = await _progressService.GetLessonProgressAsync(lessonId, userId.Value);
-        if (!result.IsSuccess)
-            return HandleError(result);
-
-        return Ok(new ApiResponse<LessonProgressDto>(result.Value!, "Progress retrieved successfully."));
     }
 
     /// <summary>
