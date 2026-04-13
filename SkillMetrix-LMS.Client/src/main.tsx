@@ -1,15 +1,11 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { QueryProvider } from './providers/QueryProvider'
-import { AppRouter } from './router'
-import { ErrorBoundary } from './components/ErrorBoundary'
+import { createRoot } from "react-dom/client";
+import React from "react";
+import { RouterProvider } from "react-router-dom";
+import { appRouter } from "./router/AppRouter";
+import "./style.css";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <QueryProvider>
-        <AppRouter />
-      </QueryProvider>
-    </ErrorBoundary>
-  </StrictMode>,
-)
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <RouterProvider router={appRouter} />
+  </React.StrictMode>,
+);
