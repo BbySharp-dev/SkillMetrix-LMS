@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 using SkillMetrix_LMS.API.Features.Upload;
-
 
 namespace SkillMetrix_LMS.API.Features.Lessons;
 
@@ -128,7 +125,6 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             lesson.Description = dto.Description;
         }
 
-
         if (dto.DurationSeconds.HasValue)
         {
             lesson.DurationSeconds = dto.DurationSeconds.Value;
@@ -155,7 +151,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             CreatedAt = lesson.CreatedAt
         };
     }
-    public async Task<Result<LessonResponseDto>> UploadLessonVideoAsync(Guid lessonId, IFormFile file, Guid actorId)
+    public async Task<Result<LessonResponseDto>> UploadLessonVideoAsync(Guid lessonId, IFormFile? file, Guid actorId)
     {
         if (file == null || file.Length == 0)
         {
@@ -199,7 +195,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         var uploadResult = await uploadService.UploadVideoAsync(file, folder);
         if (!uploadResult.IsSuccess)
         {
-            return Result<LessonResponseDto>.Failure(uploadResult.ErrorMessage ?? "Upload failed", uploadResult.ErrorType);
+            return Result<LessonResponseDto>.Failure(uploadResult.ErrorMessage, uploadResult.ErrorType);
         }
 
         lesson.VideoUrl = uploadResult.Value;

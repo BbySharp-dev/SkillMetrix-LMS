@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
-using SkillMetrix_LMS.API.DTOs.Responses;
 using SkillMetrix_LMS.API.Features.Chapters;
+using SkillMetrix_LMS.API.Features.Chapters.DTOs;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Courses;
@@ -30,7 +29,6 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        query ??= new CourseQueryDto(); // Đảm bảo không bị null
         var result = await courseService.GetCoursesAsync(pageNumber, pageSize, query);
 
         if (!result.IsSuccess)
@@ -56,16 +54,8 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourse(Guid id)
     {
-        Guid? currentUserId = null;
-        string? currentUserRole = null;
-
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(userIdClaim, out var parsedId))
-        {
-            currentUserId = parsedId;
-        }
-
-        currentUserRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var currentUserId = GetCurrentUserId();
+        var currentUserRole = GetCurrentUserRole();
 
         var result = await courseService.GetCourseByIdAsync(id, currentUserId, currentUserRole);
 
@@ -128,7 +118,6 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         );
     }
 
-
     /// <summary>
     /// Cập nhật thông tin cơ bản của khóa học.
     /// </summary>
@@ -190,7 +179,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <response code="401">Chưa đăng nhập.</response>
     /// <response code="403">Không có quyền (Không phải tác giả khóa học).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
-    [Microsoft.AspNetCore.Authorization.Authorize]
+    [Authorize]
     [HttpPut("{id}/submit")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
@@ -198,13 +187,13 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SubmitCourse(Guid id)
     {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await courseService.SubmitCourseAsync(id, actorId);
+        var result = await courseService.SubmitCourseAsync(id, actorId.Value);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -222,7 +211,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <response code="401">Chưa đăng nhập.</response>
     /// <response code="403">Truy cập bị từ chối (Chỉ Admin/Moderator).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
+    [Authorize(Roles = "Admin,Moderator")]
     [HttpPut("{id}/approve")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
@@ -230,13 +219,13 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ApproveCourse(Guid id)
     {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await courseService.ApproveCourseAsync(id, actorId);
+        var result = await courseService.ApproveCourseAsync(id, actorId.Value);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -256,7 +245,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <response code="401">Chưa đăng nhập.</response>
     /// <response code="403">Truy cập bị từ chối (Chỉ Admin/Moderator).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
+    [Authorize(Roles = "Admin,Moderator")]
     [HttpPut("{id}/reject")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -265,18 +254,18 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RejectCourse(Guid id, [FromBody] RejectCourseDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto?.Reason))
+        if (string.IsNullOrWhiteSpace(dto.Reason))
         {
             return BadRequest(new ApiResponse<object>("Reason is required for rejection"));
         }
 
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await courseService.RejectCourseAsync(id, actorId, dto.Reason);
+        var result = await courseService.RejectCourseAsync(id, actorId.Value, dto.Reason);
         if (!result.IsSuccess)
         {
             return HandleError(result);

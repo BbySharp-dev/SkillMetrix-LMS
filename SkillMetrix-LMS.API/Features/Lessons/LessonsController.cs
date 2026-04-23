@@ -1,18 +1,12 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
-using System.Security.Claims;
 
 namespace SkillMetrix_LMS.API.Features.Lessons;
 
 /// <summary>
-/// Quản lý lesson thuộc một chapter và upload video cho lesson.
+/// Quản lý danh sách và tạo mới lesson thuộc một chapter.
 /// </summary>
-/// <remarks>
-/// Cung cấp API lấy lesson, tạo lesson và gắn video trực tiếp vào lesson theo chuẩn 1-step upload.
-/// </remarks>
 [Route("api/chapters/{chapterId}/lessons")]
-public class LessonsController(ILessonService lessonService) : BaseApiController
+public class ChapterLessonsController(ILessonService lessonService) : BaseApiController
 {
     /// <summary>
     /// Lấy danh sách lesson theo chapter.
@@ -27,10 +21,8 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     public async Task<IActionResult> GetLessons(Guid chapterId)
     {
         var result = await lessonService.GetLessonsByChapterAsync(chapterId);
-        if (!result.IsSuccess)
-        {
-            return HandleError(result);
-        }
+
+        if (!result.IsSuccess) return HandleError(result);
 
         return Ok(new ApiResponse<List<LessonResponseDto>>(result.Value!, "Lessons retrieved"));
     }
@@ -53,25 +45,29 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateLesson(Guid chapterId, CreateLessonDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (!actorId.HasValue || actorId.Value == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await lessonService.CreateLessonAsync(chapterId, dto, actorId);
-        if (!result.IsSuccess)
-        {
-            return HandleError(result);
-        }
+        var result = await lessonService.CreateLessonAsync(chapterId, dto, actorId.Value);
+
+        if (!result.IsSuccess) return HandleError(result);
 
         return Ok(new ApiResponse<LessonResponseDto>(result.Value!, "Lesson created"));
     }
+}
 
+/// <summary>
+/// Quản lý thao tác trực tiếp lên một lesson cụ thể (Update, Delete, Upload Video).
+/// </summary>
+[Route("api/lessons")]
+public class LessonsController(ILessonService lessonService) : BaseApiController
+{
     /// <summary>
     /// Cập nhật thông tin bài học.
     /// </summary>
-    /// <param name="chapterId">ID chapter chứa lesson.</param>
     /// <param name="id">ID của bài học cần cập nhật.</param>
     /// <param name="dto">Thông tin cần cập nhật.</param>
     /// <returns>Thông tin bài học sau khi cập nhật.</returns>
@@ -87,19 +83,17 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateLesson(Guid chapterId, Guid id, UpdateLessonDto dto)
+    public async Task<IActionResult> UpdateLesson(Guid id, UpdateLessonDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (!actorId.HasValue || actorId.Value == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await lessonService.UpdateLessonAsync(id, dto, actorId);
-        if (!result.IsSuccess)
-        {
-            return HandleError(result);
-        }
+        var result = await lessonService.UpdateLessonAsync(id, dto, actorId.Value);
+
+        if (!result.IsSuccess) return HandleError(result);
 
         return Ok(new ApiResponse<LessonResponseDto>(result.Value!, "Lesson updated"));
     }
@@ -107,7 +101,6 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     /// <summary>
     /// Xóa một bài học (xóa mềm).
     /// </summary>
-    /// <param name="chapterId">ID chapter chứa lesson.</param>
     /// <param name="id">ID của bài học cần xóa.</param>
     /// <returns>Trạng thái thực thi.</returns>
     /// <response code="200">Xóa bài học thành công.</response>
@@ -120,19 +113,17 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteLesson(Guid chapterId, Guid id)
+    public async Task<IActionResult> DeleteLesson(Guid id)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (!actorId.HasValue || actorId.Value == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await lessonService.DeleteLessonAsync(id, actorId);
-        if (!result.IsSuccess)
-        {
-            return HandleError(result);
-        }
+        var result = await lessonService.DeleteLessonAsync(id, actorId.Value);
+
+        if (!result.IsSuccess) return HandleError(result);
 
         return Ok(new ApiResponse<object?>(null, "Lesson deleted"));
     }
@@ -140,8 +131,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     /// <summary>
     /// Upload video và gắn trực tiếp vào lesson.
     /// </summary>
-    /// <param name="chapterId">ID chapter chứa lesson (phục vụ route ngữ cảnh).</param>
-    /// <param name="lessonId">ID lesson cần gắn video.</param>
+    /// <param name="id">ID lesson cần gắn video.</param>
     /// <param name="file">File video dạng multipart/form-data.</param>
     /// <returns>Lesson sau khi cập nhật video.</returns>
     /// <response code="200">Upload video thành công và lesson đã được cập nhật.</response>
@@ -150,7 +140,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     /// <response code="403">Không có quyền upload video cho lesson này.</response>
     /// <response code="404">Không tìm thấy lesson/chapter/course.</response>
     [Authorize(Policy = "RequireInstructorOrAdmin")]
-    [HttpPost("{lessonId}/video")]
+    [HttpPost("{id}/video")]
     [RequestSizeLimit(100_000_000)]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ApiResponse<LessonResponseDto>), StatusCodes.Status200OK)]
@@ -158,9 +148,9 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UploadLessonVideo(Guid chapterId, Guid lessonId, IFormFile file)
+    public async Task<IActionResult> UploadLessonVideo(Guid id, IFormFile file)
     {
-        if (file == null || file.Length == 0)
+        if (file.Length == 0)
         {
             return BadRequest(new ApiResponse<string>("No file uploaded."));
         }
@@ -173,17 +163,15 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             return BadRequest(new ApiResponse<string>($"Invalid file format. Allowed formats: {string.Join(", ", allowedExtensions)}"));
         }
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (!actorId.HasValue || actorId.Value == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await lessonService.UploadLessonVideoAsync(lessonId, file, actorId);
-        if (!result.IsSuccess)
-        {
-            return HandleError(result);
-        }
+        var result = await lessonService.UploadLessonVideoAsync(id, file, actorId.Value);
+
+        if (!result.IsSuccess) return HandleError(result);
 
         return Ok(new ApiResponse<LessonResponseDto>(result.Value!, "Lesson video uploaded"));
     }
