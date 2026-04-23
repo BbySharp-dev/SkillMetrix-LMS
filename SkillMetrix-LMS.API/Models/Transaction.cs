@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using SkillMetrix_LMS.API.Models.Enums;
 
 namespace SkillMetrix_LMS.API.Models;
@@ -11,6 +12,7 @@ public class Transaction
     public decimal Amount { get; set; }
     public TransactionType Type { get; set; }
     public TransactionStatus Status { get; set; }
+    [MaxLength(1000)]
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public User User { get; set; } = null!;
