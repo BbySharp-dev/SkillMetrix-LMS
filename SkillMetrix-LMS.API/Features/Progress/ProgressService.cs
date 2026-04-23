@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using SkillMetrix_LMS.API.Features.Progress.DTOs;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Progress;
 
@@ -35,7 +33,7 @@ public class ProgressService(ApplicationDbContext context) : IProgressService
 
         if (progress == null)
         {
-            progress = new Models.UserLessonProgress
+            progress = new UserLessonProgress
             {
                 UserId = userId,
                 LessonId = lessonId,

@@ -1,6 +1,6 @@
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
-namespace SkillMetrix_LMS.API.DTOs.Responses;
+namespace SkillMetrix_LMS.API.Features.Chapters.DTOs;
 
 public class ChapterWithLessonsDto
 {

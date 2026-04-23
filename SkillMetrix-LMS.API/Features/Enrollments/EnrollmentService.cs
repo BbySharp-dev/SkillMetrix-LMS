@@ -1,7 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Features.Courses;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Enrollments;
 

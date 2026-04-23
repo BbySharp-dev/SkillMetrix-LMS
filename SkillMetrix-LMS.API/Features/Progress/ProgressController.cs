@@ -1,7 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using SkillMetrix_LMS.API.Features.Progress.DTOs;
-using SkillMetrix_LMS.API.Shared.Common;
 
 namespace SkillMetrix_LMS.API.Features.Progress;
 

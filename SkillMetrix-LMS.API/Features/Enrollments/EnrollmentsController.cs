@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SkillMetrix_LMS.API.Features.Courses;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
-using System.Security.Claims;
 
 namespace SkillMetrix_LMS.API.Features.Enrollments;
 
@@ -13,15 +9,6 @@ namespace SkillMetrix_LMS.API.Features.Enrollments;
 [Route("api/enrollments")]
 public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseApiController
 {
-    /// <summary>
-    /// Lấy UserId từ JWT claim.
-    /// </summary>
-    private new Guid? GetCurrentUserId()
-    {
-        var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(raw, out var userId) ? userId : null;
-    }
-
     /// <summary>
     /// Lấy danh sách khóa học đã đăng ký của user hiện tại.
     /// </summary>

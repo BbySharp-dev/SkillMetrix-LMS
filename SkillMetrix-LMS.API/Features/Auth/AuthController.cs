@@ -1,6 +1,3 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using SkillMetrix_LMS.API.Features.Auth.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Auth;
@@ -93,14 +90,13 @@ public class AuthController(IAuthService authService) : BaseApiController
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(RefreshTokenDto dto)
     {
-        // Lấy userId từ JWT claims
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+        var userId = GetCurrentUserId();
+        if (userId is null)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await authService.LogoutAsync(userId, dto.RefreshToken);
+        var result = await authService.LogoutAsync(userId.Value, dto.RefreshToken);
 
         if (!result.IsSuccess)
         {

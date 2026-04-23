@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using SkillMetrix_LMS.API.Features.Transactions.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Transactions;

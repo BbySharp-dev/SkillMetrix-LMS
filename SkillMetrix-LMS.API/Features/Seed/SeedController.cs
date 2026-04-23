@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace SkillMetrix_LMS.API.Features.Seed;
 
 /// <summary>
