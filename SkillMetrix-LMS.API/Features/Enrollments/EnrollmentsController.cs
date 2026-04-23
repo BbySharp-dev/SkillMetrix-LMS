@@ -11,15 +11,8 @@ namespace SkillMetrix_LMS.API.Features.Enrollments;
 /// Tất cả endpoint yêu cầu xác thực JWT.
 /// </summary>
 [Route("api/enrollments")]
-public class EnrollmentsController : BaseApiController
+public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseApiController
 {
-    private readonly IEnrollmentService _enrollmentService;
-
-    public EnrollmentsController(IEnrollmentService enrollmentService)
-    {
-        _enrollmentService = enrollmentService;
-    }
-
     /// <summary>
     /// Lấy UserId từ JWT claim.
     /// </summary>
@@ -43,7 +36,7 @@ public class EnrollmentsController : BaseApiController
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await _enrollmentService.GetUserEnrollmentsAsync(userId.Value);
+        var result = await enrollmentService.GetUserEnrollmentsAsync(userId.Value);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -66,7 +59,7 @@ public class EnrollmentsController : BaseApiController
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await _enrollmentService.EnrollAsync(userId.Value, dto);
+        var result = await enrollmentService.EnrollAsync(userId.Value, dto);
         if (!result.IsSuccess)
             return HandleError(result);
 

@@ -4,18 +4,11 @@ using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Progress;
 
-public class ProgressService : IProgressService
+public class ProgressService(ApplicationDbContext context) : IProgressService
 {
-    private readonly ApplicationDbContext _context;
-
-    public ProgressService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<Result<LessonProgressDto>> UpdateLessonProgressAsync(Guid lessonId, Guid userId, UpdateProgressDto dto)
     {
-        var lesson = await _context.Lessons
+        var lesson = await context.Lessons
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == lessonId && !l.IsDeleted);
 
@@ -24,12 +17,12 @@ public class ProgressService : IProgressService
             return Result<LessonProgressDto>.NotFound("Lesson not found");
         }
 
-        var courseId = await _context.Chapters
+        var courseId = await context.Chapters
             .Where(ch => ch.Id == lesson.ChapterId)
             .Select(ch => ch.CourseId)
             .FirstOrDefaultAsync();
 
-        var isEnrolled = await _context.Enrollments
+        var isEnrolled = await context.Enrollments
             .AnyAsync(e => e.CourseId == courseId && e.UserId == userId);
 
         if (!isEnrolled)
@@ -37,7 +30,7 @@ public class ProgressService : IProgressService
             return Result<LessonProgressDto>.Forbidden("You are not enrolled in this course");
         }
 
-        var progress = await _context.UserLessonProgresses
+        var progress = await context.UserLessonProgresses
             .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId);
 
         if (progress == null)
@@ -51,7 +44,7 @@ public class ProgressService : IProgressService
                 LastUpdatedAt = DateTime.UtcNow
             };
 
-            _context.UserLessonProgresses.Add(progress);
+            context.UserLessonProgresses.Add(progress);
         }
         else
         {
@@ -66,7 +59,7 @@ public class ProgressService : IProgressService
             progress.CompletedAt = DateTime.UtcNow;
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new LessonProgressDto
         {
@@ -80,7 +73,7 @@ public class ProgressService : IProgressService
 
     public async Task<Result<LessonProgressDto>> GetLessonProgressAsync(Guid lessonId, Guid userId)
     {
-        var progress = await _context.UserLessonProgresses
+        var progress = await context.UserLessonProgresses
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId);
 
@@ -101,7 +94,7 @@ public class ProgressService : IProgressService
 
     public async Task<Result<CourseProgressDto>> GetCourseProgressAsync(Guid courseId, Guid userId)
     {
-        var isEnrolled = await _context.Enrollments
+        var isEnrolled = await context.Enrollments
             .AnyAsync(e => e.CourseId == courseId && e.UserId == userId);
 
         if (!isEnrolled)
@@ -109,12 +102,12 @@ public class ProgressService : IProgressService
             return Result<CourseProgressDto>.Forbidden("You are not enrolled in this course");
         }
 
-        var totalLessons = await _context.Chapters
+        var totalLessons = await context.Chapters
             .Where(ch => ch.CourseId == courseId && !ch.IsDeleted)
             .SelectMany(ch => ch.Lessons.Where(ls => !ls.IsDeleted))
             .CountAsync();
 
-        var completedLessons = await _context.UserLessonProgresses
+        var completedLessons = await context.UserLessonProgresses
             .Include(p => p.Lesson)
             .CountAsync(p =>
                 p.UserId == userId &&

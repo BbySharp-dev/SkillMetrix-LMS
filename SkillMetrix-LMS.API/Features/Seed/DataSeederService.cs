@@ -4,30 +4,17 @@ using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Seed;
 
-public class DataSeederService
+public class DataSeederService(
+    ApplicationDbContext context,
+    UserManager<User> userManager,
+    RoleManager<IdentityRole<Guid>> roleManager,
+    IWebHostEnvironment environment)
 {
     public const string DefaultPassword = "Password@123";
 
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-    private readonly IWebHostEnvironment _environment;
-
-    public DataSeederService(
-        ApplicationDbContext context,
-        UserManager<User> userManager,
-        RoleManager<IdentityRole<Guid>> roleManager,
-        IWebHostEnvironment environment)
-    {
-        _context = context;
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _environment = environment;
-    }
-
     public async Task<Result<SeedSummaryDto>> ResetAndSeedStrictAsync()
     {
-        if (!_environment.IsDevelopment())
+        if (!environment.IsDevelopment())
             return Result<SeedSummaryDto>.Forbidden("Seed API is allowed only in Development mode.");
 
         await ResetAllDataInternalAsync();
@@ -54,7 +41,7 @@ public class DataSeederService
 
     public async Task<Result> ResetAllDataAsync()
     {
-        if (!_environment.IsDevelopment())
+        if (!environment.IsDevelopment())
             return Result.Forbidden("Seed API is allowed only in Development mode.");
 
         await ResetAllDataInternalAsync();
@@ -63,23 +50,23 @@ public class DataSeederService
 
     private async Task ResetAllDataInternalAsync()
     {
-        _context.UserLessonProgresses.RemoveRange(_context.UserLessonProgresses);
-        _context.Transactions.RemoveRange(_context.Transactions);
-        _context.Enrollments.RemoveRange(_context.Enrollments);
-        _context.RefreshTokens.RemoveRange(_context.RefreshTokens);
-        _context.Lessons.RemoveRange(_context.Lessons);
-        _context.Chapters.RemoveRange(_context.Chapters);
-        _context.Courses.RemoveRange(_context.Courses);
+        context.UserLessonProgresses.RemoveRange(context.UserLessonProgresses);
+        context.Transactions.RemoveRange(context.Transactions);
+        context.Enrollments.RemoveRange(context.Enrollments);
+        context.RefreshTokens.RemoveRange(context.RefreshTokens);
+        context.Lessons.RemoveRange(context.Lessons);
+        context.Chapters.RemoveRange(context.Chapters);
+        context.Courses.RemoveRange(context.Courses);
 
-        _context.UserTokens.RemoveRange(_context.UserTokens);
-        _context.UserLogins.RemoveRange(_context.UserLogins);
-        _context.UserClaims.RemoveRange(_context.UserClaims);
-        _context.UserRoles.RemoveRange(_context.UserRoles);
-        _context.RoleClaims.RemoveRange(_context.RoleClaims);
-        _context.Roles.RemoveRange(_context.Roles);
-        _context.Users.RemoveRange(_context.Users);
+        context.UserTokens.RemoveRange(context.UserTokens);
+        context.UserLogins.RemoveRange(context.UserLogins);
+        context.UserClaims.RemoveRange(context.UserClaims);
+        context.UserRoles.RemoveRange(context.UserRoles);
+        context.RoleClaims.RemoveRange(context.RoleClaims);
+        context.Roles.RemoveRange(context.Roles);
+        context.Users.RemoveRange(context.Users);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     private async Task EnsureRolesAsync()
@@ -94,10 +81,10 @@ public class DataSeederService
 
         foreach (var roleName in roleNames)
         {
-            if (await _roleManager.RoleExistsAsync(roleName))
+            if (await roleManager.RoleExistsAsync(roleName))
                 continue;
 
-            var createRoleResult = await _roleManager.CreateAsync(new IdentityRole<Guid>
+            var createRoleResult = await roleManager.CreateAsync(new IdentityRole<Guid>
             {
                 Id = Guid.NewGuid(),
                 Name = roleName,
@@ -134,14 +121,14 @@ public class DataSeederService
 
         foreach (var user in users)
         {
-            var createResult = await _userManager.CreateAsync(user, DefaultPassword);
+            var createResult = await userManager.CreateAsync(user, DefaultPassword);
             if (!createResult.Succeeded)
             {
                 var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Create user '{user.Email}' failed: {errors}");
             }
 
-            var addRoleResult = await _userManager.AddToRoleAsync(user, user.Role.ToString());
+            var addRoleResult = await userManager.AddToRoleAsync(user, user.Role.ToString());
             if (!addRoleResult.Succeeded)
             {
                 var errors = string.Join(", ", addRoleResult.Errors.Select(e => e.Description));
@@ -249,10 +236,10 @@ public class DataSeederService
             }
         }
 
-        _context.Courses.AddRange(courses);
-        _context.Chapters.AddRange(chapters);
-        _context.Lessons.AddRange(lessons);
-        await _context.SaveChangesAsync();
+        context.Courses.AddRange(courses);
+        context.Chapters.AddRange(chapters);
+        context.Lessons.AddRange(lessons);
+        await context.SaveChangesAsync();
 
         var publishedCourses = courses.Where(c => c.Status == CourseStatus.Published).OrderBy(c => c.CreatedAt).ToList();
 
@@ -318,10 +305,10 @@ public class DataSeederService
             }
         }
 
-        _context.Enrollments.AddRange(enrollments);
-        _context.Transactions.AddRange(transactions);
-        _context.UserLessonProgresses.AddRange(progresses);
-        await _context.SaveChangesAsync();
+        context.Enrollments.AddRange(enrollments);
+        context.Transactions.AddRange(transactions);
+        context.UserLessonProgresses.AddRange(progresses);
+        await context.SaveChangesAsync();
 
         return new SeedSummaryDto
         {

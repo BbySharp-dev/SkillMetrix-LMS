@@ -14,8 +14,6 @@ namespace SkillMetrix_LMS.API.Features.Chapters;
 [Route("api/courses/{courseId}/chapters")]
 public class ChaptersController(IChapterService chapterService) : BaseApiController
 {
-    private readonly IChapterService _chapterService = chapterService;
-
     /// <summary>
     /// Lấy danh sách chapter của một khóa học.
     /// </summary>
@@ -28,7 +26,7 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetChapters(Guid courseId)
     {
-        var result = await _chapterService.GetChaptersByCourseAsync(courseId);
+        var result = await chapterService.GetChaptersByCourseAsync(courseId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -61,7 +59,7 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _chapterService.CreateChapterAsync(courseId, dto, actorId);
+        var result = await chapterService.CreateChapterAsync(courseId, dto, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -97,7 +95,7 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _chapterService.UpdateChapterAsync(id, dto, actorId);
+        var result = await chapterService.UpdateChapterAsync(id, dto, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -132,7 +130,7 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _chapterService.DeleteChapterAsync(id, actorId);
+        var result = await chapterService.DeleteChapterAsync(id, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -168,7 +166,7 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _chapterService.ReorderChapterAsync(courseId, id, dto, actorId);
+        var result = await chapterService.ReorderChapterAsync(courseId, id, dto, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);

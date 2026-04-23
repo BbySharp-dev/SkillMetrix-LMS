@@ -9,16 +9,9 @@ namespace SkillMetrix_LMS.API.Features.Courses;
 /// Quản lý CRUD khóa học.
 /// </summary>
 [Route("api/[controller]")]
-public class CoursesController : BaseApiController
+public class CoursesController(ICourseService courseService, IChapterService chapterService)
+    : BaseApiController
 {
-    private readonly ICourseService _courseService;
-    private readonly IChapterService _chapterService;
-    public CoursesController(ICourseService courseService, IChapterService chapterService)
-    {
-        _courseService = courseService;
-        _chapterService = chapterService;
-    }
-
     /// <summary>
     /// Lấy danh sách tất cả khóa học.
     /// </summary>
@@ -38,7 +31,7 @@ public class CoursesController : BaseApiController
         [FromQuery] int pageSize = 10)
     {
         query ??= new CourseQueryDto(); // Đảm bảo không bị null
-        var result = await _courseService.GetCoursesAsync(pageNumber, pageSize, query);
+        var result = await courseService.GetCoursesAsync(pageNumber, pageSize, query);
 
         if (!result.IsSuccess)
         {
@@ -74,7 +67,7 @@ public class CoursesController : BaseApiController
 
         currentUserRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
-        var result = await _courseService.GetCourseByIdAsync(id, currentUserId, currentUserRole);
+        var result = await courseService.GetCourseByIdAsync(id, currentUserId, currentUserRole);
 
         if (!result.IsSuccess)
         {
@@ -96,7 +89,7 @@ public class CoursesController : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurriculum(Guid id)
     {
-        var result = await _chapterService.GetCurriculumAsync(id);
+        var result = await chapterService.GetCurriculumAsync(id);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -121,7 +114,7 @@ public class CoursesController : BaseApiController
     {
         // FluentValidation tự động validate, nếu invalid trả về 400 Bad Request
 
-        var result = await _courseService.CreateCourseAsync(dto);
+        var result = await courseService.CreateCourseAsync(dto);
 
         if (!result.IsSuccess)
         {
@@ -151,7 +144,7 @@ public class CoursesController : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCourse(Guid id, UpdateCourseDto dto)
     {
-        var result = await _courseService.UpdateCourseAsync(id, dto);
+        var result = await courseService.UpdateCourseAsync(id, dto);
 
         if (!result.IsSuccess)
         {
@@ -178,7 +171,7 @@ public class CoursesController : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteCourse(Guid id)
     {
-        var result = await _courseService.DeleteCourseAsync(id);
+        var result = await courseService.DeleteCourseAsync(id);
 
         if (!result.IsSuccess)
         {
@@ -211,7 +204,7 @@ public class CoursesController : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _courseService.SubmitCourseAsync(id, actorId);
+        var result = await courseService.SubmitCourseAsync(id, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -243,7 +236,7 @@ public class CoursesController : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _courseService.ApproveCourseAsync(id, actorId);
+        var result = await courseService.ApproveCourseAsync(id, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -283,7 +276,7 @@ public class CoursesController : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _courseService.RejectCourseAsync(id, actorId, dto.Reason);
+        var result = await courseService.RejectCourseAsync(id, actorId, dto.Reason);
         if (!result.IsSuccess)
         {
             return HandleError(result);

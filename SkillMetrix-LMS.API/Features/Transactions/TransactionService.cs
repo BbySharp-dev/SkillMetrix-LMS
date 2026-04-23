@@ -4,17 +4,11 @@ using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Transactions;
 
-public class TransactionService : ITransactionService
+public class TransactionService(ApplicationDbContext context) : ITransactionService
 {
-    private readonly ApplicationDbContext _context;
-    public TransactionService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<Result<List<TransactionResponseDto>>> GetUserTransactionsAsync(Guid userId)
     {
-        var transactions = await _context.Transactions
+        var transactions = await context.Transactions
             .Include(t => t.Course)
             .Where(t => t.UserId == userId)
             .OrderByDescending(t => t.CreatedAt)

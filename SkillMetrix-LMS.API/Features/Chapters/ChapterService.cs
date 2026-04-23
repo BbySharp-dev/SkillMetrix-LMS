@@ -7,17 +7,11 @@ using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Chapters;
 
-public class ChapterService : IChapterService
+public class ChapterService(ApplicationDbContext context) : IChapterService
 {
-    private readonly ApplicationDbContext _context;
-    public ChapterService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<Result<List<ChapterResponseDto>>> GetChaptersByCourseAsync(Guid courseId)
     {
-        var chapters = await _context.Chapters
+        var chapters = await context.Chapters
             .Where(ch => ch.CourseId == courseId && !ch.IsDeleted)
             .OrderBy(ch => ch.OrderIndex)
             .AsNoTracking()
@@ -38,7 +32,7 @@ public class ChapterService : IChapterService
 
     public async Task<Result<ChapterResponseDto>> CreateChapterAsync(Guid courseId, CreateChapterDto dto, Guid actorId)
     {
-        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
 
         if (course == null)
         {
@@ -47,14 +41,14 @@ public class ChapterService : IChapterService
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result<ChapterResponseDto>.Forbidden("You are not allowed to manage chapters of this course");
             }
         }
 
-        var oderIndex = await _context.Chapters
+        var oderIndex = await context.Chapters
             .Where(ch => ch.CourseId == courseId && !ch.IsDeleted)
             .CountAsync() + 1;
 
@@ -68,8 +62,8 @@ public class ChapterService : IChapterService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Chapters.Add(chapter);
-        await _context.SaveChangesAsync();
+        context.Chapters.Add(chapter);
+        await context.SaveChangesAsync();
 
         return new ChapterResponseDto
         {
@@ -84,14 +78,14 @@ public class ChapterService : IChapterService
 
     public async Task<Result<ChapterResponseDto>> UpdateChapterAsync(Guid id, UpdateChapterDto dto, Guid actorId)
     {
-        var chapter = await _context.Chapters.FirstOrDefaultAsync(ch => ch.Id == id && !ch.IsDeleted);
+        var chapter = await context.Chapters.FirstOrDefaultAsync(ch => ch.Id == id && !ch.IsDeleted);
 
         if (chapter == null)
         {
             return Result<ChapterResponseDto>.NotFound("Chapter not found");
         }
 
-        var course = await _context.Courses.FirstOrDefaultAsync(ch => ch.Id == chapter.CourseId && !ch.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(ch => ch.Id == chapter.CourseId && !ch.IsDeleted);
 
         if (course == null)
         {
@@ -100,7 +94,7 @@ public class ChapterService : IChapterService
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result<ChapterResponseDto>.Forbidden("You are not allowed to update this chapter");
@@ -118,7 +112,7 @@ public class ChapterService : IChapterService
         }
 
         chapter.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new ChapterResponseDto
         {
@@ -134,14 +128,14 @@ public class ChapterService : IChapterService
 
     public async Task<Result> DeleteChapterAsync(Guid id, Guid actorId)
     {
-        var chapter = await _context.Chapters.FirstOrDefaultAsync(ch => ch.Id == id && !ch.IsDeleted);
+        var chapter = await context.Chapters.FirstOrDefaultAsync(ch => ch.Id == id && !ch.IsDeleted);
 
         if (chapter == null)
         {
             return Result.NotFound("Chapter not found");
         }
 
-        var course = await _context.Courses.FirstOrDefaultAsync(ch => ch.Id == chapter.CourseId && !ch.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(ch => ch.Id == chapter.CourseId && !ch.IsDeleted);
 
         if (course == null)
         {
@@ -150,7 +144,7 @@ public class ChapterService : IChapterService
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result.Forbidden("You are not allowed to delete this chapter");
@@ -159,14 +153,14 @@ public class ChapterService : IChapterService
 
         chapter.IsDeleted = true;
         chapter.DeletedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     public async Task<(Course? Course, bool CanManage)> GetCourseForManagementAsync(Guid courseId, Guid actorId)
     {
-        var course = await _context.Courses
+        var course = await context.Courses
         .AsNoTracking()
         .FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
 
@@ -180,7 +174,7 @@ public class ChapterService : IChapterService
             return (course, true);
         }
 
-        var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+        var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
         return (course, actor?.Role == UserRole.Admin);
     }
 
@@ -197,7 +191,7 @@ public class ChapterService : IChapterService
             return Result.Forbidden("You are not allowed to reorder this course");
         }
 
-        var chapters = await _context.Chapters
+        var chapters = await context.Chapters
             .Where(ch => ch.CourseId == courseId && !ch.IsDeleted)
             .OrderBy(ch => ch.OrderIndex)
             .ToListAsync();
@@ -222,13 +216,13 @@ public class ChapterService : IChapterService
             chapters[i].OrderIndex = i + 1;
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return Result.Success();
     }
 
     public async Task<Result<List<ChapterWithLessonsDto>>> GetCurriculumAsync(Guid courseId)
     {
-        var chapter = await _context.Chapters
+        var chapter = await context.Chapters
             .Where(ch => ch.CourseId == courseId && !ch.IsDeleted)
             .Include(ch => ch.Lessons)
             .OrderBy(ch => ch.OrderIndex)
