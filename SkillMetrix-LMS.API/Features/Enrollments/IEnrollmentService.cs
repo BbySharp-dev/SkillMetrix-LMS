@@ -1,6 +1,6 @@
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
 
-namespace SkillMetrix_LMS.API.Features.Courses;
+namespace SkillMetrix_LMS.API.Features.Enrollments;
 
 public interface IEnrollmentService
 {

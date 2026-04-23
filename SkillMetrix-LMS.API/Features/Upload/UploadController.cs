@@ -14,8 +14,6 @@ namespace SkillMetrix_LMS.API.Features.Upload;
 [Route("api/[controller]")]
 public class UploadController(IFileUploadService uploadService) : BaseApiController
 {
-    private readonly IFileUploadService _uploadService = uploadService;
-
     /// <summary>
     /// Upload ảnh lên cloud storage.
     /// </summary>
@@ -31,7 +29,7 @@ public class UploadController(IFileUploadService uploadService) : BaseApiControl
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UploadImage(IFormFile file)
+    public async Task<IActionResult> UploadImage(IFormFile? file)
     {
         if (file == null || file.Length == 0)
         {
@@ -47,7 +45,7 @@ public class UploadController(IFileUploadService uploadService) : BaseApiControl
                 $"Invalid file format. Allowed formats: {string.Join(", ", allowedExtensions)}"));
         }
 
-        var result = await _uploadService.UploadImageAsync(file, "skillmetrix/images");
+        var result = await uploadService.UploadImageAsync(file, "skillmetrix/images");
         if (!result.IsSuccess)
         {
             return HandleError(result);

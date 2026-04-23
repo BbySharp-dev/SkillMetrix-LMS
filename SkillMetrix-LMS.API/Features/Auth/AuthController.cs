@@ -6,15 +6,8 @@ using SkillMetrix_LMS.API.Features.Auth.DTOs;
 namespace SkillMetrix_LMS.API.Features.Auth;
 
 [Route("api/[controller]")]
-public class AuthController : BaseApiController
+public class AuthController(IAuthService authService) : BaseApiController
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     /// <summary>
     /// Đăng ký tài khoản mới.
     /// </summary>
@@ -28,7 +21,7 @@ public class AuthController : BaseApiController
         // FluentValidation tự động validate (RegisterDtoValidator)
         // Nếu invalid → trả về 400 Bad Request trước khi vào đây
 
-        var result = await _authService.RegisterAsync(dto);
+        var result = await authService.RegisterAsync(dto);
 
         if (!result.IsSuccess)
         {
@@ -52,7 +45,7 @@ public class AuthController : BaseApiController
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var result = await _authService.LoginAsync(dto);
+        var result = await authService.LoginAsync(dto);
 
         if (!result.IsSuccess)
         {
@@ -76,7 +69,7 @@ public class AuthController : BaseApiController
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
     {
-        var result = await _authService.RefreshTokenAsync(dto);
+        var result = await authService.RefreshTokenAsync(dto);
 
         if (!result.IsSuccess)
         {
@@ -107,7 +100,7 @@ public class AuthController : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _authService.LogoutAsync(userId, dto.RefreshToken);
+        var result = await authService.LogoutAsync(userId, dto.RefreshToken);
 
         if (!result.IsSuccess)
         {
