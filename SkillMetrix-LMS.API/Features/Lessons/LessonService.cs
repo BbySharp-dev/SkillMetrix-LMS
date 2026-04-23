@@ -8,11 +8,9 @@ namespace SkillMetrix_LMS.API.Features.Lessons;
 
 public class LessonService(ApplicationDbContext context, IFileUploadService uploadService) : ILessonService
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly IFileUploadService _uploadService = uploadService;
     public async Task<Result<List<LessonResponseDto>>> GetLessonsByChapterAsync(Guid chapterId)
     {
-        var lesson = await _context.Lessons
+        var lesson = await context.Lessons
             .Where(ls => ls.ChapterId == chapterId && !ls.IsDeleted)
             .OrderBy(ls => ls.OrderIndex)
             .AsNoTracking()
@@ -35,14 +33,14 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
     }
     public async Task<Result<LessonResponseDto>> CreateLessonAsync(Guid chapterId, CreateLessonDto dto, Guid actorId)
     {
-        var chapter = await _context.Chapters.FirstOrDefaultAsync(ch => ch.Id == chapterId && !ch.IsDeleted);
+        var chapter = await context.Chapters.FirstOrDefaultAsync(ch => ch.Id == chapterId && !ch.IsDeleted);
 
         if (chapter == null)
         {
             return Result<LessonResponseDto>.NotFound("Chapter not found");
         }
 
-        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == chapter.CourseId && !c.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == chapter.CourseId && !c.IsDeleted);
 
         if (course == null)
         {
@@ -51,14 +49,14 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result<LessonResponseDto>.Forbidden("You are not allowed to manage lessons of this course");
             }
         }
 
-        var orderIndex = await _context.Lessons
+        var orderIndex = await context.Lessons
             .Where(ls => ls.ChapterId == chapterId && !ls.IsDeleted).CountAsync() + 1;
 
         var lesson = new Lesson
@@ -72,8 +70,8 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             OrderIndex = orderIndex,
             CreatedAt = DateTime.UtcNow
         };
-        _context.Lessons.Add(lesson);
-        await _context.SaveChangesAsync();
+        context.Lessons.Add(lesson);
+        await context.SaveChangesAsync();
 
         return new LessonResponseDto
         {
@@ -91,19 +89,19 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
     public async Task<Result<LessonResponseDto>> UpdateLessonAsync(Guid id, UpdateLessonDto dto, Guid actorId)
     {
-        var lesson = await _context.Lessons.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted);
+        var lesson = await context.Lessons.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted);
         if (lesson == null)
         {
             return Result<LessonResponseDto>.NotFound("Lesson not found");
         }
 
-        var chapter = await _context.Chapters.FirstOrDefaultAsync(ch => ch.Id == lesson.ChapterId && !ch.IsDeleted);
+        var chapter = await context.Chapters.FirstOrDefaultAsync(ch => ch.Id == lesson.ChapterId && !ch.IsDeleted);
         if (chapter == null)
         {
             return Result<LessonResponseDto>.NotFound("Lesson not found");
         }
 
-        var course = await _context.Courses
+        var course = await context.Courses
            .FirstOrDefaultAsync(c => c.Id == chapter.CourseId && !c.IsDeleted);
 
         if (course == null)
@@ -113,7 +111,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result<LessonResponseDto>.Forbidden("You are not allowed to update this lesson");
@@ -142,7 +140,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         }
 
         lesson.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new LessonResponseDto
         {
@@ -164,7 +162,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             return Result<LessonResponseDto>.ValidationError("No file uploaded.");
         }
 
-        var lesson = await _context.Lessons
+        var lesson = await context.Lessons
             .FirstOrDefaultAsync(ls => ls.Id == lessonId && !ls.IsDeleted);
 
         if (lesson == null)
@@ -172,7 +170,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             return Result<LessonResponseDto>.NotFound("Lesson not found");
         }
 
-        var chapter = await _context.Chapters
+        var chapter = await context.Chapters
             .FirstOrDefaultAsync(ch => ch.Id == lesson.ChapterId && !ch.IsDeleted);
 
         if (chapter == null)
@@ -180,7 +178,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             return Result<LessonResponseDto>.NotFound("Chapter not found");
         }
 
-        var course = await _context.Courses
+        var course = await context.Courses
             .FirstOrDefaultAsync(c => c.Id == chapter.CourseId && !c.IsDeleted);
 
         if (course == null)
@@ -190,7 +188,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result<LessonResponseDto>.Forbidden("You are not allowed to upload video for this lesson");
@@ -198,7 +196,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         }
 
         var folder = $"skillmetrix/courses/{course.Id}/chapters/{chapter.Id}/lessons/{lesson.Id}/videos";
-        var uploadResult = await _uploadService.UploadVideoAsync(file, folder);
+        var uploadResult = await uploadService.UploadVideoAsync(file, folder);
         if (!uploadResult.IsSuccess)
         {
             return Result<LessonResponseDto>.Failure(uploadResult.ErrorMessage ?? "Upload failed", uploadResult.ErrorType);
@@ -206,7 +204,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
         lesson.VideoUrl = uploadResult.Value;
         lesson.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new LessonResponseDto
         {
@@ -223,7 +221,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
     }
     public async Task<Result> DeleteLessonAsync(Guid id, Guid actorId)
     {
-        var lesson = await _context.Lessons
+        var lesson = await context.Lessons
             .FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted);
 
         if (lesson == null)
@@ -231,7 +229,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             return Result.NotFound("Lesson not found");
         }
 
-        var chapter = await _context.Chapters
+        var chapter = await context.Chapters
             .FirstOrDefaultAsync(ch => ch.Id == lesson.ChapterId && !ch.IsDeleted);
 
         if (chapter == null)
@@ -239,7 +237,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             return Result.NotFound("Chapter not found");
         }
 
-        var course = await _context.Courses
+        var course = await context.Courses
             .FirstOrDefaultAsync(c => c.Id == chapter.CourseId && !c.IsDeleted);
 
         if (course == null)
@@ -249,7 +247,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
         if (course.InstructorId != actorId)
         {
-            var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+            var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
             if (actor?.Role != UserRole.Admin)
             {
                 return Result.Forbidden("You are not allowed to delete this lesson");
@@ -258,7 +256,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
 
         lesson.IsDeleted = true;
         lesson.DeletedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }

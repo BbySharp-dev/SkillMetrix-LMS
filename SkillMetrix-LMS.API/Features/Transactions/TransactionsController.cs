@@ -9,15 +9,8 @@ namespace SkillMetrix_LMS.API.Features.Transactions;
 /// Tất cả endpoint yêu cầu xác thực JWT.
 /// </summary>
 [Route("api/transactions")]
-public class TransactionsController : BaseApiController
+public class TransactionsController(ITransactionService transactionService) : BaseApiController
 {
-    private readonly ITransactionService _transactionService;
-
-    public TransactionsController(ITransactionService transactionService)
-    {
-        _transactionService = transactionService;
-    }
-
     /// <summary>
     /// Lấy danh sách giao dịch của user hiện tại, sắp xếp mới nhất lên trước.
     /// </summary>
@@ -32,7 +25,7 @@ public class TransactionsController : BaseApiController
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await _transactionService.GetUserTransactionsAsync(userId.Value);
+        var result = await transactionService.GetUserTransactionsAsync(userId.Value);
         if (!result.IsSuccess)
             return HandleError(result);
 

@@ -6,22 +6,15 @@ namespace SkillMetrix_LMS.API.Features.Seed;
 /// api seed dữ liệu dev (chỉ dùng trong môi trường phát triển).
 /// </summary>
 [Route("api/dev/seed")]
-public class SeedController : BaseApiController
+public class SeedController(DataSeederService dataSeederService) : BaseApiController
 {
-    private readonly DataSeederService _dataSeederService;
-
-    public SeedController(DataSeederService dataSeederService)
-    {
-        _dataSeederService = dataSeederService;
-    }
-
     /// <summary>
     /// seed dữ liệu mẫu (strict relational).
     /// </summary>
     [HttpPost("strict")]
     public async Task<IActionResult> SeedStrict()
     {
-        var result = await _dataSeederService.ResetAndSeedStrictAsync();
+        var result = await dataSeederService.ResetAndSeedStrictAsync();
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -34,7 +27,7 @@ public class SeedController : BaseApiController
     [HttpDelete("reset")]
     public async Task<IActionResult> Reset()
     {
-        var result = await _dataSeederService.ResetAllDataAsync();
+        var result = await dataSeederService.ResetAllDataAsync();
         if (!result.IsSuccess)
             return HandleError(result);
 

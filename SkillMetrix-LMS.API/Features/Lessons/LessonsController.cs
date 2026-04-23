@@ -14,8 +14,6 @@ namespace SkillMetrix_LMS.API.Features.Lessons;
 [Route("api/chapters/{chapterId}/lessons")]
 public class LessonsController(ILessonService lessonService) : BaseApiController
 {
-    private readonly ILessonService _lessonService = lessonService;
-
     /// <summary>
     /// Lấy danh sách lesson theo chapter.
     /// </summary>
@@ -28,7 +26,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLessons(Guid chapterId)
     {
-        var result = await _lessonService.GetLessonsByChapterAsync(chapterId);
+        var result = await lessonService.GetLessonsByChapterAsync(chapterId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -61,7 +59,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _lessonService.CreateLessonAsync(chapterId, dto, actorId);
+        var result = await lessonService.CreateLessonAsync(chapterId, dto, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -97,7 +95,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _lessonService.UpdateLessonAsync(id, dto, actorId);
+        var result = await lessonService.UpdateLessonAsync(id, dto, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -130,7 +128,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _lessonService.DeleteLessonAsync(id, actorId);
+        var result = await lessonService.DeleteLessonAsync(id, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -181,7 +179,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await _lessonService.UploadLessonVideoAsync(lessonId, file, actorId);
+        var result = await lessonService.UploadLessonVideoAsync(lessonId, file, actorId);
         if (!result.IsSuccess)
         {
             return HandleError(result);

@@ -10,15 +10,8 @@ namespace SkillMetrix_LMS.API.Features.Progress;
 /// Tất cả endpoint yêu cầu xác thực JWT.
 /// </summary>
 [Route("api")]
-public class ProgressController : BaseApiController
+public class ProgressController(IProgressService progressService) : BaseApiController
 {
-    private readonly IProgressService _progressService;
-
-    public ProgressController(IProgressService progressService)
-    {
-        _progressService = progressService;
-    }
-
     /// <summary>
     /// Lấy tiến độ học của user cho một bài học cụ thể.
     /// </summary>
@@ -35,7 +28,7 @@ public class ProgressController : BaseApiController
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await _progressService.GetLessonProgressAsync(lessonId, userId.Value);
+        var result = await progressService.GetLessonProgressAsync(lessonId, userId.Value);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -61,7 +54,7 @@ public class ProgressController : BaseApiController
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await _progressService.UpdateLessonProgressAsync(lessonId, userId.Value, dto);
+        var result = await progressService.UpdateLessonProgressAsync(lessonId, userId.Value, dto);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -86,7 +79,7 @@ public class ProgressController : BaseApiController
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await _progressService.GetCourseProgressAsync(courseId, userId.Value);
+        var result = await progressService.GetCourseProgressAsync(courseId, userId.Value);
         if (!result.IsSuccess)
             return HandleError(result);
 

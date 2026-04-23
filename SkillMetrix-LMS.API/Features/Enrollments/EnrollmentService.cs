@@ -1,20 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using SkillMetrix_LMS.API.Features.Courses;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
 using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
-namespace SkillMetrix_LMS.API.Features.Courses;
+namespace SkillMetrix_LMS.API.Features.Enrollments;
 
-public class EnrollmentService : IEnrollmentService
+public class EnrollmentService(ApplicationDbContext context) : IEnrollmentService
 {
-    private readonly ApplicationDbContext _context;
-
-    public EnrollmentService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
     public async Task<Result<EnrollmentResponseDto>> EnrollAsync(Guid userId, CreateEnrollmentDto dto)
     {
-        var course = await _context.Courses
+        var course = await context.Courses
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == dto.CourseId && !c.IsDeleted);
 
@@ -28,7 +23,7 @@ public class EnrollmentService : IEnrollmentService
             return Result<EnrollmentResponseDto>.BusinessRule("Course is not published");
         }
 
-        var exists = await _context.Enrollments
+        var exists = await context.Enrollments
             .AnyAsync(e => e.UserId == userId && e.CourseId == dto.CourseId);
 
         if (exists)
@@ -45,7 +40,7 @@ public class EnrollmentService : IEnrollmentService
             EnrolledAt = DateTime.UtcNow
         };
 
-        _context.Enrollments.Add(enrollment);
+        context.Enrollments.Add(enrollment);
 
         if (course.Price > 0)
         {
@@ -62,10 +57,10 @@ public class EnrollmentService : IEnrollmentService
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.Transactions.Add(transaction);
+            context.Transactions.Add(transaction);
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new EnrollmentResponseDto
         {
@@ -79,7 +74,7 @@ public class EnrollmentService : IEnrollmentService
 
     public async Task<Result<List<EnrollmentResponseDto>>> GetUserEnrollmentsAsync(Guid userId)
     {
-        var enrollments = await _context.Enrollments
+        var enrollments = await context.Enrollments
             .Include(e => e.Course)
             .Where(e => e.UserId == userId)
             .OrderByDescending(e => e.EnrolledAt)

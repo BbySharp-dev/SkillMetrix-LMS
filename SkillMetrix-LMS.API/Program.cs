@@ -15,6 +15,7 @@ using SkillMetrix_LMS.API.Features.Seed;
 using SkillMetrix_LMS.API.Features.Auth;
 using SkillMetrix_LMS.API.Features.Courses;
 using SkillMetrix_LMS.API.Features.Chapters;
+using SkillMetrix_LMS.API.Features.Enrollments;
 using SkillMetrix_LMS.API.Features.Lessons;
 using SkillMetrix_LMS.API.Features.Upload;
 using SkillMetrix_LMS.API.Features.Transactions;
