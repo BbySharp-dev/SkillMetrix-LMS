@@ -1,10 +1,15 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SkillMetrix_LMS.API.Models;
 
 public class Quiz
 {
     public Guid Id { get; set; }
     public Guid CourseId { get; set; }
+    [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
+
+    [MaxLength(2000)]
     public string? Description { get; set; }
     public decimal PassingScore { get; set; } = 70;
     public int? TimeLimitMinutes { get; set; }

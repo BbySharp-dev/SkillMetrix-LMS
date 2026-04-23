@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using SkillMetrix_LMS.API.Models.Enums;
 
 namespace SkillMetrix_LMS.API.Models;
 
@@ -39,7 +38,7 @@ public class Course
     public decimal? Rating { get; set; }
 
     public int? DurationMinutes { get; set; }
-    public bool IsDeleted { get; set; } = false;
+    public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }
 

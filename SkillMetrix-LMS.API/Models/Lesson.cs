@@ -1,11 +1,18 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SkillMetrix_LMS.API.Models;
 
 public class Lesson
 {
     public Guid Id { get; set; }
     public Guid ChapterId { get; set; }
+    [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
+
+    [MaxLength(2000)]
     public string? Description { get; set; }
+
+    [MaxLength(500)]
     public string? VideoUrl { get; set; }
     public int DurationSeconds { get; set; }
     public bool IsFreePreview { get; set; }
