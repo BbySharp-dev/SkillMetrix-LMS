@@ -36,7 +36,7 @@ public class Result<T>
         => Failure(errorMessage, ErrorType.Conflict);
 
     public static Result<T> BusinessRule(string errorMessage)
-        => Failure(errorMessage, ErrorType.BusinessRule);
+        => Failure(errorMessage);
 
     // ─── Implicit operators ───────────────────────────────────────
     public static implicit operator Result<T>(T value) => Success(value);
@@ -74,5 +74,5 @@ public class Result
         => Failure(errorMessage, ErrorType.Conflict);
 
     public static Result BusinessRule(string errorMessage)
-        => Failure(errorMessage, ErrorType.BusinessRule);
+        => Failure(errorMessage);
 }

@@ -1,9 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SkillMetrix_LMS.API.Models;
 
 public class QuizOption
 {
     public Guid Id { get; set; }
     public Guid QuestionId { get; set; }
+    [MaxLength(1000)]
     public string Content { get; set; } = string.Empty;
     public bool IsCorrect { get; set; }
     public int OrderIndex { get; set; }

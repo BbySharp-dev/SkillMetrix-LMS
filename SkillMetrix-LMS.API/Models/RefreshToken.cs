@@ -1,9 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SkillMetrix_LMS.API.Models;
 
 public class RefreshToken
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    [MaxLength(500)]
     public string Token { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
     public bool Revoked { get; set; }
