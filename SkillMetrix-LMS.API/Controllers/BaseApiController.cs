@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace SkillMetrix_LMS.API.Controllers;
@@ -64,7 +63,7 @@ public abstract class BaseApiController : ControllerBase
             ErrorType.Unauthorized => Unauthorized(new ApiResponse<object>(message)),        // 401
             ErrorType.Forbidden => StatusCode(403, new ApiResponse<object>(message)),     // 403
             ErrorType.Conflict => Conflict(new ApiResponse<object>(message)),            // 409
-            ErrorType.BusinessRule => UnprocessableEntity(new ApiResponse<object>(message)), // 422 
+            ErrorType.BusinessRule => UnprocessableEntity(new ApiResponse<object>(message)), // 422
             _ => StatusCode(500, new ApiResponse<object>(message))      // 500
         };
 }

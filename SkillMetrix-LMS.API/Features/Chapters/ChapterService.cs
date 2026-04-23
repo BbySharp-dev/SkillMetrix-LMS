@@ -1,8 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 using SkillMetrix_LMS.API.Features.Chapters.DTOs;
-using SkillMetrix_LMS.API.DTOs.Responses;
-using Microsoft.AspNetCore.Http.HttpResults;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Chapters;
@@ -255,4 +251,3 @@ public class ChapterService(ApplicationDbContext context) : IChapterService
         return dto;
     }
 }
-

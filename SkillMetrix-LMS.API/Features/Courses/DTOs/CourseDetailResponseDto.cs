@@ -1,4 +1,4 @@
-using SkillMetrix_LMS.API.DTOs.Responses;
+using SkillMetrix_LMS.API.Features.Chapters.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Courses.DTOs;
 

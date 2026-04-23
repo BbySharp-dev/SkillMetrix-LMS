@@ -1,7 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using SkillMetrix_LMS.API.Features.Chapters.DTOs;
-using System.Security.Claims;
 
 namespace SkillMetrix_LMS.API.Features.Chapters;
 
@@ -53,13 +50,13 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateChapter(Guid courseId, CreateChapterDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await chapterService.CreateChapterAsync(courseId, dto, actorId);
+        var result = await chapterService.CreateChapterAsync(courseId, dto, actorId.Value);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -89,13 +86,13 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateChapter(Guid courseId, Guid id, UpdateChapterDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await chapterService.UpdateChapterAsync(id, dto, actorId);
+        var result = await chapterService.UpdateChapterAsync(id, dto, actorId.Value);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -124,13 +121,13 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteChapter(Guid courseId, Guid id)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await chapterService.DeleteChapterAsync(id, actorId);
+        var result = await chapterService.DeleteChapterAsync(id, actorId.Value);
         if (!result.IsSuccess)
         {
             return HandleError(result);
@@ -160,13 +157,13 @@ public class ChaptersController(IChapterService chapterService) : BaseApiControl
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReorderChapter(Guid courseId, Guid id, ReorderDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+        var actorId = GetCurrentUserId();
+        if (actorId is null || actorId == Guid.Empty)
         {
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await chapterService.ReorderChapterAsync(courseId, id, dto, actorId);
+        var result = await chapterService.ReorderChapterAsync(courseId, id, dto, actorId.Value);
         if (!result.IsSuccess)
         {
             return HandleError(result);

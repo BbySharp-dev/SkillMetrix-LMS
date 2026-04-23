@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using SkillMetrix_LMS.API.Features.Transactions.DTOs;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Transactions;
 

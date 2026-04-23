@@ -1,27 +1,16 @@
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
 using SkillMetrix_LMS.API.Features.Chapters;
-using SkillMetrix_LMS.API.DTOs.Responses;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
+using SkillMetrix_LMS.API.Features.Chapters.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Courses;
 
-public class CourseService : ICourseService
+public class CourseService(ApplicationDbContext context, IChapterService chapterService)
+    : ICourseService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ILogger<CourseService> _logger;
-    private readonly IChapterService _chapterService;
 
-    public CourseService(ApplicationDbContext context, ILogger<CourseService> logger, IChapterService chapterService)
-    {
-        _context = context;
-        _logger = logger;
-        _chapterService = chapterService;
-    }
     public async Task<Result<PagedResponse<List<CourseResponseDto>>>> GetCoursesAsync(int pageNumber, int pageSize, CourseQueryDto query)
     {
-        var baseQuery = _context.Courses
+        var baseQuery = context.Courses
             .Include(c => c.Instructor)
             .Where(c => !c.IsDeleted);
 
@@ -67,16 +56,16 @@ public class CourseService : ICourseService
             .Take(pageSize)
             .AsNoTracking()
             .ToListAsync();
-            
+
         var courseIds = courses.Select(c => c.Id).ToList();
 
-        var chapterCounts = await _context.Chapters
+        var chapterCounts = await context.Chapters
             .Where(ch => courseIds.Contains(ch.CourseId) && !ch.IsDeleted)
             .GroupBy(ch => ch.CourseId)
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.CourseId, x => x.Count);
 
-        var enrollmentCounts = await _context.Enrollments
+        var enrollmentCounts = await context.Enrollments
             .Where(e => courseIds.Contains(e.CourseId))
             .GroupBy(e => e.CourseId)
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
@@ -112,7 +101,7 @@ public class CourseService : ICourseService
 
     public async Task<Result<CourseResponseDto>> GetCourseByIdAsync(Guid id, Guid? currentUserId = null, string? currentUserRole = null)
     {
-        var course = await _context.Courses
+        var course = await context.Courses
             .Where(c => !c.IsDeleted)
             .Include(c => c.Instructor)
             .AsNoTracking()
@@ -132,10 +121,10 @@ public class CourseService : ICourseService
             return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
         }
 
-        var chapterCount = await _context.Chapters
+        var chapterCount = await context.Chapters
             .CountAsync(ch => ch.CourseId == id && !ch.IsDeleted);
 
-        var enrollmentCount = await _context.Enrollments
+        var enrollmentCount = await context.Enrollments
             .CountAsync(e => e.CourseId == id);
         var courseDto = new CourseResponseDto
         {
@@ -156,7 +145,7 @@ public class CourseService : ICourseService
 
     public async Task<Result<CourseResponseDto>> CreateCourseAsync(CreateCourseDto dto)
     {
-        var instructor = await _context.Users
+        var instructor = await context.Users
             .FirstOrDefaultAsync(u => u.Id == dto.InstructorId
                 && (u.Role == UserRole.Instructor || u.Role == UserRole.Admin));
 
@@ -177,8 +166,8 @@ public class CourseService : ICourseService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Courses.Add(course);
-        await _context.SaveChangesAsync();
+        context.Courses.Add(course);
+        await context.SaveChangesAsync();
 
         var courseDto = new CourseResponseDto
         {
@@ -200,7 +189,7 @@ public class CourseService : ICourseService
 
     public async Task<Result<CourseResponseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto)
     {
-        var course = await _context.Courses
+        var course = await context.Courses
             .Where(c => !c.IsDeleted)
             .Include(c => c.Instructor)
             .FirstOrDefaultAsync(c => c.Id == id);
@@ -212,12 +201,12 @@ public class CourseService : ICourseService
 
         if (course.Status == CourseStatus.Published && dto.Price.HasValue && dto.Price.Value != course.Price)
         {
-            return Result<CourseResponseDto>.Failure("Cannot change price for a published course", ErrorType.BusinessRule);
+            return Result<CourseResponseDto>.Failure("Cannot change price for a published course");
         }
 
         if (dto.InstructorId.HasValue && dto.InstructorId.Value != course.InstructorId)
         {
-            var newInstructor = await _context.Users
+            var newInstructor = await context.Users
                 .FirstOrDefaultAsync(u => u.Id == dto.InstructorId.Value
                     && (u.Role == UserRole.Instructor || u.Role == UserRole.Admin));
 
@@ -252,15 +241,13 @@ public class CourseService : ICourseService
 
         course.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
-        var chapterCountTask = _context.Chapters
+        var chapterCount = await context.Chapters
             .CountAsync(ch => ch.CourseId == id && !ch.IsDeleted);
 
-        var enrollmentCountTask = _context.Enrollments
+        var enrollmentCount = await context.Enrollments
             .CountAsync(e => e.CourseId == id);
-
-        await Task.WhenAll(chapterCountTask, enrollmentCountTask);
 
         var courseDto = new CourseResponseDto
         {
@@ -270,8 +257,8 @@ public class CourseService : ICourseService
             Price = course.Price,
             Thumbnail = course.Thumbnail,
             InstructorName = course.Instructor.FullName,
-            ChapterCount = chapterCountTask.Result,
-            EnrollmentCount = enrollmentCountTask.Result,
+            ChapterCount = chapterCount,
+            EnrollmentCount = enrollmentCount,
             Status = course.Status.ToString(),
             CreatedAt = course.CreatedAt
         };
@@ -281,7 +268,7 @@ public class CourseService : ICourseService
 
     public async Task<Result> DeleteCourseAsync(Guid id)
     {
-        var course = await _context.Courses
+        var course = await context.Courses
             .Where(c => !c.IsDeleted)
             .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -290,7 +277,7 @@ public class CourseService : ICourseService
             return Result.NotFound($"Course with ID {id} not found");
         }
 
-        var hasEnrollments = await _context.Enrollments
+        var hasEnrollments = await context.Enrollments
             .AnyAsync(e => e.CourseId == id);
 
         if (hasEnrollments)
@@ -298,18 +285,17 @@ public class CourseService : ICourseService
             return Result.Failure("Cannot delete course with existing enrollments", ErrorType.Conflict);
         }
 
-
         course.IsDeleted = true;
         course.DeletedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     public async Task<Result<CourseDetailResponseDto>> GetCourseDetailAsync(Guid id)
     {
-        var course = await _context.Courses
+        var course = await context.Courses
             .Include(c => c.Instructor)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
@@ -319,7 +305,7 @@ public class CourseService : ICourseService
             return Result<CourseDetailResponseDto>.NotFound("Course not found");
         }
 
-        var curriculumnResult = await _chapterService.GetCurriculumAsync(id);
+        var curriculumnResult = await chapterService.GetCurriculumAsync(id);
         var curriculumn = curriculumnResult.IsSuccess
             ? curriculumnResult.Value!
             : new List<ChapterWithLessonsDto>();
@@ -341,7 +327,7 @@ public class CourseService : ICourseService
 
     public async Task<Result> SubmitCourseAsync(Guid id, Guid actorId)
     {
-        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (course == null)
         {
             return Result.NotFound("Course not found");
@@ -354,20 +340,20 @@ public class CourseService : ICourseService
 
         course.Status = CourseStatus.Pending;
         course.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     public async Task<Result> ApproveCourseAsync(Guid id, Guid actorId)
     {
-        var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+        var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
         if (actor?.Role != UserRole.Moderator && actor?.Role != UserRole.Admin)
         {
             return Result.Forbidden("Only Moderator/Admin can approve courses");
         }
 
-        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (course == null)
         {
             return Result.NotFound("Course not found");
@@ -376,20 +362,20 @@ public class CourseService : ICourseService
         course.Status = CourseStatus.Published;
         course.PublishedAt = DateTime.UtcNow;
         course.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     public async Task<Result> RejectCourseAsync(Guid id, Guid actorId, string reason)
     {
-        var actor = await _context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
+        var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
         if (actor?.Role != UserRole.Moderator && actor?.Role != UserRole.Admin)
         {
             return Result.Forbidden("Only Moderator/Admin can reject courses");
         }
 
-        var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (course == null)
         {
             return Result.NotFound("Course not found");
@@ -397,7 +383,7 @@ public class CourseService : ICourseService
 
         course.Status = CourseStatus.Rejected;
         course.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }

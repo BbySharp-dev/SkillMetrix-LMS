@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
 namespace SkillMetrix_LMS.API.Features.Seed;
 
@@ -73,10 +71,10 @@ public class DataSeederService(
     {
         var roleNames = new[]
         {
-            UserRole.Admin.ToString(),
-            UserRole.Moderator.ToString(),
-            UserRole.Instructor.ToString(),
-            UserRole.Student.ToString()
+            nameof(UserRole.Admin),
+            nameof(UserRole.Moderator),
+            nameof(UserRole.Instructor),
+            nameof(UserRole.Student)
         };
 
         foreach (var roleName in roleNames)
@@ -184,7 +182,6 @@ public class DataSeederService(
                 courses.Add(course);
 
                 var chapterCount = 3 + (courseSlot % 2); // 3 or 4
-                var lessonCounter = 0;
                 var lessonsForCourse = new List<Lesson>();
 
                 for (var chapterIndex = 1; chapterIndex <= chapterCount; chapterIndex++)
@@ -207,7 +204,6 @@ public class DataSeederService(
                     var lessonCount = 4 + (chapterIndex % 2); // 4 or 5
                     for (var lessonIndex = 1; lessonIndex <= lessonCount; lessonIndex++)
                     {
-                        lessonCounter++;
                         var duration = 420 + rng.Next(0, 901); // 7 - 22 phút
                         var lessonCreatedAt = chapterCreatedAt.AddMinutes(lessonIndex * 3);
 
