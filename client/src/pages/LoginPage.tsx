@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { authApi } from '../api/authApi';
-import { useAuthStore } from '../stores/authStore';
-import { loginSchema, type LoginFormValues } from './login.schema';
+import { authApi } from '@/api/authApi';
+import { useAuthStore } from '@/stores/authStore';
+import { loginSchema, type LoginFormValues } from '@/pages/login.schema';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -13,17 +13,23 @@ export default function LoginPage() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
     });
 
     const onSubmit = async (values: LoginFormValues) => {
-        const result = await authApi.login(values);
-        setAuth(result.accessToken, result.refreshToken, result.user);
+        try {
+            const result = await authApi.login(values);
+            setAuth(result.accessToken, result.refreshToken, result.user);
 
-        const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
-        navigate(from ?? '/dashboard', { replace: true });
+            const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+            navigate(from ?? '/dashboard', { replace: true });
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+            setError('root', { message });
+        }
     };
 
     return (
@@ -38,6 +44,12 @@ export default function LoginPage() {
                 <label className="block mb-2">Mật khẩu</label>
                 <input type="password" className="w-full border rounded px-3 py-2 mb-1" {...register('password')} />
                 {errors.password && <p className="text-red-500 text-sm mb-3">{errors.password.message}</p>}
+
+                {errors.root && (
+                    <div className="bg-red-50 text-red-500 p-3 rounded mb-4 text-sm border border-red-200">
+                        {errors.root.message}
+                    </div>
+                )}
 
                 <button disabled={isSubmitting} className="w-full bg-indigo-600 text-white py-2 rounded mt-2">
                     {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}

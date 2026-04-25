@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../api/authApi';
-import { useAuthStore } from '../stores/authStore';
-import { registerSchema, type RegisterFormValues } from './register.schema';
+import { authApi } from '@/api/authApi';
+import { useAuthStore } from '@/stores/authStore';
+import { registerSchema, type RegisterFormValues } from '@/pages/register.schema';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -12,16 +12,21 @@ export default function RegisterPage() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
     });
 
     const onSubmit = async (values: RegisterFormValues) => {
-        // Backend yêu cầu cả confirmPassword trong body register
-        const result = await authApi.register(values);
-        setAuth(result.accessToken, result.refreshToken, result.user);
-        navigate('/dashboard', { replace: true });
+        try {
+            const result = await authApi.register(values);
+            setAuth(result.accessToken, result.refreshToken, result.user);
+            navigate('/dashboard', { replace: true });
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Đăng ký thất bại. Email có thể đã tồn tại.';
+            setError('root', { message });
+        }
     };
 
     return (
@@ -44,6 +49,12 @@ export default function RegisterPage() {
                 <label className="block mb-2">Nhập lại mật khẩu</label>
                 <input type="password" className="w-full border rounded px-3 py-2 mb-1" {...register('confirmPassword')} />
                 {errors.confirmPassword && <p className="text-red-500 text-sm mb-3">{errors.confirmPassword.message}</p>}
+
+                {errors.root && (
+                    <div className="bg-red-50 text-red-500 p-3 rounded mb-4 text-sm border border-red-200">
+                        {errors.root.message}
+                    </div>
+                )}
 
                 <button disabled={isSubmitting} className="w-full bg-indigo-600 text-white py-2 rounded mt-2">
                     {isSubmitting ? 'Đang xử lý...' : 'Tạo tài khoản'}
