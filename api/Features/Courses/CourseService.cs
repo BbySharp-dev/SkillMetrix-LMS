@@ -21,6 +21,10 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
                 baseQuery = baseQuery.Where(c => c.Status == status);
             }
         }
+        else
+        {
+            baseQuery = baseQuery.Where(c => c.Status == CourseStatus.Published);
+        }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
