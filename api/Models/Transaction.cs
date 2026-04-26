@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using SkillMetrix_LMS.API.Models.Enums;
 
 namespace SkillMetrix_LMS.API.Models;
 
