@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { appRouter } from '@/routes/AppRouter';
 import { useAuthStore } from '@/stores/authStore';
 import './index.css';
+import 'preline';
 
 useAuthStore.getState().hydrateFromStorage();
 

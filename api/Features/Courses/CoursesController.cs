@@ -23,7 +23,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <returns>Danh sách khóa học có phân trang.</returns>
     /// <response code="200">Lấy danh sách khóa học thành công.</response>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<CourseResponseDto>>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<List<CourseResponseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourses(
         [FromQuery] CourseQueryDto query,
         [FromQuery] int pageNumber = 1,
@@ -36,10 +36,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
             return HandleError(result);
         }
 
-        return Ok(new ApiResponse<PagedResponse<List<CourseResponseDto>>>(
-            result.Value!,
-            "Courses retrieved successfully"
-        ));
+        return Ok(result.Value);
     }
 
     /// <summary>
