@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import CourseCard from '../components/CourseCard';
 import CourseFilters, { type CourseFilterState } from '../components/CourseFilters';
 import Pagination from '@/components/ui/Pagination';
-import CourseCardSkeleton from '@/components/ui/CourseCardSkeleton';
+import CourseCardSkeleton from '../components/CourseCardSkeleton';
 import { useCourses } from '@/features/courses/hooks/useCourses';
 
 const PAGE_SIZE = 9;

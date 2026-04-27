@@ -1,5 +1,5 @@
-import type { ApiResponse } from '@/types/api';
-import type { TransactionDto } from '../types/transaction';
+import type { ApiResponse } from '@/shared/api';
+import type { TransactionDto } from '../types';
 import api from '@/lib/axios';
 
 export const transactionApi = {

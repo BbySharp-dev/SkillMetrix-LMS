@@ -12,6 +12,12 @@ import CoursesPage from '@/features/courses/pages/CoursesPage';
 import LoginPage from '@/features/auth/pages/LoginPage';
 import RegisterPage from '@/features/auth/pages/RegisterPage';
 import MainLayout from '@/layouts/MainLayout';
+import TransactionsPage from '@/features/transactions/pages/TransactionsPage';
+import EnrollmentsPage from '@/features/enrollments/pages/EnrollmentsPage';
+import UsersPage from '@/features/admin/pages/UsersPage';
+import ApprovalsPage from '@/features/admin/pages/ApprovalsPage';
+import SettingsPage from '@/features/admin/pages/SettingsPage';
+import InstructorCoursesPage from '@/features/courses/pages/InstructorCoursesPage';
 
 export const appRouter = createBrowserRouter([
     {
@@ -35,6 +41,8 @@ export const appRouter = createBrowserRouter([
                 element: <DashboardLayout />,
                 children: [
                     { index: true, element: <DashboardHomePage /> },
+                    { path: 'my-enrollments', element: <EnrollmentsPage /> },
+                    { path: 'my-transactions', element: <TransactionsPage /> },
                 ],
             },
             {
@@ -43,7 +51,10 @@ export const appRouter = createBrowserRouter([
                     {
                         path: '/dashboard/instructor',
                         element: <DashboardLayout />,
-                        children: [{ index: true, element: <InstructorDashboardPage /> }],
+                        children: [
+                            { index: true, element: <InstructorDashboardPage /> },
+                            { path: 'courses', element: <InstructorCoursesPage /> },
+                        ],
                     },
                 ],
             },
@@ -53,7 +64,12 @@ export const appRouter = createBrowserRouter([
                     {
                         path: '/dashboard/admin',
                         element: <DashboardLayout />,
-                        children: [{ index: true, element: <AdminDashboardPage /> }],
+                        children: [
+                            { index: true, element: <AdminDashboardPage /> },
+                            { path: 'users', element: <UsersPage /> },
+                            { path: 'approvals', element: <ApprovalsPage /> },
+                            { path: 'settings', element: <SettingsPage /> },
+                        ],
                     },
                 ],
             },

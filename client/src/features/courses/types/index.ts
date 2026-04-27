@@ -1,17 +1,5 @@
-export interface PaginationMetadata {
-    pageNumber: number;
-    pageSize: number;
-    totalRecords: number;
-    totalPages: number;
-}
-
-export interface ApiResponse<T> extends PaginationMetadata {
-    success: boolean;
-    message: string | null;
-    data: T | null;
-    errors?: string[] | null;
-    timestamp:string;
-}
+export type { ApiResponse, PaginatedApiResponse } from '@/shared/api';
+export type { PaginationMetadata } from '@/shared/api';
 
 export interface CourseListItem {
     id: string;

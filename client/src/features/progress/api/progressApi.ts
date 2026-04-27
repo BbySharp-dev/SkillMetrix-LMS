@@ -1,5 +1,5 @@
-import type { ApiResponse } from '@/types/api';
-import type { LessonProgressDto, CourseProgressSummary } from '../types/progress';
+import type { ApiResponse } from '@/shared/api';
+import type { LessonProgressDto, CourseProgressSummary } from '../types';
 import api from '@/lib/axios';
 
 export const progressApi = {

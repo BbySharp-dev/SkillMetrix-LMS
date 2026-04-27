@@ -1,13 +1,14 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
-import { loginSchema, type LoginFormValues } from '@/schemas/auth.schema';
+import { loginSchema, type LoginFormValues } from '../schemas';
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const setAuth = useAuthStore((s) => s.setAuth);
 
     const {
@@ -24,8 +25,9 @@ export default function LoginPage() {
             const result = await authApi.login(values);
             setAuth(result.accessToken, result.refreshToken, result.user);
 
-            const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
-            navigate(from ?? '/dashboard', { replace: true });
+            const stateFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+            const returnUrl = searchParams.get('returnUrl');
+            navigate(returnUrl ?? stateFrom ?? '/dashboard', { replace: true });
         } catch (error) {
             const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Đăng nhập thất bại.';
             setError('root', { message });

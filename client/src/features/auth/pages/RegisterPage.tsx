@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
-import { registerSchema, type RegisterFormValues } from '@/schemas/auth.schema';
+import { registerSchema, type RegisterFormValues } from '../schemas';
 
 export default function RegisterPage() {
     const navigate = useNavigate();

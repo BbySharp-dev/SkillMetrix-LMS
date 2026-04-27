@@ -4,7 +4,7 @@ import type {
     CourseListItem,
     CourseQueryParams,
     ChapterWithLessonsDto,
-} from '@/types/course';
+} from '../types';
 import api from '@/lib/axios';
 
 export const courseApi = {

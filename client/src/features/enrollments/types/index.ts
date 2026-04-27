@@ -1,5 +1,3 @@
-// ─── Enrollment Types ─────────────────────────────────────────────────────────
-
 export interface EnrollmentCourseInfo {
     id: string;
     title: string;
