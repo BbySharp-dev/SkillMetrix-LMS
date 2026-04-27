@@ -1,17 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom';
-import MainLayout from '@/layouts/MainLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PrivateRoute from '@/routes/PrivateRoute';
 import RoleRoute from '@/routes/RoleRoute';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import ForbiddenPage from '@/pages/ForbiddenPage';
-import DashboardHomePage from '@/pages/dashboard/DashboardHomePage';
-import HomePage from '@/pages/HomePage';
-import InstructorDashboardPage from '@/pages/dashboard/InstructorDashboardPage';
-import AdminDashboardPage from '@/pages/dashboard/AdminDashboardPage';
-import CourseDetailPage from "@/pages/CourseDetailPage";
-import CoursesPage from "@/pages/CoursesPage";
+import ForbiddenPage from '@/features/home/pages/ForbiddenPage';
+import DashboardHomePage from '@/features/dashboard/pages/DashboardHomePage';
+import HomePage from '@/features/home/pages/HomePage';
+import InstructorDashboardPage from '@/features/dashboard/pages/InstructorDashboardPage';
+import AdminDashboardPage from '@/features/dashboard/pages/AdminDashboardPage';
+import CourseDetailPage from '@/features/courses/pages/CourseDetailPage';
+import CoursesPage from '@/features/courses/pages/CoursesPage';
+import LoginPage from '@/features/auth/pages/LoginPage';
+import RegisterPage from '@/features/auth/pages/RegisterPage';
+import MainLayout from '@/layouts/MainLayout';
 
 export const appRouter = createBrowserRouter([
     {

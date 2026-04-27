@@ -1,5 +1,5 @@
-import type {Role} from "../types/auth.ts";
-import {useAuthStore} from "../stores/authStore.ts";
+import type { Role } from '@/features/auth/types/auth';
+import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import {Navigate, Outlet} from "react-router-dom";
 
 interface RoleRouteProps {
