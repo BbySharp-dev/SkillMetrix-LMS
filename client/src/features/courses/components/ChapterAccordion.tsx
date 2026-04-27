@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { ChapterWithLessonsDto } from '@/types/course';
+import type { ChapterWithLessonsDto } from '../types';
 import LessonItem from './LessonItem';
 
 interface ChapterAccordionProps {

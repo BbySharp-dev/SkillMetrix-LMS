@@ -1,5 +1,5 @@
-import type { ApiResponse } from '@/types/api';
-import type { EnrollmentDto } from '../types/enrollment';
+import type { ApiResponse } from '@/shared/api';
+import type { EnrollmentDto } from '../types';
 import api from '@/lib/axios';
 
 export const enrollmentApi = {

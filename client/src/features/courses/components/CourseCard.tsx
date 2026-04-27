@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import type { CourseListItem } from '@/types/course';
+import type { CourseListItem } from '../types';
 
 interface CourseCardProps {
     course: CourseListItem;

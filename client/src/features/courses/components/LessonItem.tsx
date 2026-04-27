@@ -1,4 +1,4 @@
-import type { LessonDto } from '@/types/course';
+import type { LessonDto } from '../types';
 
 interface LessonItemProps {
     lesson: LessonDto;

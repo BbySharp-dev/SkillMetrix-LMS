@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { enrollmentApi } from '@/features/enrollments/api/enrollmentApi';
-import type { EnrollmentDto } from '@/features/enrollments/types/enrollment';
+import { enrollmentApi } from '../api/enrollmentApi';
+import type { EnrollmentDto } from '../types';
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('vi-VN', {

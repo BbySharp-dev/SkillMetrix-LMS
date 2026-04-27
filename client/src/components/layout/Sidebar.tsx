@@ -14,6 +14,12 @@ export default function Sidebar() {
                 <NavLink to="/dashboard" end className={linkClass}>
                     Tổng quan
                 </NavLink>
+                <NavLink to="/dashboard/my-enrollments" className={linkClass}>
+                    Khóa học của tôi
+                </NavLink>
+                <NavLink to="/dashboard/my-transactions" className={linkClass}>
+                    Giao dịch
+                </NavLink>
                 <NavLink to="/dashboard/instructor" className={linkClass}>
                     Instructor
                 </NavLink>
