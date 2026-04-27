@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import Header from "../components/Header.tsx";
+import Header from '@/features/auth/components/Header';
 
 export default function MainLayout() {
     return (
