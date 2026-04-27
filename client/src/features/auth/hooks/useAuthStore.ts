@@ -1,4 +1,4 @@
-import type { CurrentUser } from '../types/auth';
+import type { CurrentUser } from '../types';
 import { create } from 'zustand';
 import { storage } from '../utils/storage';
 

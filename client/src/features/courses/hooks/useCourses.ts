@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { courseApi } from '../api/courseApi';
-import type { CourseQueryParams } from '@/types/course';
+import type { CourseQueryParams } from '../types';
 
 export const courseQueryKeys = {
     all: ['courses'] as const,

@@ -1,12 +1,34 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useCourseCurriculum, useCourseDetail } from '@/features/courses/hooks/useCourses';
+import { enrollmentApi } from '@/features/enrollments/api/enrollmentApi';
+import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import ChapterAccordion from '../components/ChapterAccordion';
 
 export default function CourseDetailPage() {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const [isEnrolling, setIsEnrolling] = useState(false);
 
     const { data, isLoading, isError, error } = useCourseDetail(id);
     const { data: curriculum } = useCourseCurriculum(id);
+
+    const handleEnroll = async () => {
+        if (!isAuthenticated) {
+            navigate(`/login?returnUrl=/courses/${id}`);
+            return;
+        }
+
+        if (!id) return;
+        setIsEnrolling(true);
+        try {
+            await enrollmentApi.enroll(id);
+            navigate(`/dashboard/my-enrollments`);
+        } catch {
+            setIsEnrolling(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -65,8 +87,12 @@ export default function CourseDetailPage() {
                 <p className="text-2xl font-bold text-gray-900 mb-4">
                     {data.price <= 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price)}
                 </p>
-                <button className="w-full py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">
-                    Đăng ký ngay
+                <button
+                    onClick={handleEnroll}
+                    disabled={isEnrolling}
+                    className="w-full py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold transition-colors"
+                >
+                    {isEnrolling ? 'Đang xử lý...' : 'Đăng ký ngay'}
                 </button>
             </aside>
         </div>

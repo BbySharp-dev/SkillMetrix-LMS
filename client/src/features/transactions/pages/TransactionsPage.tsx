@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { transactionApi } from '@/features/transactions/api/transactionApi';
-import type { TransactionDto } from '@/features/transactions/types/transaction';
+import { transactionApi } from '../api/transactionApi';
+import type { TransactionDto } from '../types';
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('vi-VN', {
