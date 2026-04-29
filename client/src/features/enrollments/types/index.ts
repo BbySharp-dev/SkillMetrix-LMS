@@ -11,9 +11,14 @@ export interface EnrollmentDto {
     id: string;
     userId: string;
     courseId: string;
+    courseTitle: string;
+    courseThumbnail?: string;
+    instructorName: string;
     pricePaid: number;
     enrolledAt: string;
-    course?: EnrollmentCourseInfo;
+    totalLessons: number;
+    completedLessons: number;
+    completionPercent: number;
 }
 
 export interface EnrollmentCourseProgress {

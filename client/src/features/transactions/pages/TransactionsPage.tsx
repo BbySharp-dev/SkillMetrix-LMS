@@ -1,99 +1,34 @@
 import { useQuery } from '@tanstack/react-query';
+import { ArrowUpCircle, ArrowDownCircle, ShoppingBag, History, AlertCircle, CreditCard } from 'lucide-react';
 import { transactionApi } from '../api/transactionApi';
 import type { TransactionDto } from '../types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency, formatDate } from '@/lib/utils';
 
-function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('vi-VN', {
-        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
-}
+// ============================================================
+// Types
+// ============================================================
+type TxStatusInfo = { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' }
 
-function formatPrice(amount: number) {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency', currency: 'VND',
-        minimumFractionDigits: 0,
-    }).format(amount);
-}
+// ============================================================
+// Constants — dùng số làm keys vì backend trả về numeric enum
+// ============================================================
+const TX_TYPES: Record<number, { label: string; iconColor: string; iconBg: string }> = {
+    1: { label: 'Nạp tiền', iconColor: 'text-success', iconBg: 'bg-success/10' },
+    2: { label: 'Rút tiền', iconColor: 'text-destructive', iconBg: 'bg-destructive/10' },
+    3: { label: 'Mua khóa học', iconColor: 'text-primary', iconBg: 'bg-primary/10' },
+};
 
-function statusBadge(status: string) {
-    switch (status) {
-        case 'Completed': return 'badge-success';
-        case 'Pending':   return 'badge-warning';
-        case 'Failed':    return 'badge-error';
-        case 'Cancelled': return 'badge-gray';
-        default:           return 'badge-gray';
-    }
-}
-
-function typeIcon(type: string) {
-    switch (type) {
-        case 'Purchase': return (
-            <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
-            </div>
-        );
-        case 'Deposit': return (
-            <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-            </div>
-        );
-        case 'Withdraw': return (
-            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 1 0 7h5a3.5 3.5 0 0 0 0 7H6" />
-                </svg>
-            </div>
-        );
-        default: return null;
-    }
-}
-
-function TransactionRow({ tx }: { tx: TransactionDto }) {
-    return (
-        <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-            <td className="py-3.5 px-4">
-                <div className="flex items-center gap-3">
-                    {typeIcon(tx.type)}
-                    <div>
-                        <p className="font-medium text-gray-900 text-sm">{tx.type}</p>
-                        <p className="text-xs text-gray-400">{formatDate(tx.createdAt)}</p>
-                    </div>
-                </div>
-            </td>
-            <td className="py-3.5 px-4 text-sm text-gray-600">
-                {tx.courseTitle ?? tx.description ?? '—'}
-            </td>
-            <td className="py-3.5 px-4">
-                <span className={`badge ${statusBadge(tx.status)}`}>{tx.status}</span>
-            </td>
-            <td className={`py-3.5 px-4 text-sm font-semibold text-right ${tx.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {tx.amount >= 0 ? '+' : ''}{formatPrice(tx.amount)}
-            </td>
-        </tr>
-    );
-}
-
-function EmptyState() {
-    return (
-        <div className="card p-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Chưa có giao dịch nào</h3>
-            <p className="text-gray-500">Lịch sử giao dịch sẽ hiển thị tại đây khi bạn mua khóa học.</p>
-        </div>
-    );
-}
+const TX_STATUSES: Record<number, TxStatusInfo> = {
+    0: { label: 'Chờ xử lý', variant: 'warning' },
+    1: { label: 'Đang xử lý', variant: 'warning' },
+    2: { label: 'Thành công', variant: 'success' },
+    3: { label: 'Thất bại', variant: 'destructive' },
+    4: { label: 'Đã hủy', variant: 'secondary' },
+};
 
 export default function TransactionsPage() {
     const { data, isLoading, isError } = useQuery({
@@ -104,50 +39,111 @@ export default function TransactionsPage() {
     const transactions = data?.data ?? [];
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Giao dịch</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                    {isLoading ? 'Đang tải...' : `${transactions.length} giao dịch`}
-                </p>
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                        <History size={28} className="text-primary" />
+                        Lịch sử giao dịch
+                    </h1>
+                    <p className="text-muted-foreground font-medium">
+                        Xem lại tất cả các giao dịch nạp tiền, rút tiền và mua khóa học của bạn.
+                    </p>
+                </div>
             </div>
 
             {isError && (
-                <div className="card p-4 border-red-200 bg-red-50 text-red-600">
-                    Không thể tải lịch sử giao dịch. Vui lòng thử lại.
-                </div>
+                <Card className="border-destructive/20 bg-destructive/5 shadow-sm">
+                    <CardContent className="flex items-center gap-3 p-4">
+                        <AlertCircle size={20} className="text-destructive shrink-0" />
+                        <span className="text-sm font-medium text-destructive">Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.</span>
+                    </CardContent>
+                </Card>
             )}
 
-            {isLoading ? (
-                <div className="card overflow-hidden">
-                    <div className="h-12 bg-gray-50 animate-pulse" />
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-16 border-t border-gray-100 animate-pulse" />
-                    ))}
-                </div>
-            ) : transactions.length === 0 ? (
-                <EmptyState />
-            ) : (
-                <div className="card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-gray-100 bg-gray-50/50">
-                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Loại</th>
-                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Mô tả</th>
-                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Trạng thái</th>
-                                    <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Số tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {transactions.map((tx: TransactionDto) => (
-                                    <TransactionRow key={tx.id} tx={tx} />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+            <Card className="overflow-hidden rounded-2xl shadow-sm border">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="hover:bg-transparent border-b">
+                            <TableHead className="w-72 font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Giao dịch</TableHead>
+                            <TableHead className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Mô tả</TableHead>
+                            <TableHead className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Trạng thái</TableHead>
+                            <TableHead className="text-right font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Số tiền</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-10 w-full rounded-lg" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-full rounded-lg" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-24 ml-auto rounded-lg" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : transactions.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-64 text-center">
+                                    <div className="flex flex-col items-center justify-center gap-4 opacity-40">
+                                        <CreditCard size={48} className="text-muted-foreground" />
+                                        <div className="space-y-1">
+                                            <p className="text-lg font-bold">Chưa có giao dịch</p>
+                                            <p className="text-sm text-muted-foreground">Lịch sử giao dịch của bạn sẽ xuất hiện tại đây.</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            transactions.map((tx: TransactionDto) => {
+                                const typeInfo = TX_TYPES[tx.type as number] ?? { label: String(tx.type), iconColor: 'text-muted-foreground', iconBg: 'bg-muted' };
+                                const statusInfo = TX_STATUSES[tx.status as number] ?? { label: String(tx.status), variant: 'secondary' as const };
+
+                                return (
+                                    <TableRow key={tx.id} className="hover:bg-muted/30 transition-colors">
+                                        <TableCell>
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${typeInfo.iconBg}`}>
+                                                    <span className={typeInfo.iconColor}>
+                                                        {tx.type === 1 ? (
+                                                            <ArrowUpCircle size={16} />
+                                                        ) : tx.type === 2 ? (
+                                                            <ArrowDownCircle size={16} />
+                                                        ) : (
+                                                            <ShoppingBag size={16} />
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <p className="font-semibold text-sm group-hover:text-primary transition-colors">{typeInfo.label}</p>
+                                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                                        {formatDate(tx.createdAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="max-w-md">
+                                            <p className="text-sm font-medium text-muted-foreground line-clamp-1">
+                                                {tx.courseTitle ?? tx.description ?? '—'}
+                                            </p>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={statusInfo.variant} className="rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                                                {statusInfo.label}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <span className={`text-sm font-bold tabular-nums ${tx.amount >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                                {tx.amount >= 0 ? '+' : '-'}
+                                                {formatCurrency(Math.abs(tx.amount))}
+                                            </span>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+            </Card>
         </div>
     );
 }
