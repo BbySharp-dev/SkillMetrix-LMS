@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { storage } from '../utils/storage';
 
 interface AuthState {
+    isHydrated: boolean;
     accessToken: string | null;
     refreshToken: string | null;
     user: CurrentUser | null;
@@ -13,6 +14,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
+    isHydrated: false,
     accessToken: null,
     refreshToken: null,
     user: null,
@@ -36,10 +38,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         const user = storage.getUser<CurrentUser>();
 
         if (token && refreshToken && user) {
-            set({ accessToken: token, refreshToken, user, isAuthenticated: true });
+            set({ accessToken: token, refreshToken, user, isAuthenticated: true, isHydrated: true });
             return;
         }
 
-        set({ accessToken: null, refreshToken: null, user, isAuthenticated: false });
+        set({ accessToken: null, refreshToken: null, user, isAuthenticated: false, isHydrated: true });
     },
 }));
