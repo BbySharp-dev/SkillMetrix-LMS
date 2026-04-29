@@ -1,13 +1,16 @@
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function CourseCardSkeleton() {
     return (
-        <div className="rounded-xl border bg-white overflow-hidden">
-            <div className="h-44 bg-gray-200 animate-pulse" />
-            <div className="p-4 space-y-3">
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3 mt-4" />
-                <div className="h-8 bg-gray-200 rounded animate-pulse mt-4" />
-            </div>
-        </div>
+        <Card className="overflow-hidden border-gray-100">
+            <Skeleton className="h-44 w-full rounded-none" />
+            <CardContent className="p-4 space-y-4">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-3 w-2/3 mt-2" />
+                <Skeleton className="h-10 w-full mt-4" />
+            </CardContent>
+        </Card>
     );
 }

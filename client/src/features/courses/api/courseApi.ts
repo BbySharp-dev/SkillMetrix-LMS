@@ -1,5 +1,6 @@
 import type {
     ApiResponse,
+    PaginatedApiResponse,
     CourseDetailDto,
     CourseListItem,
     CourseQueryParams,
@@ -8,13 +9,13 @@ import type {
 import api from '@/lib/axios';
 
 export const courseApi = {
-    getCourses: async (params: CourseQueryParams): Promise<ApiResponse<CourseListItem[]>> => {
+    getCourses: async (params: CourseQueryParams): Promise<PaginatedApiResponse<CourseListItem[]>> => {
         const cleanParams = {
             ...params,
             search: params.search?.trim() || undefined,
         };
         const res = await api.get('/courses', { params: cleanParams });
-        return res as unknown as ApiResponse<CourseListItem[]>;
+        return res as unknown as PaginatedApiResponse<CourseListItem[]>;
     },
 
     getCourseById: async (courseId: string): Promise<CourseDetailDto> => {
