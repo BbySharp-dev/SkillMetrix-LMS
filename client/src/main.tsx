@@ -1,28 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { QueryProvider } from '@/providers/QueryProvider';
 import { appRouter } from '@/routes/AppRouter';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import './index.css';
-import 'preline';
 
-useAuthStore.getState().hydrateFromStorage();
-
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            staleTime: 30_000,
-            refetchOnWindowFocus: false,
-            retry: 1,
-        },
-    },
-})
+// Hydrate từ localStorage sau khi React mount — tránh hydration mismatch
+function AuthHydrator() {
+    const hydrate = useAuthStore((s) => s.hydrateFromStorage);
+    useEffect(() => { hydrate(); }, [hydrate]);
+    return null;
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-        <RouterProvider router={appRouter} />
-        </QueryClientProvider>
+        <AuthHydrator />
+        <QueryProvider>
+            <RouterProvider router={appRouter} />
+            <Toaster
+                position="top-right"
+                richColors
+                expand={false}
+                toastOptions={{
+                    className: 'rounded-xl border-none shadow-xl font-bold text-sm py-4 px-5',
+                }}
+                closeButton
+            />
+        </QueryProvider>
     </React.StrictMode>
 );
