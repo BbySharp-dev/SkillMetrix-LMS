@@ -1,2 +1,2 @@
 export { enrollmentApi } from './api/enrollmentApi';
-export type { EnrollmentDto, EnrollmentCourseInfo } from './types/enrollment';
+export type { EnrollmentDto, EnrollmentCourseInfo } from './types';
