@@ -1,16 +1,15 @@
 import { Outlet } from 'react-router-dom';
 import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 
 export default function MainLayout() {
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-white">
             <Header />
-            <main className="flex-1 container mx-auto px-4 py-6">
+            <main className="flex-1">
                 <Outlet />
             </main>
-            <footer className="border-t py-4 text-center text-sm text-gray-500">
-                © SkillMetrix LMS
-            </footer>
+            <Footer />
         </div>
     );
 }
