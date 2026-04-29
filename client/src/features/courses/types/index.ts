@@ -20,7 +20,9 @@ export interface CourseQueryParams {
     search?: string;
     minPrice?: number;
     maxPrice?: number;
-    minRating?: number;
+    status?: string;
+    instructorId?: string;
+    sortBy?: string;
 }
 
 export interface LessonDto {
