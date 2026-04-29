@@ -1,69 +1,142 @@
+import { useNavigate, Link } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, Link } from 'react-router-dom';
+
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { registerSchema, type RegisterFormValues } from '../schemas';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
     const setAuth = useAuthStore((s) => s.setAuth);
 
-    const {
-        register,
-        handleSubmit,
-        setError,
-        formState: { errors, isSubmitting },
-    } = useForm<RegisterFormValues>({
+    const form = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
+        defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
     });
 
-    const onSubmit = async (values: RegisterFormValues) => {
-        try {
-            const result = await authApi.register(values);
+    const registerMutation = useMutation({
+        mutationFn: authApi.register,
+        onSuccess: (result) => {
             setAuth(result.accessToken, result.refreshToken, result.user);
             navigate('/dashboard', { replace: true });
-        } catch (error) {
-            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Đăng ký thất bại.';
-            setError('root', { message });
-        }
+        },
+        onError: (error: { response?: { data?: { message?: string } } }) => {
+            const message = error.response?.data?.message ?? 'Đăng ký thất bại.';
+            toast.error(message);
+        },
+    });
+
+    const onSubmit = (values: RegisterFormValues) => {
+        registerMutation.mutate(values);
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center p-4">
-            <form className="w-full max-w-md bg-white rounded-2xl p-6 shadow" onSubmit={handleSubmit(onSubmit)}>
-                <h1 className="text-2xl font-bold mb-6">Đăng ký</h1>
+        <div className="min-h-screen relative flex items-center justify-center p-4 bg-slate-50 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+            </div>
 
-                <label className="block mb-2">Họ tên</label>
-                <input className="w-full border rounded px-3 py-2 mb-1" {...register('fullName')} />
-                {errors.fullName && <p className="text-red-500 text-sm mb-3">{errors.fullName.message}</p>}
-
-                <label className="block mb-2">Email</label>
-                <input className="w-full border rounded px-3 py-2 mb-1" {...register('email')} />
-                {errors.email && <p className="text-red-500 text-sm mb-3">{errors.email.message}</p>}
-
-                <label className="block mb-2">Mật khẩu</label>
-                <input type="password" className="w-full border rounded px-3 py-2 mb-1" {...register('password')} />
-                {errors.password && <p className="text-red-500 text-sm mb-3">{errors.password.message}</p>}
-
-                <label className="block mb-2">Nhập lại mật khẩu</label>
-                <input type="password" className="w-full border rounded px-3 py-2 mb-1" {...register('confirmPassword')} />
-                {errors.confirmPassword && <p className="text-red-500 text-sm mb-3">{errors.confirmPassword.message}</p>}
-
-                {errors.root && (
-                    <div className="bg-red-50 text-red-500 p-3 rounded mb-4 text-sm border border-red-200">
-                        {errors.root.message}
+            <Card className="w-full max-w-md relative z-10 shadow-2xl border-white/50 bg-white/80 backdrop-blur-xl">
+                <CardHeader className="space-y-2 text-center">
+                    <div className="mx-auto w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center mb-2 shadow-indigo-200 shadow-lg">
+                        <UserPlus className="text-white size-5" />
                     </div>
-                )}
+                    <CardTitle className="text-3xl font-black tracking-tight">Tham gia SkillMetrix</CardTitle>
+                    <CardDescription className="text-gray-500">
+                        Bắt đầu hành trình nâng tầm kỹ năng của bạn ngay hôm nay
+                    </CardDescription>
+                </CardHeader>
 
-                <button disabled={isSubmitting} className="w-full bg-indigo-600 text-white py-2 rounded mt-2">
-                    {isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
-                </button>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Họ tên</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nguyễn Văn A" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                <p className="text-sm mt-4">
-                    Đã có tài khoản? <Link to="/login" className="text-indigo-600">Đăng nhập</Link>
-                </p>
-            </form>
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input type="email" placeholder="name@example.com" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Mật khẩu</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="••••••••" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="confirmPassword"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Xác nhận</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="••••••••" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <Button
+                                type="submit"
+                                disabled={registerMutation.isPending}
+                                className="w-full h-11 font-bold text-lg shadow-indigo-100 shadow-lg hover:shadow-xl transition-all"
+                            >
+                                {registerMutation.isPending ? 'Đang tạo tài khoản...' : 'Đăng ký ngay'}
+                            </Button>
+                        </form>
+                    </Form>
+                </CardContent>
+
+                <CardFooter className="flex flex-col space-y-4">
+                    <div className="text-center text-sm text-gray-500">
+                        Đã có tài khoản?{' '}
+                        <Link to="/login" className="text-indigo-600 font-bold hover:underline">
+                            Đăng nhập
+                        </Link>
+                    </div>
+                </CardFooter>
+            </Card>
         </div>
     );
 }
