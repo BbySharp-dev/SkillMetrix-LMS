@@ -64,8 +64,14 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
             Id = enrollment.Id,
             UserId = enrollment.UserId,
             CourseId = enrollment.CourseId,
+            CourseTitle = course.Title,
+            CourseThumbnail = course.Thumbnail,
+            InstructorName = (await context.Users.FindAsync(course.InstructorId))?.FullName ?? "Giảng viên",
             PricePaid = enrollment.PricePaid,
-            EnrolledAt = enrollment.EnrolledAt
+            EnrolledAt = enrollment.EnrolledAt,
+            TotalLessons = 0, 
+            CompletedLessons = 0,
+            CompletionPercent = 0
         };
     }
 
@@ -73,21 +79,38 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
     {
         var enrollments = await context.Enrollments
             .Include(e => e.Course)
+            .ThenInclude(c => c.Instructor)
             .Where(e => e.UserId == userId)
             .OrderByDescending(e => e.EnrolledAt)
             .AsNoTracking()
             .ToListAsync();
 
-        var dto = enrollments.Select(e => new EnrollmentResponseDto
+        var dto = new List<EnrollmentResponseDto>();
+        foreach (var e in enrollments)
         {
-            Id = e.Id,
-            UserId = e.UserId,
-            CourseId = e.CourseId,
-            CourseTitle = e.Course.Title,
-            CourseThumbnail = e.Course.Thumbnail,
-            PricePaid = e.PricePaid,
-            EnrolledAt = e.EnrolledAt
-        }).ToList();
+            var totalLessons = await context.Chapters
+                .Where(ch => ch.CourseId == e.CourseId && !ch.IsDeleted)
+                .SelectMany(ch => ch.Lessons.Where(ls => !ls.IsDeleted))
+                .CountAsync();
+
+            var completedLessons = await context.UserLessonProgresses
+                .CountAsync(p => p.UserId == userId && p.IsCompleted && p.Lesson.Chapter.CourseId == e.CourseId && !p.Lesson.IsDeleted);
+
+            dto.Add(new EnrollmentResponseDto
+            {
+                Id = e.Id,
+                UserId = e.UserId,
+                CourseId = e.CourseId,
+                CourseTitle = e.Course.Title,
+                CourseThumbnail = e.Course.Thumbnail,
+                InstructorName = e.Course.Instructor.FullName,
+                PricePaid = e.PricePaid,
+                EnrolledAt = e.EnrolledAt,
+                TotalLessons = totalLessons,
+                CompletedLessons = completedLessons,
+                CompletionPercent = totalLessons == 0 ? 0 : Math.Round((completedLessons * 100.0) / totalLessons, 2)
+            });
+        }
 
         return dto;
     }
