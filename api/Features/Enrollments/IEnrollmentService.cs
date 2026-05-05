@@ -6,4 +6,5 @@ public interface IEnrollmentService
 {
     Task<Result<EnrollmentResponseDto>> EnrollAsync(Guid userId, CreateEnrollmentDto dto);
     Task<Result<List<EnrollmentResponseDto>>> GetUserEnrollmentsAsync(Guid userId);
+    Task<Result<bool>> CheckEnrollmentAsync(Guid userId, Guid courseId);
 }

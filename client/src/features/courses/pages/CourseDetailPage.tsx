@@ -1,6 +1,7 @@
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, User, Calendar, Globe, AlertCircle, Play } from 'lucide-react';
+import { BookOpen, User, Calendar, Globe, AlertCircle, Play, Star } from 'lucide-react';
 import { useCourseCurriculum, useCourseDetail } from '@/features/courses/hooks/useCourses';
 import { enrollmentApi } from '@/features/enrollments/api/enrollmentApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
@@ -9,6 +10,13 @@ import ChapterAccordion from '../components/ChapterAccordion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmModal } from '@/components/ui/progress-bar';
+
+// Định nghĩa OUTSIDE component để tránh tạo function reference mới mỗi render
+const fetchEnrollmentCheck = async (courseId: string) => {
+    const response = await enrollmentApi.checkEnrollment(courseId);
+    return response.data;
+};
 
 export default function CourseDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -19,22 +27,41 @@ export default function CourseDetailPage() {
     const { data: curriculum } = useCourseCurriculum(id);
     const enrollMutation = useEnrollCourse();
 
-    const { data: enrollmentCheck } = useQuery({
+    const [openEnrollModal, setOpenEnrollModal] = useState(false);
+    // Reset optimisticEnrolled khi id đổi (đổi khóa học)
+    const [optimisticEnrolled, setOptimisticEnrolled] = useState(false);
+
+    const { data: serverEnrolled = false } = useQuery({
         queryKey: ['enrollment-check', id],
-        queryFn: () => enrollmentApi.checkEnrollment(id!),
-        enabled: !!id && isAuthenticated,
+        queryFn: () => fetchEnrollmentCheck(id!),
+        enabled: Boolean(id) && isAuthenticated,
     });
 
-    const isEnrolled = enrollmentCheck?.data ?? false;
+    useEffect(() => {
+        setOptimisticEnrolled(false);
+    }, [id]);
 
-    const handleEnroll = async () => {
+    const isEnrolled = serverEnrolled || optimisticEnrolled;
+
+    const handleEnrollClick = useCallback(() => {
         if (!isAuthenticated) {
             navigate(`/login?returnUrl=/courses/${id}`);
             return;
         }
+        if (!isEnrolled) {
+            setOpenEnrollModal(true);
+        } else {
+            navigate(`/learning/${id}`);
+        }
+    }, [isAuthenticated, isEnrolled, navigate, id]);
+
+    const handleEnrollConfirm = useCallback(async () => {
         if (!id) return;
-        enrollMutation.mutate(id);
-    };
+        await enrollMutation.mutateAsync(id);
+        setOptimisticEnrolled(true);
+        setOpenEnrollModal(false);
+        navigate(`/learning/${id}`);
+    }, [id, enrollMutation, navigate]);
 
     if (isLoading) {
         return (
@@ -64,154 +91,174 @@ export default function CourseDetailPage() {
     }
 
     return (
-        <div className="relative animate-in fade-in duration-500">
-            <div className="bg-[#1c1d1f] text-white py-12 md:py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="lg:w-[calc(100%-380px)] space-y-6">
-                        <nav className="flex items-center gap-2 text-sm font-bold text-indigo-400 mb-4">
-                            <Link to="/courses" className="hover:underline">Khóa học</Link>
-                        </nav>
+        <>
+            <div className="relative animate-in fade-in duration-500">
+                <div className="bg-[#1c1d1f] text-white py-12 md:py-16">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="lg:w-[calc(100%-380px)] space-y-6">
+                            <nav className="flex items-center gap-2 text-sm font-bold text-indigo-400 mb-4">
+                                <Link to="/courses" className="hover:underline">Khóa học</Link>
+                            </nav>
 
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight max-w-3xl">
-                            {course.title}
-                        </h1>
-                        
-                        <div className="flex flex-wrap items-center gap-4 text-sm">
-                            <span className="text-gray-400">{course.enrollmentCount.toLocaleString()} học viên</span>
-                        </div>
+                            <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight max-w-3xl">
+                                {course.title}
+                            </h1>
+                            
+                            <div className="flex flex-wrap items-center gap-4 text-sm">
+                                <span className="text-gray-400">{course.enrollmentCount.toLocaleString()} học viên</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center text-amber-400">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star key={s} size={16} fill={s <= Math.round(course.rating) ? 'currentColor' : 'none'} />
+                                        ))}
+                                    </div>
+                                    <span className="text-sm font-bold text-indigo-300">{course.rating.toFixed(1)}</span>
+                                </div>
+                            </div>
 
-                        <div className="flex flex-wrap items-center gap-6 text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                                <span className="text-gray-500 font-normal">Giảng viên:</span>
-                                <span className="text-indigo-400 font-bold">{course.instructorName}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Calendar className="text-gray-500 size-4" />
-                                <span>Cập nhật mới nhất {new Date(course.createdAt).toLocaleDateString('vi-VN')}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Globe className="text-gray-500 size-4" />
-                                <span>Tiếng Việt</span>
+                            <div className="flex flex-wrap items-center gap-6 text-sm font-medium">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-500 font-normal">Giảng viên:</span>
+                                    <span className="text-indigo-400 font-bold">{course.instructorName}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="text-gray-500 size-4" />
+                                    <span>Cập nhật mới nhất {new Date(course.createdAt).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Globe className="text-gray-500 size-4" />
+                                    <span>Tiếng Việt</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Sticky Sidebar (Udemy Style) */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-                <aside className="hidden lg:block absolute right-8 -top-70 w-87.5 z-20">
-                    <Card className="shadow-2xl border-none rounded-none overflow-hidden sticky top-8">
-                        <div className="relative aspect-video group border-b border-gray-100">
-                            <img 
-                                src={course.thumbnail || 'https://placehold.co/640x360?text=No+Thumbnail'} 
-                                alt={course.title || 'Course thumbnail'} 
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-
-                        <CardContent className="p-6 space-y-6 bg-white">
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-3xl font-black text-gray-900">
-                                        {course.price <= 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(course.price)}
-                                    </span>
-                                </div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+                    <aside className="hidden lg:block absolute right-8 -top-70 w-87.5 z-20">
+                        <Card className="shadow-2xl border-none rounded-none overflow-hidden sticky top-8">
+                            <div className="relative aspect-video group border-b border-gray-100">
+                                <img 
+                                    src={course.thumbnail || 'https://placehold.co/640x360?text=No+Thumbnail'} 
+                                    alt={course.title || 'Course thumbnail'} 
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
 
-                            <div className="space-y-3">
-                                {isEnrolled ? (
-                                    <div className="space-y-3">
-                                        <Button 
-                                            asChild
-                                            size="lg"
-                                            className="w-full h-14 rounded-none text-md font-black bg-white text-gray-900 border-2 border-gray-900 hover:bg-gray-50 shadow-lg"
-                                        >
-                                            <Link to={`/dashboard/my-enrollments`}>
-                                                VÀO KHÓA HỌC
-                                            </Link>
-                                        </Button>
-                                        <p className="text-[10px] text-center font-bold text-emerald-600 uppercase tracking-widest">
-                                            Bạn đã sở hữu khóa học này
-                                        </p>
+                            <CardContent className="p-6 space-y-6 bg-white">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-3xl font-black text-gray-900">
+                                            {course.price <= 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(course.price)}
+                                        </span>
                                     </div>
-                                ) : (
-                                    <Button 
-                                        onClick={handleEnroll}
-                                        disabled={enrollMutation.isPending}
-                                        size="lg"
-                                        className="w-full h-14 rounded-none text-md font-black bg-[#a435f0] hover:bg-[#8710d8] shadow-xl"
-                                    >
-                                        {enrollMutation.isPending ? 'ĐANG XỬ LÝ...' : 'ĐĂNG KÝ NGAY'}
-                                    </Button>
-                                )}
-                            </div>
+                                </div>
 
-                            <div className="space-y-4 pt-4 border-t border-gray-100">
-                                <p className="text-sm font-bold text-gray-900">Khóa học này bao gồm:</p>
-                                <ul className="space-y-2 text-sm text-gray-600">
-                                    <li className="flex items-center gap-3">
-                                        <Play className="size-4 text-gray-500" />
-                                        <span>Truy cập trọn đời</span>
-                                    </li>
-                                    <li className="flex items-center gap-3">
-                                        <BookOpen className="size-4 text-gray-500" />
-                                        <span>{course.chapterCount} chương học</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </aside>
-            </div>
+                                <div className="space-y-3">
+                                    {isEnrolled ? (
+                                        <div className="space-y-3">
+                                            <Button
+                                                asChild
+                                                size="lg"
+                                                className="w-full h-14 rounded-none text-md font-black bg-white text-gray-900 border-2 border-gray-900 hover:bg-gray-50 shadow-lg"
+                                            >
+                                                <Link to={`/learning/${id}`}>
+                                                    VÀO HỌC NGAY
+                                                </Link>
+                                            </Button>
+                                            <p className="text-[10px] text-center font-bold text-emerald-600 uppercase tracking-widest">
+                                                Bạn đã sở hữu khóa học này
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            onClick={handleEnrollClick}
+                                            disabled={enrollMutation.isPending}
+                                            size="lg"
+                                            className="w-full h-14 rounded-none text-md font-black bg-[#a435f0] hover:bg-[#8710d8] shadow-xl"
+                                        >
+                                            {enrollMutation.isPending ? 'ĐANG XỬ LÝ...' : 'ĐĂNG KÝ NGAY'}
+                                        </Button>
+                                    )}
+                                </div>
 
-            {/* Main Body Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="lg:w-[calc(100%-400px)] space-y-12">
-                    
-                    {/* Curriculum / Course Content */}
-                    <section className="space-y-6">
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Nội dung khóa học</h2>
-                            <div className="text-sm font-medium text-gray-500">
-                                {course.chapterCount} chương • {curriculum?.reduce((a, c) => a + c.lessons.length, 0)} bài giảng
-                            </div>
-                        </div>
+                                <div className="space-y-4 pt-4 border-t border-gray-100">
+                                    <p className="text-sm font-bold text-gray-900">Khóa học này bao gồm:</p>
+                                    <ul className="space-y-2 text-sm text-gray-600">
+                                        <li className="flex items-center gap-3">
+                                            <Play className="size-4 text-gray-500" />
+                                            <span>Truy cập trọn đời</span>
+                                        </li>
+                                        <li className="flex items-center gap-3">
+                                            <BookOpen className="size-4 text-gray-500" />
+                                            <span>{course.chapterCount} chương học</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </aside>
+                </div>
+
+                {/* Main Body Content */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="lg:w-[calc(100%-400px)] space-y-12">
                         
-                        {curriculum ? (
-                            <ChapterAccordion chapters={curriculum} />
-                        ) : (
-                            <div className="p-10 border border-dashed border-gray-200 rounded-none text-center">
-                                <p className="font-bold text-gray-400">Đang tải nội dung học tập...</p>
-                            </div>
-                        )}
-                    </section>
-
-                    {/* Description */}
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-gray-900">Mô tả</h2>
-                        <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-line font-medium">
-                            {course.description}
-                        </div>
-                    </section>
-
-                    {/* Instructor Section */}
-                    <section className="space-y-6 pt-10 border-t border-gray-100">
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Giảng viên</h2>
-                        <div className="space-y-6">
-                            <div className="flex flex-col sm:flex-row gap-6">
-                                <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-100 shadow-sm overflow-hidden">
-                                    <User className="text-gray-300 size-8" />
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-indigo-600">{course.instructorName}</h3>
-                                    <p className="text-sm font-bold text-gray-500">Giảng viên tại SkillMetrix</p>
+                        {/* Curriculum / Course Content */}
+                        <section className="space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Nội dung khóa học</h2>
+                                <div className="text-sm font-medium text-gray-500">
+                                    {course.chapterCount} chương • {curriculum?.reduce((a, c) => a + c.lessons.length, 0)} bài giảng
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                            
+                            {curriculum ? (
+                                <ChapterAccordion chapters={curriculum} />
+                            ) : (
+                                <div className="p-10 border border-dashed border-gray-200 rounded-none text-center">
+                                    <p className="font-bold text-gray-400">Đang tải nội dung học tập...</p>
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Description */}
+                        <section className="space-y-4">
+                            <h2 className="text-2xl font-black text-gray-900">Mô tả</h2>
+                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-line font-medium">
+                                {course.description}
+                            </div>
+                        </section>
+
+                        {/* Instructor Section */}
+                        <section className="space-y-6 pt-10 border-t border-gray-100">
+                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Giảng viên</h2>
+                            <div className="space-y-6">
+                                <div className="flex flex-col sm:flex-row gap-6">
+                                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-100 shadow-sm overflow-hidden">
+                                        <User className="text-gray-300 size-8" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-xl font-black text-indigo-600">{course.instructorName}</h3>
+                                        <p className="text-sm font-bold text-gray-500">Giảng viên tại SkillMetrix</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <ConfirmModal
+                open={openEnrollModal}
+                title="Xác nhận đăng ký khóa học"
+                message={`Bạn có chắc muốn đăng ký khóa học "${course.title}" không?`}
+                confirmText="ĐĂNG KÝ NGAY"
+                cancelText="Hủy"
+                loading={enrollMutation.isPending}
+                onConfirm={handleEnrollConfirm}
+                onCancel={() => setOpenEnrollModal(false)}
+            />
+        </>
     );
 }

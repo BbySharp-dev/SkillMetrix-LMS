@@ -46,6 +46,11 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             baseQuery = baseQuery.Where(c => c.Price <= query.MaxPrice);
         }
 
+        if (query.MinRating.HasValue)
+        {
+            baseQuery = baseQuery.Where(c => (c.Rating ?? 0) >= query.MinRating);
+        }
+
         var totalRecords = await baseQuery.CountAsync();
 
         baseQuery = query.SortBy switch
@@ -87,7 +92,8 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             ChapterCount = chapterCounts.GetValueOrDefault(c.Id, 0),  // Lấy từ dictionary
             EnrollmentCount = enrollmentCounts.GetValueOrDefault(c.Id, 0),  // Lấy từ dictionary
             Status = c.Status.ToString(),
-            CreatedAt = c.CreatedAt
+            CreatedAt = c.CreatedAt,
+            Rating = c.Rating ?? 0
         }).ToList();
 
         var pagedResponse = new PagedResponse<List<CourseResponseDto>>(
@@ -141,7 +147,8 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             ChapterCount = chapterCount,  // Lấy từ CountAsync riêng
             EnrollmentCount = enrollmentCount,  // Lấy từ CountAsync riêng
             Status = course.Status.ToString(),
-            CreatedAt = course.CreatedAt
+            CreatedAt = course.CreatedAt,
+            Rating = course.Rating ?? 0
         };
 
         return courseDto;
@@ -184,7 +191,8 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             ChapterCount = 0,
             EnrollmentCount = 0,
             Status = course.Status.ToString(),
-            CreatedAt = course.CreatedAt
+            CreatedAt = course.CreatedAt,
+            Rating = course.Rating ?? 0
         };
 
         return courseDto;
@@ -264,7 +272,8 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             ChapterCount = chapterCount,
             EnrollmentCount = enrollmentCount,
             Status = course.Status.ToString(),
-            CreatedAt = course.CreatedAt
+            CreatedAt = course.CreatedAt,
+            Rating = course.Rating ?? 0
         };
 
         return courseDto;
@@ -322,8 +331,9 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             Price = course.Price,
             Thumbnail = course.Thumbnail,
             InstructorName = course.Instructor.FullName,
-            Status = course.Status.ToString(),
+            Status = course.ToString(),
             CreatedAt = course.CreatedAt,
+            Rating = course.Rating ?? 0,
             PublishedAt = course.PublishedAt,
             Curriculum = curriculumn
         };
