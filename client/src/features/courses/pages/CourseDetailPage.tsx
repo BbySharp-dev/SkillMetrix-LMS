@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, User, Calendar, Globe, AlertCircle, Play } from 'lucide-react';
+import { BookOpen, User, Calendar, Globe, AlertCircle, Play, Star } from 'lucide-react';
 import { useCourseCurriculum, useCourseDetail } from '@/features/courses/hooks/useCourses';
 import { enrollmentApi } from '@/features/enrollments/api/enrollmentApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
@@ -9,6 +9,7 @@ import ChapterAccordion from '../components/ChapterAccordion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RatingStars } from '@/components/ui/rating-stars';
 
 export default function CourseDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -78,6 +79,14 @@ export default function CourseDetailPage() {
                         
                         <div className="flex flex-wrap items-center gap-4 text-sm">
                             <span className="text-gray-400">{course.enrollmentCount.toLocaleString()} học viên</span>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center text-amber-400">
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                        <Star key={s} size={16} fill={s <= Math.round(course.rating) ? 'currentColor' : 'none'} />
+                                    ))}
+                                </div>
+                                <span className="text-sm font-bold text-indigo-300">{course.rating.toFixed(1)}</span>
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-6 text-sm font-medium">
