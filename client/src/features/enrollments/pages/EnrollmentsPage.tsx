@@ -6,13 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Icons from centralized library + helpers
 import { BookOpen, Info, PlayCircle, Star } from 'lucide-react';
 
 function EnrollmentCard({ enrollment }: { enrollment: EnrollmentDto }) {
     return (
         <Card className="group overflow-hidden border border-gray-100 rounded-none hover:shadow-2xl transition-all duration-500 bg-white">
-            <Link to={`/courses/${enrollment.courseId}`} className="block relative aspect-video overflow-hidden">
+            <Link to={`/learning/${enrollment.courseId}`} className="block relative aspect-video overflow-hidden">
                 <img
                     src={enrollment.courseThumbnail || 'https://placehold.co/640x360?text=No+Thumbnail'}
                     alt={enrollment.courseTitle}

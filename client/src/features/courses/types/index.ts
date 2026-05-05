@@ -12,6 +12,7 @@ export interface CourseListItem {
     enrollmentCount: number;
     status: string | null;
     createdAt: string;
+    rating: number;
 }
 
 export interface CourseQueryParams {
@@ -20,6 +21,7 @@ export interface CourseQueryParams {
     search?: string;
     minPrice?: number;
     maxPrice?: number;
+    minRating?: number;
     status?: string;
     instructorId?: string;
     sortBy?: string;
@@ -57,4 +59,5 @@ export interface CourseDetailDto {
     enrollmentCount: number;
     status?: string | null;
     createdAt: string;
+    rating: number;
 }
