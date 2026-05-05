@@ -12,4 +12,5 @@ public class CourseResponseDto
     public int EnrollmentCount { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public decimal Rating { get; set; }
 }

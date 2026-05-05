@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
+const RATING_OPTIONS = [4.5, 4.0, 3.5, 3.0] as const;
+
 export interface CourseFilterState {
     search: string;
     minPrice?: number;
@@ -83,7 +85,7 @@ export default function CourseFilters({ value, onChange, className }: CourseFilt
                     <span className="text-gray-400"><ChevronRight className="size-4" /></span>
                 </h3>
                 <div className="space-y-2">
-                    {[4.5, 4.0, 3.5, 3.0].map((rating) => (
+                    {RATING_OPTIONS.map((rating) => (
                         <label
                             key={rating}
                             className="flex items-center gap-3 group cursor-pointer py-1"
