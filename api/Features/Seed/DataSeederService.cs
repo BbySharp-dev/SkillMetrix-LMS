@@ -175,7 +175,6 @@ public class DataSeederService(
                     CreatedAt = createdAt,
                     PublishedAt = status == CourseStatus.Published ? createdAt.AddDays(2) : null,
                     UpdatedAt = createdAt.AddDays(1),
-                    Rating = status == CourseStatus.Published ? Math.Round((decimal)(3.8 + rng.NextDouble()), 2) : null,
                     IsDeleted = false
                 };
 

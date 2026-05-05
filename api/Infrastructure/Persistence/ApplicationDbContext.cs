@@ -27,6 +27,31 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(builder);
 
+        // Override Identity column types for optimal storage
+        builder.Entity<User>()
+            .Property(u => u.Role)
+            .HasColumnType("tinyint");
+
+        builder.Entity<User>()
+            .Property(u => u.PasswordHash)
+            .HasMaxLength(255);
+
+        builder.Entity<Course>()
+            .Property(c => c.Status)
+            .HasColumnType("tinyint");
+
+        builder.Entity<CourseReview>()
+            .Property(r => r.Rating)
+            .HasColumnType("tinyint");
+
+        builder.Entity<Transaction>()
+            .Property(t => t.Type)
+            .HasColumnType("tinyint");
+
+        builder.Entity<Transaction>()
+            .Property(t => t.Status)
+            .HasColumnType("tinyint");
+
         builder.Entity<Course>()
             .HasIndex(c => c.InstructorId);
         builder.Entity<Course>()
