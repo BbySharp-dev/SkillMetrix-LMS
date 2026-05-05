@@ -25,6 +25,7 @@ public class Course
     public Guid InstructorId { get; set; }
 
     [Required]
+    [Column(TypeName = "tinyint")]
     public CourseStatus Status { get; set; }
 
     [Required]
@@ -35,7 +36,8 @@ public class Course
     public DateTime? PublishedAt { get; set; }
 
     [Column(TypeName = "decimal(3,2)")]
-    public decimal? Rating { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    public decimal? Rating { get; private set; }
 
     public int? DurationMinutes { get; set; }
     public bool IsDeleted { get; set; }
