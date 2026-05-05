@@ -13,5 +13,6 @@ public class CourseDetailResponseDto
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public decimal Rating { get; set; }
     public List<ChapterWithLessonsDto> Curriculum {get; set;} = new();
 }

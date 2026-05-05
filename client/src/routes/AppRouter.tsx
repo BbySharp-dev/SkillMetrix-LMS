@@ -42,6 +42,7 @@ const ApprovalsPage = Loadable(lazy(() => import('@/features/admin/pages/Approva
 const SettingsPage = Loadable(lazy(() => import('@/features/admin/pages/SettingsPage')));
 const ForbiddenPage = Loadable(lazy(() => import('@/features/home/pages/ForbiddenPage')));
 const NotFoundPage = Loadable(lazy(() => import('@/features/home/pages/NotFoundPage')));
+const LearningPage = Loadable(lazy(() => import('@/features/learning/pages/LearningPage')));
 
 export const appRouter = createBrowserRouter([
   {
@@ -54,6 +55,7 @@ export const appRouter = createBrowserRouter([
       { path: 'register', element: <RegisterPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
+      { path: 'learning/:courseId', element: <LearningPage /> },
       { path: '403', element: <ForbiddenPage /> },
     ],
   },

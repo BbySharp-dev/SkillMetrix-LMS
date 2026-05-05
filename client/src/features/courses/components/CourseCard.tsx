@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Users } from 'lucide-react';
 import type { CourseListItem } from '../types';
+import { RatingStars } from '@/components/ui/rating-stars';
 
 interface CourseCardProps {
     course: CourseListItem;
@@ -37,6 +38,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                             {title}
                         </h3>
                         <p className="text-[12px] text-gray-500 font-medium truncate">{instructor}</p>
+                        {course.rating > 0 && <RatingStars value={course.rating} size={12} showValue />}
                     </div>
                     
                     <div className="flex items-center gap-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider py-1 border-y border-gray-50">
