@@ -52,4 +52,20 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseA
 
         return Ok(new ApiResponse<EnrollmentResponseDto>(result.Value!, "Enrollment created successfully."));
     }
+
+    /// <summary>
+    /// Kiểm tra user hiện tại đã đăng ký khóa học chưa.
+    /// </summary>
+    [Authorize]
+    [HttpGet("check/{courseId:guid}")]
+    public async Task<IActionResult> CheckEnrollment(Guid courseId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized(new ApiResponse<object>("Invalid token."));
+
+        var result = await enrollmentService.CheckEnrollmentAsync(userId.Value, courseId);
+
+        return Ok(new ApiResponse<bool>(result.Value, "Check enrollment completed."));
+    }
 }
