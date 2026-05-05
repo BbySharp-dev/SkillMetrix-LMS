@@ -10,6 +10,7 @@
     <!-- Suppress CS1591 for Models, Data, Middleware - only require XML comments for Controllers -->
     <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>66da3abe-d97b-4dac-9096-b579b75d13f1</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,12 @@
     </PackageReference>
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.15" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
   </ItemGroup>
 
 </Project>
