@@ -114,4 +114,12 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
 
         return dto;
     }
+
+    public async Task<Result<bool>> CheckEnrollmentAsync(Guid userId, Guid courseId)
+    {
+        var exists = await context.Enrollments
+            .AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+        return exists;
+    }
 }
