@@ -27,6 +27,16 @@ export interface CourseQueryParams {
     sortBy?: string;
 }
 
+export interface CourseEditorData {
+    id?: string;
+    title?: string | null;
+    description?: string | null;
+    price?: number;
+    thumbnail?: string | null;
+    status?: string | null;
+    instructorId?: string | null;  
+}
+
 export interface LessonDto {
     id: string;
     chapterId: string;
@@ -55,9 +65,25 @@ export interface CourseDetailDto {
     price: number;
     thumbnail?: string | null;
     instructorName?: string | null;
+    instructorId?: string | null;
     chapterCount: number;
     enrollmentCount: number;
     status?: string | null;
     createdAt: string;
     rating: number;
+}
+
+export interface CreateCoursePayload {
+    title: string;
+    description?: string;
+    price: number;
+    thumbnail?: string;
+    instructorId?: string;
+}
+
+export interface UpdateCoursePayload {
+    title?: string;
+    description?: string;
+    price?: number;
+    thumbnail?: string;
 }
