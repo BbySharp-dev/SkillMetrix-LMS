@@ -5,9 +5,10 @@ import { LogIn } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { authApi, ApiError } from '@/features/auth/api/authApi';
+import { authApi, type ApiError } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { loginSchema, type LoginFormValues } from '../schemas';
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -28,13 +29,16 @@ export default function LoginPage() {
         mutationFn: authApi.login,
         onSuccess: (result) => {
             setAuth(result.accessToken, result.refreshToken, result.user);
-            const stateFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+            
             const returnUrl = searchParams.get('returnUrl');
+            const stateFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+            
+
             navigate(returnUrl ?? stateFrom ?? '/', { replace: true });
         },
         onError: (err: unknown) => {
             const error = err as ApiError;
-            toast.error(error.message ?? 'Email hoặc mật khẩu không đúng.');
+            toast.error(error.message || 'Lỗi kết nối đến máy chủ. Vui lòng thử lại sau.');
         },
     });
 
@@ -42,8 +46,11 @@ export default function LoginPage() {
         loginMutation.mutate(values);
     };
 
+    const isSubmitting = loginMutation.isPending;
+
     return (
         <div className="min-h-screen relative flex items-center justify-center p-4 bg-slate-50 overflow-hidden">
+            {/* Background Animation */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
@@ -70,7 +77,13 @@ export default function LoginPage() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input type="email" placeholder="name@example.com" {...field} />
+                                            <Input 
+                                                type="email" 
+                                                placeholder="name@example.com" 
+                                                disabled={isSubmitting} 
+                                                autoComplete="email"
+                                                {...field} 
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -93,7 +106,13 @@ export default function LoginPage() {
                                             </Link>
                                         </div>
                                         <FormControl>
-                                            <Input type="password" placeholder="••••••••" {...field} />
+                                            <Input 
+                                                type="password" 
+                                                placeholder="••••••••" 
+                                                disabled={isSubmitting}
+                                                autoComplete="current-password" 
+                                                {...field} 
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -102,10 +121,10 @@ export default function LoginPage() {
 
                             <Button
                                 type="submit"
-                                disabled={loginMutation.isPending}
+                                disabled={isSubmitting}
                                 className="w-full h-11 font-bold text-lg shadow-indigo-100 shadow-lg hover:shadow-xl transition-all"
                             >
-                                {loginMutation.isPending ? 'Đang xử lý...' : 'Đăng nhập'}
+                                {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
                             </Button>
                         </form>
                     </Form>
