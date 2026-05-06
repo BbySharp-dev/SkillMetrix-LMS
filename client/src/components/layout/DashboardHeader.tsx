@@ -1,9 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
-import { Button } from '@/components/ui/button';
-import { cn, getAvatarInitials } from '@/lib/utils';
-import { authApi } from '@/features/auth/api/authApi';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
     Home, 
     Search, 
@@ -12,24 +8,42 @@ import {
     LayoutDashboard, 
     Settings, 
     LogOut 
-} from 'lucide-react'; // Import gọn gàng từ thư viện
+} from 'lucide-react'; 
+
+import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
+import { authApi } from '@/features/auth/api/authApi';
+import { Button } from '@/components/ui/button';
+import { cn, getAvatarInitials } from '@/lib/utils';
+
+
+const getDashboardRoute = (role?: string): string => {
+    switch (role) {
+        case 'Admin': return '/admin';
+        case 'Instructor': return '/instructor';
+        default: return '/dashboard';
+    }
+};
+
+const getLastName = (fullName?: string): string => {
+    if (!fullName) return '';
+    return fullName.trim().split(' ').pop() || '';
+};
 
 export default function DashboardHeader() {
+    const navigate = useNavigate();
+    
     const user = useAuthStore((s) => s.user);
     const refreshToken = useAuthStore((s) => s.refreshToken);
     const clearAuth = useAuthStore((s) => s.clearAuth);
     
-    const navigate = useNavigate();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const handleLogout = async () => {
         try {
-            // Chỉ gọi API nếu có token
             if (refreshToken) {
                 await authApi.logout(refreshToken);
             }
         } finally {
-            // Luôn clear state và đẩy về login dù gọi API thành công hay thất bại (tránh kẹt state)
             clearAuth();
             setShowProfileMenu(false);
             navigate('/login');
@@ -76,11 +90,10 @@ export default function DashboardHeader() {
                         className="flex items-center gap-2 p-1 pr-2 rounded-full border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all"
                     >
                         <div className="w-8 h-8 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xs shadow-inner">
-                            {/* Tái sử dụng helper function */}
                             {getAvatarInitials(user.fullName)}
                         </div>
                         <span className="text-sm font-bold text-gray-700 hidden sm:block">
-                            {user.fullName.split(' ').pop()}
+                            {getLastName(user.fullName)}
                         </span>
                         <span className={cn("transition-transform", showProfileMenu && "rotate-180")}>
                             <ChevronDown className="w-4 h-4" />
@@ -91,15 +104,28 @@ export default function DashboardHeader() {
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
                             <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200">
-                                <Link to="/dashboard" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors" onClick={() => setShowProfileMenu(false)}>
+                                <Link
+                                    to={getDashboardRoute(user.role)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                                    onClick={() => setShowProfileMenu(false)}
+                                >
                                     <LayoutDashboard className="w-4 h-4" />
                                     Bảng điều khiển
                                 </Link>
-                                <Link to="/dashboard/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors" onClick={() => setShowProfileMenu(false)}>
-                                    <Settings className="w-4 h-4" />
-                                    Cài đặt
-                                </Link>
+                                
+                                {user.role === 'Admin' && (
+                                    <Link 
+                                        to="/admin/settings" 
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors" 
+                                        onClick={() => setShowProfileMenu(false)}
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        Cài đặt
+                                    </Link>
+                                )}
+                                
                                 <div className="h-px bg-gray-50 my-1" />
+                                
                                 <button 
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"

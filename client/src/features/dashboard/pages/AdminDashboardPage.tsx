@@ -1,3 +1,4 @@
+{/* Paths in AdminDashboardPage updated to /admin/... */}
 import { Link } from 'react-router-dom';
 import { FileCheck, Users, Settings, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,33 +9,33 @@ import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 export default function AdminDashboardPage() {
     const user = useAuthStore((s) => s.user);
 
+
     const adminActions = [
         {
             title: 'Duyệt khóa học',
             desc: 'Phê duyệt hoặc từ chối các khóa học mới được nộp.',
             icon: <FileCheck size={24} />,
-            path: '/dashboard/admin/approvals',
+            path: '/admin/approvals',
             color: 'bg-primary/10 text-primary'
         },
         {
             title: 'Quản lý người dùng',
             desc: 'Quản lý tài khoản học viên và giảng viên.',
             icon: <Users size={24} />,
-            path: '/dashboard/admin/users',
+            path: '/admin/users',
             color: 'bg-success/10 text-success'
         },
         {
             title: 'Cài đặt hệ thống',
             desc: 'Cấu hình các tham số và tính năng của nền tảng.',
             icon: <Settings size={24} />,
-            path: '/dashboard/admin/settings',
+            path: '/admin/settings',
             color: 'bg-warning/10 text-warning'
         },
     ];
 
     return (
         <div className="space-y-10">
-            {/* Header Section */}
             <div className="space-y-1">
                     <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
                     <ShieldCheck size={32} className="text-primary" />
@@ -43,7 +44,6 @@ export default function AdminDashboardPage() {
                 <p className="text-muted-foreground font-medium">Chào {user?.fullName}! Quản trị hệ thống SkillMetrix tại đây.</p>
             </div>
 
-            {/* Quick Actions Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {adminActions.map((action, i) => (
                     <Card key={i} className="border hover:shadow-xl transition-all group cursor-pointer overflow-hidden relative">
@@ -64,7 +64,6 @@ export default function AdminDashboardPage() {
                 ))}
             </div>
 
-            {/* Placeholder for Stats/Insights */}
             <div className="bg-slate-900 rounded-[40px] p-12 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
@@ -95,4 +94,3 @@ export default function AdminDashboardPage() {
         </div>
     );
 }
-

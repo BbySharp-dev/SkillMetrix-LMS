@@ -1,5 +1,3 @@
-// TransactionType: 1=Deposit, 2=Withdraw, 3=Purchase
-// TransactionStatus: 0=Pending, 1=Processing, 2=Completed, 3=Failed, 4=Cancelled
 export type TransactionType = 1 | 2 | 3 | number;
 export type TransactionStatus = 0 | 1 | 2 | 3 | 4 | number;
 

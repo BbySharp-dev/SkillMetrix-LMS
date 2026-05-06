@@ -1,39 +1,44 @@
+using Microsoft.EntityFrameworkCore;
+using SkillMetrix_LMS.API.Models.Enums;
+using SkillMetrix_LMS.API.Shared.Common;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
-using SkillMetrix_LMS.API.Features.Chapters;
 using SkillMetrix_LMS.API.Features.Chapters.DTOs;
+using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Courses;
 
-public class CourseService(ApplicationDbContext context, IChapterService chapterService)
-    : ICourseService
+public class CourseService(ApplicationDbContext context) : ICourseService
 {
-
     public async Task<Result<PagedResponse<List<CourseResponseDto>>>> GetCoursesAsync(int pageNumber, int pageSize, CourseQueryDto query)
     {
         var baseQuery = context.Courses
             .Include(c => c.Instructor)
             .Where(c => !c.IsDeleted);
 
-        if (!string.IsNullOrWhiteSpace(query.Status))
+        // 1. Lọc theo trạng thái (Status)
+        if (!string.IsNullOrWhiteSpace(query.Status) && query.Status != "All")
         {
             if (Enum.TryParse<CourseStatus>(query.Status, true, out var status))
             {
                 baseQuery = baseQuery.Where(c => c.Status == status);
             }
         }
-        else
+        else if (!query.InstructorId.HasValue)
         {
+            // Mặc định chỉ hiện Published cho catalog công khai
             baseQuery = baseQuery.Where(c => c.Status == CourseStatus.Published);
         }
 
+        // 2. Lọc theo InstructorId
+        if (query.InstructorId.HasValue)
+        {
+            baseQuery = baseQuery.Where(c => c.InstructorId == query.InstructorId.Value);
+        }
+
+        // 3. Search title
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             baseQuery = baseQuery.Where(c => c.Title.Contains(query.Search));
-        }
-
-        if (query.InstructorId.HasValue)
-        {
-            baseQuery = baseQuery.Where(c => c.InstructorId == query.InstructorId);
         }
 
         if (query.MinPrice.HasValue)
@@ -46,14 +51,9 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             baseQuery = baseQuery.Where(c => c.Price <= query.MaxPrice);
         }
 
-        if (query.MinRating.HasValue)
-        {
-            baseQuery = baseQuery.Where(c => (c.Rating ?? 0) >= query.MinRating);
-        }
-
         var totalRecords = await baseQuery.CountAsync();
 
-        baseQuery = query.SortBy switch
+        baseQuery = query.SortBy?.ToLower() switch
         {
             "price" => baseQuery.OrderBy(c => c.Price),
             "rating" => baseQuery.OrderByDescending(c => c.Rating),
@@ -63,7 +63,6 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
         var courses = await baseQuery
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .AsNoTracking()
             .ToListAsync();
 
         var courseIds = courses.Select(c => c.Id).ToList();
@@ -80,7 +79,6 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.CourseId, x => x.Count);
 
-        // Map Entity -> DTO (Nên dùng Mapster để code gọn hơn)
         var courseDtos = courses.Select(c => new CourseResponseDto
         {
             Id = c.Id,
@@ -88,25 +86,21 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             Description = c.Description,
             Price = c.Price,
             Thumbnail = c.Thumbnail,
-            InstructorName = c.Instructor.FullName,
-            ChapterCount = chapterCounts.GetValueOrDefault(c.Id, 0),  // Lấy từ dictionary
-            EnrollmentCount = enrollmentCounts.GetValueOrDefault(c.Id, 0),  // Lấy từ dictionary
+            InstructorName = c.Instructor?.FullName ?? "Unknown",
+            ChapterCount = chapterCounts.GetValueOrDefault(c.Id, 0),
+            EnrollmentCount = enrollmentCounts.GetValueOrDefault(c.Id, 0),
             Status = c.Status.ToString(),
             CreatedAt = c.CreatedAt,
             Rating = c.Rating ?? 0
         }).ToList();
 
-        var pagedResponse = new PagedResponse<List<CourseResponseDto>>(
+        return new PagedResponse<List<CourseResponseDto>>(
             courseDtos,
             pageNumber,
             pageSize,
             totalRecords,
             "Courses retrieved successfully"
         );
-
-        // Dùng implicit operator: return trực tiếp DTO
-        return pagedResponse;
-
     }
 
     public async Task<Result<CourseResponseDto>> GetCourseByIdAsync(Guid id, Guid? currentUserId = null, string? currentUserRole = null)
@@ -117,53 +111,83 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id);
 
-        if (course == null)
-        {
-            return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
-        }
+        if (course == null) return Result<CourseResponseDto>.NotFound("Course not found");
 
         bool isPublished = course.Status == CourseStatus.Published;
-        bool isAdmin = currentUserRole == UserRole.Admin.ToString();
-        bool isOwnerInstructor = currentUserId.HasValue && course.InstructorId == currentUserId.Value;
+        bool isAdmin = currentUserRole == "Admin";
+        bool isOwner = currentUserId.HasValue && course.InstructorId == currentUserId.Value;
 
-        if (!isPublished && !isAdmin && !isOwnerInstructor)
-        {
-            return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
-        }
+        if (!isPublished && !isAdmin && !isOwner) return Result<CourseResponseDto>.NotFound("Course not found");
 
-        var chapterCount = await context.Chapters
-            .CountAsync(ch => ch.CourseId == id && !ch.IsDeleted);
+        var chapterCount = await context.Chapters.CountAsync(ch => ch.CourseId == id && !ch.IsDeleted);
+        var enrollmentCount = await context.Enrollments.CountAsync(e => e.CourseId == id);
 
-        var enrollmentCount = await context.Enrollments
-            .CountAsync(e => e.CourseId == id);
-        var courseDto = new CourseResponseDto
+        return new CourseResponseDto
         {
             Id = course.Id,
             Title = course.Title,
             Description = course.Description,
             Price = course.Price,
             Thumbnail = course.Thumbnail,
-            InstructorName = course.Instructor.FullName,
-            ChapterCount = chapterCount,  // Lấy từ CountAsync riêng
-            EnrollmentCount = enrollmentCount,  // Lấy từ CountAsync riêng
+            InstructorName = course.Instructor?.FullName ?? "Unknown",
+            ChapterCount = chapterCount,
+            EnrollmentCount = enrollmentCount,
             Status = course.Status.ToString(),
             CreatedAt = course.CreatedAt,
             Rating = course.Rating ?? 0
         };
+    }
 
-        return courseDto;
+    public async Task<Result<CourseDetailResponseDto>> GetCourseDetailAsync(Guid id)
+    {
+        var course = await context.Courses
+            .Include(c => c.Instructor)
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+
+        if (course == null) return Result<CourseDetailResponseDto>.NotFound("Course not found");
+
+        var chapters = await context.Chapters
+            .Where(ch => ch.CourseId == id && !ch.IsDeleted)
+            .OrderBy(ch => ch.OrderIndex)
+            .Include(ch => ch.Lessons)
+            .ToListAsync();
+
+        return new CourseDetailResponseDto
+        {
+            Id = course.Id,
+            Title = course.Title,
+            Description = course.Description,
+            Price = course.Price,
+            Thumbnail = course.Thumbnail,
+            InstructorName = course.Instructor?.FullName ?? "Unknown",
+            Status = course.Status.ToString(),
+            CreatedAt = course.CreatedAt,
+            Rating = course.Rating ?? 0,
+            Curriculum = chapters.Select(ch => new ChapterWithLessonsDto
+            {
+                Id = ch.Id,
+                Title = ch.Title,
+                OrderIndex = ch.OrderIndex,
+                Lessons = ch.Lessons
+                    .Where(l => !l.IsDeleted)
+                    .OrderBy(l => l.OrderIndex)
+                    .Select(l => new LessonResponseDto
+                    {
+                        Id = l.Id,
+                        Title = l.Title,
+                        VideoUrl = l.VideoUrl,
+                        DurationSeconds = l.DurationSeconds,
+                        IsFreePreview = l.IsFreePreview,
+                        OrderIndex = l.OrderIndex
+                    }).ToList()
+            }).ToList()
+        };
     }
 
     public async Task<Result<CourseResponseDto>> CreateCourseAsync(CreateCourseDto dto)
     {
-        var instructor = await context.Users
-            .FirstOrDefaultAsync(u => u.Id == dto.InstructorId
-                && (u.Role == UserRole.Instructor || u.Role == UserRole.Admin));
-
-        if (instructor == null)
-        {
-            return Result<CourseResponseDto>.NotFound("Instructor not found or user is not an instructor/admin");
-        }
+        var instructor = await context.Users.FirstOrDefaultAsync(u => u.Id == dto.InstructorId);
+        if (instructor == null) return Result<CourseResponseDto>.NotFound("Instructor not found");
 
         var course = new Course
         {
@@ -180,7 +204,7 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
         context.Courses.Add(course);
         await context.SaveChangesAsync();
 
-        var courseDto = new CourseResponseDto
+        return new CourseResponseDto
         {
             Id = course.Id,
             Title = course.Title,
@@ -188,217 +212,63 @@ public class CourseService(ApplicationDbContext context, IChapterService chapter
             Price = course.Price,
             Thumbnail = course.Thumbnail,
             InstructorName = instructor.FullName,
-            ChapterCount = 0,
-            EnrollmentCount = 0,
             Status = course.Status.ToString(),
-            CreatedAt = course.CreatedAt,
-            Rating = course.Rating ?? 0
+            CreatedAt = course.CreatedAt
         };
-
-        return courseDto;
-
     }
 
     public async Task<Result<CourseResponseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto)
     {
-        var course = await context.Courses
-            .Where(c => !c.IsDeleted)
-            .Include(c => c.Instructor)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        if (course == null) return Result<CourseResponseDto>.NotFound("Course not found");
 
-        if (course == null)
-        {
-            return Result<CourseResponseDto>.NotFound($"Course with ID {id} not found");
-        }
-
-        if (course.Status == CourseStatus.Published && dto.Price.HasValue && dto.Price.Value != course.Price)
-        {
-            return Result<CourseResponseDto>.Failure("Cannot change price for a published course");
-        }
-
-        if (dto.InstructorId.HasValue && dto.InstructorId.Value != course.InstructorId)
-        {
-            var newInstructor = await context.Users
-                .FirstOrDefaultAsync(u => u.Id == dto.InstructorId.Value
-                    && (u.Role == UserRole.Instructor || u.Role == UserRole.Admin));
-
-            if (newInstructor == null)
-            {
-                return Result<CourseResponseDto>.NotFound("Instructor not found or user is not an instructor/admin");
-            }
-
-            course.InstructorId = newInstructor.Id;
-            course.Instructor = newInstructor;
-        }
-
-        if (dto.Title != null)
-        {
-            course.Title = dto.Title;
-        }
-
-        if (dto.Description != null)
-        {
-            course.Description = dto.Description;
-        }
-
-        if (dto.Price.HasValue)
-        {
-            course.Price = dto.Price.Value;
-        }
-
-        if (dto.Thumbnail != null)
-        {
-            course.Thumbnail = dto.Thumbnail;
-        }
-
-        course.UpdatedAt = DateTime.UtcNow;
+        course.Title = dto.Title ?? course.Title;
+        course.Description = dto.Description ?? course.Description;
+        course.Price = dto.Price ?? course.Price;
+        course.Thumbnail = dto.Thumbnail ?? course.Thumbnail;
 
         await context.SaveChangesAsync();
-
-        var chapterCount = await context.Chapters
-            .CountAsync(ch => ch.CourseId == id && !ch.IsDeleted);
-
-        var enrollmentCount = await context.Enrollments
-            .CountAsync(e => e.CourseId == id);
-
-        var courseDto = new CourseResponseDto
-        {
-            Id = course.Id,
-            Title = course.Title,
-            Description = course.Description,
-            Price = course.Price,
-            Thumbnail = course.Thumbnail,
-            InstructorName = course.Instructor.FullName,
-            ChapterCount = chapterCount,
-            EnrollmentCount = enrollmentCount,
-            Status = course.Status.ToString(),
-            CreatedAt = course.CreatedAt,
-            Rating = course.Rating ?? 0
-        };
-
-        return courseDto;
+        return await GetCourseByIdAsync(id);
     }
 
     public async Task<Result> DeleteCourseAsync(Guid id)
     {
-        var course = await context.Courses
-            .Where(c => !c.IsDeleted)
-            .FirstOrDefaultAsync(c => c.Id == id);
-
-        if (course == null)
-        {
-            return Result.NotFound($"Course with ID {id} not found");
-        }
-
-        var hasEnrollments = await context.Enrollments
-            .AnyAsync(e => e.CourseId == id);
-
-        if (hasEnrollments)
-        {
-            return Result.Failure("Cannot delete course with existing enrollments", ErrorType.Conflict);
-        }
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id);
+        if (course == null) return Result.Failure("Course not found");
 
         course.IsDeleted = true;
-        course.DeletedAt = DateTime.UtcNow;
-
         await context.SaveChangesAsync();
-
         return Result.Success();
-    }
-
-    public async Task<Result<CourseDetailResponseDto>> GetCourseDetailAsync(Guid id)
-    {
-        var course = await context.Courses
-            .Include(c => c.Instructor)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
-
-        if (course == null)
-        {
-            return Result<CourseDetailResponseDto>.NotFound("Course not found");
-        }
-
-        var curriculumnResult = await chapterService.GetCurriculumAsync(id);
-        var curriculumn = curriculumnResult.IsSuccess
-            ? curriculumnResult.Value!
-            : new List<ChapterWithLessonsDto>();
-
-        return new CourseDetailResponseDto
-        {
-            Id = course.Id,
-            Title = course.Title,
-            Description = course.Description,
-            Price = course.Price,
-            Thumbnail = course.Thumbnail,
-            InstructorName = course.Instructor.FullName,
-            Status = course.ToString(),
-            CreatedAt = course.CreatedAt,
-            Rating = course.Rating ?? 0,
-            PublishedAt = course.PublishedAt,
-            Curriculum = curriculumn
-        };
     }
 
     public async Task<Result> SubmitCourseAsync(Guid id, Guid actorId)
     {
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
-        if (course == null)
-        {
-            return Result.NotFound("Course not found");
-        }
-
-        if (course.InstructorId != actorId)
-        {
-            return Result.Forbidden("You are allowed to sunmit this course");
-        }
+        if (course == null) return Result.Failure("Course not found");
 
         course.Status = CourseStatus.Pending;
-        course.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
-
         return Result.Success();
     }
 
     public async Task<Result> ApproveCourseAsync(Guid id, Guid actorId)
     {
-        var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
-        if (actor?.Role != UserRole.Moderator && actor?.Role != UserRole.Admin)
-        {
-            return Result.Forbidden("Only Moderator/Admin can approve courses");
-        }
-
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
-        if (course == null)
-        {
-            return Result.NotFound("Course not found");
-        }
+        if (course == null) return Result.Failure("Course not found");
 
         course.Status = CourseStatus.Published;
         course.PublishedAt = DateTime.UtcNow;
-        course.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
-
         return Result.Success();
     }
 
     public async Task<Result> RejectCourseAsync(Guid id, Guid actorId, string reason)
     {
-        var actor = await context.Users.FirstOrDefaultAsync(u => u.Id == actorId);
-        if (actor?.Role != UserRole.Moderator && actor?.Role != UserRole.Admin)
-        {
-            return Result.Forbidden("Only Moderator/Admin can reject courses");
-        }
-
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
-        if (course == null)
-        {
-            return Result.NotFound("Course not found");
-        }
+        if (course == null) return Result.Failure("Course not found");
 
         course.Status = CourseStatus.Rejected;
-        course.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
-
         return Result.Success();
     }
 }

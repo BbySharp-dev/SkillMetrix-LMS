@@ -32,6 +32,5 @@ export function useApiMutation<
 >(
   options: UseMutationOptions<TData, TError, TVariables, TContext>
 ) {
-  // Không cần useQueryClient() ở đây nữa vì useMutation tự lấy từ Context
   return useMutation(options);
 }

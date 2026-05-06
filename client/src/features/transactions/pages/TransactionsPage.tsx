@@ -8,14 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
-// ============================================================
-// Types
-// ============================================================
 type TxStatusInfo = { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' }
 
-// ============================================================
-// Constants — dùng số làm keys vì backend trả về numeric enum
-// ============================================================
 const TX_TYPES: Record<number, { label: string; iconColor: string; iconBg: string }> = {
     1: { label: 'Nạp tiền', iconColor: 'text-success', iconBg: 'bg-success/10' },
     2: { label: 'Rút tiền', iconColor: 'text-destructive', iconBg: 'bg-destructive/10' },
