@@ -7,9 +7,6 @@ interface VideoPlayerProps {
     onPersistProgress: (second: number) => void;
 }
 
-// Pattern chống spam API:
-// - onProgress: chỉ cập nhật local ref (không gọi API)
-// - flush API khi pause / ended / mỗi 30s / unmount
 export default function VideoPlayer({
     lessonId,
     videoUrl,
@@ -21,10 +18,8 @@ export default function VideoPlayer({
     const lastSentSecondRef = useRef<number>(-1);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Flush tiến độ lên server
     const flushProgress = useCallback(async (force = false) => {
         const sec = Math.floor(currentSecondRef.current);
-        // Chỉ gửi nếu tăng thêm >= 5s hoặc force (pause/ended/unmount)
         const shouldSend = force || sec - lastSentSecondRef.current >= 5;
         if (!shouldSend || sec < 0) return;
 
@@ -32,11 +27,10 @@ export default function VideoPlayer({
             await onPersistProgress(sec);
             lastSentSecondRef.current = sec;
         } catch {
-            // Silently fail - progress save is non-critical
+            return;
         }
     }, [onPersistProgress]);
 
-    // Seek về vị trí cũ khi đổi lesson
     useEffect(() => {
         currentSecondRef.current = initialSecond;
         lastSentSecondRef.current = -1;
@@ -46,7 +40,6 @@ export default function VideoPlayer({
         }
     }, [lessonId, initialSecond]);
 
-    // Flush mỗi 30 giây
     useEffect(() => {
         intervalRef.current = setInterval(() => {
             void flushProgress(false);
@@ -59,7 +52,6 @@ export default function VideoPlayer({
         };
     }, [flushProgress]);
 
-    // Flush khi rời trang / unmount
     useEffect(() => {
         const handleBeforeUnload = () => {
             void flushProgress(true);
