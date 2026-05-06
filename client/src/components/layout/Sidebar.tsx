@@ -1,6 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import {
     LayoutDashboard,
     GraduationCap,
@@ -9,16 +8,77 @@ import {
     ShieldCheck,
     Settings,
     ChevronRight,
+    Library,
+    type LucideIcon,
 } from 'lucide-react';
+
+type NavItemConfig = {
+    label: string;
+    to: string;
+    icon: LucideIcon;
+    end?: boolean;
+};
+
+type NavSectionConfig = {
+    title: string;
+    items: NavItemConfig[];
+};
+
+const USER_NAV_SECTIONS: NavSectionConfig[] = [
+    {
+        title: 'Tổng quan',
+        items: [
+            { label: 'Bảng điều khiển', to: '/dashboard', icon: LayoutDashboard, end: true },
+            { label: 'Khóa học của tôi', to: '/dashboard/my-enrollments', icon: GraduationCap },
+            { label: 'Lịch sử thanh toán', to: '/dashboard/my-transactions', icon: CreditCard },
+        ],
+    },
+];
+
+const INSTRUCTOR_NAV_SECTIONS: NavSectionConfig[] = [
+    {
+        title: 'Quản lý',
+        items: [
+            { label: 'Tổng quan', to: '/instructor', icon: LayoutDashboard, end: true },
+            { label: 'Khóa học', to: '/instructor/courses', icon: BookOpen },
+        ],
+    },
+    {
+        title: 'Học viên',
+        items: [
+            { label: 'Khóa học của tôi', to: '/instructor/my-enrollments', icon: GraduationCap },
+            { label: 'Lịch sử thanh toán', to: '/instructor/my-transactions', icon: CreditCard },
+        ],
+    },
+];
+
+const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
+    {
+        title: 'Quản trị',
+        items: [
+            { label: 'Tổng quan', to: '/admin', icon: LayoutDashboard, end: true },
+            { label: 'Người dùng', to: '/admin/users', icon: ShieldCheck },
+            { label: 'Quản lý khóa học', to: '/admin/courses', icon: Library },
+            { label: 'Duyệt khóa học', to: '/admin/approvals', icon: BookOpen },
+        ],
+    },
+    {
+        title: 'Hệ thống',
+        items: [
+            { label: 'Cài đặt', to: '/admin/settings', icon: Settings },
+        ],
+    },
+];
+
 
 interface NavItemProps {
     to: string;
-    icon: React.ReactNode;
+    icon: LucideIcon;
     children: React.ReactNode;
     end?: boolean;
 }
 
-function NavItem({ to, icon, children, end }: NavItemProps) {
+function NavItem({ to, icon: Icon, children, end }: NavItemProps) {
     return (
         <NavLink
             to={to}
@@ -31,10 +91,14 @@ function NavItem({ to, icon, children, end }: NavItemProps) {
             )}
         >
             <div className="flex items-center gap-3">
-                <span className="transition-transform group-hover:scale-110">{icon}</span>
+                <span className="transition-transform group-hover:scale-110">
+                    <Icon size={20} />
+                </span>
                 <span>{children}</span>
             </div>
-            <span className={cn("opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-primary")}>
+            
+
+            <span className="opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 inherit-color">
                 <ChevronRight size={16} />
             </span>
         </NavLink>
@@ -42,55 +106,40 @@ function NavItem({ to, icon, children, end }: NavItemProps) {
 }
 
 export default function Sidebar() {
-    const user = useAuthStore((s) => s.user);
-    const isStudent = user?.role === 'Student';
-    const isInstructor = user?.role === 'Instructor';
-    const isAdmin = user?.role === 'Admin';
+    const location = useLocation();
+
+
+    const isAdmin = location.pathname.startsWith('/admin');
+    const isInstructor = location.pathname.startsWith('/instructor');
+
+    const activeNavSections = isAdmin 
+        ? ADMIN_NAV_SECTIONS 
+        : isInstructor 
+            ? INSTRUCTOR_NAV_SECTIONS 
+            : USER_NAV_SECTIONS;
 
     return (
         <aside className="w-72 border-r border-border bg-background p-6 hidden lg:block overflow-y-auto">
             <div className="space-y-8">
-                <div>
-                    <h3 className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Tổng quan</h3>
-                    <nav className="space-y-1.5">
-                        <NavItem to="/dashboard" end icon={<LayoutDashboard size={20} />}>
-                            Bảng điều khiển
-                        </NavItem>
-                        <NavItem to="/dashboard/my-enrollments" icon={<GraduationCap size={20} />}>
-                            Khóa học của tôi
-                        </NavItem>
-                        <NavItem to="/dashboard/my-transactions" icon={<CreditCard size={20} />}>
-                            Lịch sử thanh toán
-                        </NavItem>
-                    </nav>
-                </div>
-
-                {/* Management Section - Hidden for pure Students */}
-                {!isStudent && (
-                    <div>
-                        <h3 className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Quản lý</h3>
+                {activeNavSections.map((section) => (
+                    <div key={section.title}>
+                        <h3 className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">
+                            {section.title}
+                        </h3>
                         <nav className="space-y-1.5">
-                            {(isInstructor || isAdmin) && (
-                                <NavItem to="/dashboard/instructor" icon={<BookOpen size={20} />}>
-                                    Giảng viên
+                            {section.items.map((item) => (
+                                <NavItem 
+                                    key={item.to} 
+                                    to={item.to} 
+                                    icon={item.icon} 
+                                    end={item.end}
+                                >
+                                    {item.label}
                                 </NavItem>
-                            )}
-                            {isAdmin && (
-                                <NavItem to="/dashboard/admin" icon={<ShieldCheck size={20} />}>
-                                    Quản trị viên
-                                </NavItem>
-                            )}
+                            ))}
                         </nav>
                     </div>
-                )}
-
-                <div className="pt-8 border-t border-border">
-                    <nav className="space-y-1.5">
-                        <NavItem to="/dashboard/settings" icon={<Settings size={20} />}>
-                            Cài đặt
-                        </NavItem>
-                    </nav>
-                </div>
+                ))}
             </div>
 
             {/* Support Box */}

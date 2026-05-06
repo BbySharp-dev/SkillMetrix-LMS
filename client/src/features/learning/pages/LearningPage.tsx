@@ -16,7 +16,6 @@ export default function LearningPage() {
 
     const { data: curriculum, isLoading: curriculumLoading } = useCourseCurriculum(courseId);
 
-    // Dùng useMemo tránh tạo array mới mỗi render
     const allLessons = useMemo(() => {
         return curriculum?.flatMap((ch) =>
             [...ch.lessons].sort((a, b) => a.orderIndex - b.orderIndex).map((ls) => ({
@@ -30,7 +29,6 @@ export default function LearningPage() {
     const defaultLessonId = allLessons[0]?.id;
     const activeLessonId = searchParams.get('lessonId') ?? defaultLessonId;
 
-    // Memoize activeLesson tránh object mới mỗi render → tránh persistProgress recreation
     const activeLesson = useMemo(() =>
         allLessons.find((x) => x.id === activeLessonId) ?? allLessons[0],
         [allLessons, activeLessonId]
@@ -44,7 +42,6 @@ export default function LearningPage() {
     const activeLessonIdRef = useRef(activeLesson?.id);
     activeLessonIdRef.current = activeLesson?.id;
 
-    // lessonsForSidebar dùng useMemo tránh re-render sidebar khi parent re-render
     const lessonsForSidebar = useMemo(() => {
         return curriculum?.map((chapter) => ({
             ...chapter,
@@ -76,11 +73,11 @@ export default function LearningPage() {
                 lastWatchedSecond: second,
             });
 
-            if (result?.isCompleted) {
+            if (result?.data?.isCompleted) {
                 setLocalCompletedMap((prev) => ({ ...prev, [lessonId]: true }));
             }
         } catch {
-            // Non-critical
+            return;
         }
     }, []);
 

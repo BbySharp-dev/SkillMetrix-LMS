@@ -48,10 +48,6 @@ const AvatarFallback = React.forwardRef<
   />
 ))
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
-
-// ============================================================
-// Convenience wrapper
-// ============================================================
 interface AvatarProps {
   src?: string | null
   alt?: string

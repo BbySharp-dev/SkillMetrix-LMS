@@ -13,12 +13,17 @@ interface AuthState {
     hydrateFromStorage: () => void;
 }
 
+function loadStoredAuth() {
+    const token = storage.getToken();
+    const refreshToken = storage.getRefreshToken();
+    const user = storage.getUser<CurrentUser>();
+    return token && refreshToken && user
+        ? { accessToken: token, refreshToken, user, isAuthenticated: true, isHydrated: true }
+        : { accessToken: null, refreshToken: null, user: null, isAuthenticated: false, isHydrated: true };
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-    isHydrated: false,
-    accessToken: null,
-    refreshToken: null,
-    user: null,
-    isAuthenticated: false,
+    ...loadStoredAuth(),
 
     setAuth: (accessToken, refreshToken, user) => {
         storage.setToken(accessToken);
