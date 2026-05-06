@@ -31,14 +31,14 @@ const Loadable = <P extends object>(Component: ComponentType<P>) => {
 const CoursesPage = Loadable(lazy(() => import('@/features/courses/pages/CoursesPage')));
 const CourseDetailPage = Loadable(lazy(() => import('@/features/courses/pages/CourseDetailPage')));
 const InstructorCoursesPage = Loadable(lazy(() => import('@/features/courses/pages/InstructorCoursesPage')));
+const CourseEditorPage = Loadable(lazy(() => import('@/features/courses/pages/CourseEditorPage')));
 const LoginPage = Loadable(lazy(() => import('@/features/auth/pages/LoginPage')));
 const RegisterPage = Loadable(lazy(() => import('@/features/auth/pages/RegisterPage')));
 const EnrollmentsPage = Loadable(lazy(() => import('@/features/enrollments/pages/EnrollmentsPage')));
 const TransactionsPage = Loadable(lazy(() => import('@/features/transactions/pages/TransactionsPage')));
-const InstructorDashboardPage = Loadable(lazy(() => import('@/features/dashboard/pages/InstructorDashboardPage')));
-const AdminDashboardPage = Loadable(lazy(() => import('@/features/dashboard/pages/AdminDashboardPage')));
 const UsersPage = Loadable(lazy(() => import('@/features/admin/pages/UsersPage')));
 const ApprovalsPage = Loadable(lazy(() => import('@/features/admin/pages/ApprovalsPage')));
+const AdminCoursesPage = Loadable(lazy(() => import('@/features/admin/pages/AdminCoursesPage')));
 const SettingsPage = Loadable(lazy(() => import('@/features/admin/pages/SettingsPage')));
 const ForbiddenPage = Loadable(lazy(() => import('@/features/home/pages/ForbiddenPage')));
 const NotFoundPage = Loadable(lazy(() => import('@/features/home/pages/NotFoundPage')));
@@ -59,37 +59,63 @@ export const appRouter = createBrowserRouter([
       { path: '403', element: <ForbiddenPage /> },
     ],
   },
+
   {
     element: <PrivateRoute />,
     children: [
+
       {
-        path: '/dashboard',
-        element: <DashboardLayout />,
+        element: <RoleRoute allowedRoles={['Student', 'Instructor', 'Admin', 'Moderator']} />,
         children: [
-          { index: true, element: <DashboardHomePage /> },
-          { path: 'my-enrollments', element: <EnrollmentsPage /> },
-          { path: 'my-transactions', element: <TransactionsPage /> },
           {
-            element: <RoleRoute allowedRoles={['Instructor', 'Admin']} />,
+            path: 'dashboard',
+            element: <DashboardLayout />,
             children: [
-              { index: true, element: <InstructorDashboardPage /> },
-              { path: 'instructor', element: <InstructorDashboardPage /> },
-              { path: 'instructor/courses', element: <InstructorCoursesPage /> },
+              { index: true, element: <DashboardHomePage /> },
+              { path: 'my-enrollments', element: <EnrollmentsPage /> },
+              { path: 'my-transactions', element: <TransactionsPage /> },
             ],
           },
+        ],
+      },
+
+
+      {
+        element: <RoleRoute allowedRoles={['Instructor', 'Admin']} />,
+        children: [
           {
-            element: <RoleRoute allowedRoles={['Admin']} />,
+            path: 'instructor',
+            element: <DashboardLayout />,
             children: [
-              { index: true, element: <AdminDashboardPage /> },
-              { path: 'admin', element: <AdminDashboardPage /> },
-              { path: 'admin/users', element: <UsersPage /> },
-              { path: 'admin/approvals', element: <ApprovalsPage /> },
-              { path: 'admin/settings', element: <SettingsPage /> },
+              { index: true, element: <DashboardHomePage /> },
+              { path: 'courses', element: <InstructorCoursesPage /> },
+              { path: 'courses/:id', element: <CourseEditorPage /> },
+              { path: 'my-enrollments', element: <EnrollmentsPage /> },
+              { path: 'my-transactions', element: <TransactionsPage /> },
+            ],
+          },
+        ],
+      },
+
+
+      {
+        element: <RoleRoute allowedRoles={['Admin']} />,
+        children: [
+          {
+            path: 'admin',
+            element: <DashboardLayout />,
+            children: [
+              { index: true, element: <DashboardHomePage /> },
+              { path: 'users', element: <UsersPage /> },
+              { path: 'approvals', element: <ApprovalsPage /> },
+              { path: 'courses', element: <AdminCoursesPage /> },
+              { path: 'settings', element: <SettingsPage /> },
             ],
           },
         ],
       },
     ],
   },
+
   { path: '*', element: <NotFoundPage /> },
 ]);

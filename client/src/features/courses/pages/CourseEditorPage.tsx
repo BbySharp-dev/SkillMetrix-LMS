@@ -24,9 +24,6 @@ import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import type { CourseStatus } from '@/types/instructor';
 import type { CourseEditorData } from '../types';
 
-// ============================================================
-// CONFIGURATION
-// ============================================================
 
 const STATUS_STYLES: Record<CourseStatus, string> = {
     Published: 'bg-emerald-50 text-emerald-600 border-emerald-100',
@@ -60,7 +57,7 @@ export default function CourseEditorPage() {
     return (
         <CourseEditorForm 
             key={course?.id || 'new-course'} 
-            initialData={course} 
+            initialData={course}
             isNew={isNew} 
             courseId={id} 
         />
