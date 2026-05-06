@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, User, Calendar, Globe, AlertCircle, Play, Star } from 'lucide-react';
@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmModal } from '@/components/ui/progress-bar';
 
-// Định nghĩa OUTSIDE component để tránh tạo function reference mới mỗi render
 const fetchEnrollmentCheck = async (courseId: string) => {
     const response = await enrollmentApi.checkEnrollment(courseId);
     return response.data;
@@ -28,7 +27,6 @@ export default function CourseDetailPage() {
     const enrollMutation = useEnrollCourse();
 
     const [openEnrollModal, setOpenEnrollModal] = useState(false);
-    // Reset optimisticEnrolled khi id đổi (đổi khóa học)
     const [optimisticEnrolled, setOptimisticEnrolled] = useState(false);
 
     const { data: serverEnrolled = false } = useQuery({
@@ -37,9 +35,12 @@ export default function CourseDetailPage() {
         enabled: Boolean(id) && isAuthenticated,
     });
 
-    useEffect(() => {
+    const [prevId, setPrevId] = useState(id);
+
+    if (id !== prevId) {
+        setPrevId(id);
         setOptimisticEnrolled(false);
-    }, [id]);
+    }
 
     const isEnrolled = serverEnrolled || optimisticEnrolled;
 
@@ -200,11 +201,9 @@ export default function CourseDetailPage() {
                     </aside>
                 </div>
 
-                {/* Main Body Content */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="lg:w-[calc(100%-400px)] space-y-12">
                         
-                        {/* Curriculum / Course Content */}
                         <section className="space-y-6">
                             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Nội dung khóa học</h2>
@@ -222,7 +221,6 @@ export default function CourseDetailPage() {
                             )}
                         </section>
 
-                        {/* Description */}
                         <section className="space-y-4">
                             <h2 className="text-2xl font-black text-gray-900">Mô tả</h2>
                             <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-line font-medium">
@@ -230,7 +228,6 @@ export default function CourseDetailPage() {
                             </div>
                         </section>
 
-                        {/* Instructor Section */}
                         <section className="space-y-6 pt-10 border-t border-gray-100">
                             <h2 className="text-2xl font-black text-gray-900 tracking-tight">Giảng viên</h2>
                             <div className="space-y-6">
