@@ -6,7 +6,6 @@ export default function PrivateRoute() {
     const isHydrated = useAuthStore((s) => s.isHydrated);
     const location = useLocation();
 
-    // Chưa hydrate xong → không redirect (tránh redirect nhầm khi F5 trên trang dashboard)
     if (!isHydrated) return null;
 
     if (!isAuthenticated) {

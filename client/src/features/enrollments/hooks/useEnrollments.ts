@@ -1,32 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { enrollmentApi } from '../api/enrollmentApi';
 import { toast } from 'sonner';
+import { queryKeys } from '@/shared/queryKeys';
+import { ApiError } from '@/shared/apiError';
 
 export function useEnrollCourse() {
-    const queryClient = useQueryClient();
+    const qc = useQueryClient();
 
     return useMutation({
         mutationFn: (courseId: string) => enrollmentApi.enroll(courseId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
-            queryClient.invalidateQueries({ queryKey: ['enrollment-check'] });
+            qc.invalidateQueries({ queryKey: queryKeys.enrollments.me });
+            qc.invalidateQueries({ queryKey: queryKeys.enrollments.all });
             toast.success('Đăng ký khóa học thành công!');
         },
-        onError: (error: unknown) => {
-            const message =
-                (error as { response?: { data?: { message?: string } }})?.response?.data?.message
-                ?? "Đăng ký thất bại. Vui lòng thử lại."
-            toast.error(message);
-        }
+        onError: (err: unknown) => {
+            const error = err as ApiError;
+            toast.error(error.message ?? 'Đăng ký thất bại. Vui lòng thử lại.');
+        },
     });
 }
 
 export function useMyEnrollments() {
     return useQuery({
-        queryKey: ['my-enrollments'],
+        queryKey: queryKeys.enrollments.me,
         queryFn: async () => {
-            const response = await enrollmentApi.getMyEnrollments();
-            return response.data;
+            const res = await enrollmentApi.getMyEnrollments();
+            return res.data ?? [];
         },
     });
 }
