@@ -1,8 +1,16 @@
 export type Role = 'Student' | 'Instructor' | 'Admin' | 'Moderator';
 
+export interface UserInfo {
+    id: string;
+    fullName: string;
+    email: string;
+    avatarUrl?: string;
+    role: Role;
+}
+
 export interface CurrentUser {
     id: string;
-    name: string;
+    name?: string;
     fullName: string;
     avatarUrl?: string;
     role: Role;
@@ -25,3 +33,11 @@ export interface AuthPayload {
     refreshToken: string;
     user: CurrentUser;
 }
+
+export interface AuthResponse {
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpiresAt: string;
+    user: UserInfo;
+}
+

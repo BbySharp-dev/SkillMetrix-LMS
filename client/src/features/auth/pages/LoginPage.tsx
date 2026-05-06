@@ -5,7 +5,7 @@ import { LogIn } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { authApi } from '@/features/auth/api/authApi';
+import { authApi, ApiError } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { loginSchema, type LoginFormValues } from '../schemas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,11 +30,11 @@ export default function LoginPage() {
             setAuth(result.accessToken, result.refreshToken, result.user);
             const stateFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
             const returnUrl = searchParams.get('returnUrl');
-            navigate(returnUrl ?? stateFrom ?? '/dashboard', { replace: true });
+            navigate(returnUrl ?? stateFrom ?? '/', { replace: true });
         },
-        onError: (error: { response?: { data?: { message?: string } } }) => {
-            const message = error.response?.data?.message ?? 'Email hoặc mật khẩu không đúng.';
-            toast.error(message);
+        onError: (err: unknown) => {
+            const error = err as ApiError;
+            toast.error(error.message ?? 'Email hoặc mật khẩu không đúng.');
         },
     });
 
