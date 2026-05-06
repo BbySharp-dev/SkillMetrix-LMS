@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-    ShieldCheck, Search, AlertCircle, CheckCircle2, XCircle, Eye, User,
+    ShieldCheck, Search, AlertCircle, CheckCircle2, XCircle, Eye, User, Loader2
 } from 'lucide-react';
 import api from '@/lib/axios';
 import {
@@ -17,6 +17,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
+import { formatCurrency, formatDate } from '@/lib/utils';
+
 interface PendingCourse {
     id: string;
     title: string;
@@ -28,6 +30,7 @@ interface PendingCourse {
 
 export default function ApprovalsPage() {
     const queryClient = useQueryClient();
+    
     const { data, isLoading, isError } = useQuery({
         queryKey: ['admin-approvals'],
         queryFn: async () => {
@@ -64,6 +67,7 @@ export default function ApprovalsPage() {
                     </h1>
                     <p className="text-gray-500 font-medium">Xem xét và phê duyệt các khóa học mới từ giảng viên.</p>
                 </div>
+                
                 <div className="relative w-full md:w-80">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-4 pointer-events-none" />
                     <Input placeholder="Tìm kiếm khóa học..." className="pl-10 h-11 rounded-xl border-gray-200" />
@@ -74,7 +78,7 @@ export default function ApprovalsPage() {
                 <Card className="border-rose-100 bg-rose-50 text-rose-600 shadow-sm">
                     <CardContent className="flex items-center gap-3 p-4 font-bold">
                         <AlertCircle className="size-4 shrink-0" />
-                        Không thể tải danh sách chờ duyệt.
+                        Không thể tải danh sách chờ duyệt. Vui lòng thử lại sau.
                     </CardContent>
                 </Card>
             )}
@@ -114,65 +118,85 @@ export default function ApprovalsPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            courses.map((course) => (
-                                <TableRow key={course.id} className="hover:bg-gray-50/50 border-gray-50 group transition-colors">
-                                    <TableCell>
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                                <Eye className="size-4 text-indigo-600" />
+                            courses.map((course) => {
+                                const isApprovingThis = approveMutation.isPending && approveMutation.variables === course.id;
+                                const isRejectingThis = rejectMutation.isPending && rejectMutation.variables === course.id;
+                                const isProcessingThis = isApprovingThis || isRejectingThis;
+
+                                return (
+                                    <TableRow key={course.id} className="hover:bg-gray-50/50 border-gray-50 group transition-colors">
+                                        <TableCell>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                                    <Eye className="size-4 text-indigo-600" />
+                                                </div>
+                                                <span className="font-black text-gray-900 text-sm group-hover:text-indigo-600 transition-colors line-clamp-1">
+                                                    {course.title}
+                                                </span>
                                             </div>
-                                            <span className="font-black text-gray-900 text-sm group-hover:text-indigo-600 transition-colors line-clamp-1">
-                                                {course.title}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                                            <User className="size-3.5 text-gray-400" />
-                                            {course.instructorName}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                        {new Date(course.createdAt).toLocaleDateString('vi-VN')}
-                                    </TableCell>
-                                    <TableCell className="font-black text-gray-900 text-sm">
-                                        {course.price <= 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                className="rounded-lg h-9 font-bold px-3 border-gray-200 hover:bg-gray-100"
-                                                asChild
-                                            >
-                                                <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer">
-                                                    Xem
-                                                </a>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="rounded-lg h-9 font-bold px-3 bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 shadow-md"
-                                                onClick={() => approveMutation.mutate(course.id)}
-                                                disabled={approveMutation.isPending}
-                                            >
-                                                <CheckCircle2 className="size-4 mr-1" />
-                                                Duyệt
-                                            </Button>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                className="rounded-lg h-9 font-bold px-3 shadow-rose-100 shadow-md"
-                                                onClick={() => rejectMutation.mutate(course.id)}
-                                                disabled={rejectMutation.isPending}
-                                            >
-                                                <XCircle className="size-4 mr-1" />
-                                                Từ chối
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                        </TableCell>
+                                        
+                                        <TableCell>
+                                            <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                                                <User className="size-3.5 text-gray-400" />
+                                                {course.instructorName}
+                                            </div>
+                                        </TableCell>
+                                        
+                                        <TableCell className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                            {formatDate(course.createdAt)}
+                                        </TableCell>
+                                        
+                                        <TableCell className="font-black text-gray-900 text-sm">
+                                            {course.price <= 0 ? 'Miễn phí' : formatCurrency(course.price)}
+                                        </TableCell>
+                                        
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    className="rounded-lg h-9 font-bold px-3 border-gray-200 hover:bg-gray-100"
+                                                    asChild
+                                                >
+                                                    <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer">
+                                                        Xem
+                                                    </a>
+                                                </Button>
+                                                
+                                                <Button
+                                                    size="sm"
+                                                    className="rounded-lg h-9 font-bold px-3 bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 shadow-md w-22"
+                                                    onClick={() => approveMutation.mutate(course.id)}
+                                                    disabled={isProcessingThis}
+                                                >
+                                                    {isApprovingThis ? (
+                                                        <Loader2 className="size-4 mr-1 animate-spin" />
+                                                    ) : (
+                                                        <CheckCircle2 className="size-4 mr-1" />
+                                                    )}
+                                                    Duyệt
+                                                </Button>
+                                                
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="rounded-lg h-9 font-bold px-3 shadow-rose-100 shadow-md w-24"
+                                                    onClick={() => rejectMutation.mutate(course.id)}
+                                                    disabled={isProcessingThis}
+                                                >
+                                                    {isRejectingThis ? (
+                                                        <Loader2 className="size-4 mr-1 animate-spin" />
+                                                    ) : (
+                                                        <XCircle className="size-4 mr-1" />
+                                                    )}
+                                                    Từ chối
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>
