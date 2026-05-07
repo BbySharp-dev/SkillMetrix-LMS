@@ -40,6 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 1. Cài đặt pnpm trước tiên
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # 2. Setup Node.js và cache bằng pnpm
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -47,10 +54,12 @@ jobs:
           cache: pnpm
           cache-dependency-path: client/pnpm-lock.yaml
 
-      - name: Install
+      # 3. Cài đặt thư viện
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
         working-directory: client
 
+      # 4. Kiểm tra Type và Lint
       - name: Type check
         run: pnpm typecheck
         working-directory: client
@@ -59,12 +68,14 @@ jobs:
         run: pnpm lint
         working-directory: client
 
+      # 5. Build dự án
       - name: Build
         run: pnpm build
         env:
           VITE_API_BASE_URL: https://skillmetrix-lms-production.up.railway.app/api
         working-directory: client
 
+      # 6. Upload thư mục build (dist) để dùng cho Job sau
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -72,7 +83,7 @@ jobs:
           path: client/dist
           retention-days: 1
 
-  # ── Deploy Client to Vercel (chỉ khi push main) ──────────────────────────
+  # ── Deploy Client to Vercel (chỉ khi push vào nhánh main) ────────────────
   deploy-client:
     name: Deploy Client to Vercel
     needs: build-client
