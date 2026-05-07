@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { useCourseCurriculum } from '@/features/courses/hooks/useCourses';
@@ -38,9 +38,13 @@ export default function LearningPage() {
     const updateProgressMutation = useUpdateLessonProgress();
 
     const mutateRef = useRef(updateProgressMutation.mutateAsync);
-    mutateRef.current = updateProgressMutation.mutateAsync;
     const activeLessonIdRef = useRef(activeLesson?.id);
-    activeLessonIdRef.current = activeLesson?.id;
+
+    // Đã fix dependency array để tránh warning của ESLint
+    useEffect(() => {
+        mutateRef.current = updateProgressMutation.mutateAsync;
+        activeLessonIdRef.current = activeLesson?.id;
+    }, [updateProgressMutation.mutateAsync, activeLesson?.id]);
 
     const lessonsForSidebar = useMemo(() => {
         return curriculum?.map((chapter) => ({
