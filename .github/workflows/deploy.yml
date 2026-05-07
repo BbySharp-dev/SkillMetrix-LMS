@@ -86,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: client-dist
-          path: client/dist
+          path: ./dist
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -95,4 +95,4 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: --prod
-          working-directory: client/dist
+          working-directory: ./
