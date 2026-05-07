@@ -82,11 +82,12 @@ jobs:
       - uses: actions/checkout@v4
 
       # Gọi Vercel CLI deploy trực tiếp từ thư mục source code (client)
+      # Đã thêm --yes để tự động xác nhận các câu hỏi [Y/n]
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          vercel-args: '--prod --yes'
           working-directory: client
