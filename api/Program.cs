@@ -134,7 +134,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-     ?? ["http://localhost:5173"];
+     ?? [
+         "http://localhost:5173", 
+         "https://client-gamma-sepia.vercel.app",
+         "https://skill-metrix-lms.vercel.app"    
+     ];
 
 builder.Services.AddCors(options =>
 {
