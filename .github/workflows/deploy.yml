@@ -1,0 +1,98 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, feat/instructor-cms]
+  pull_request:
+    branches: [main, develop, feat/instructor-cms]
+
+env:
+  DOTNET_VERSION: '8.0'
+  NODE_VERSION: '20'
+
+jobs:
+  # ── Build & Test API ──────────────────────────────────────────────────────
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+        working-directory: api
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+        working-directory: api
+
+  # ── Build Client ──────────────────────────────────────────────────────────
+  build-client:
+    name: Build Client
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        working-directory: client
+
+      - name: Type check
+        run: pnpm typecheck
+        working-directory: client
+
+      - name: Lint
+        run: pnpm lint
+        working-directory: client
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_API_BASE_URL: https://skillmetrix-lms-production.up.railway.app/api
+        working-directory: client
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+          retention-days: 1
+
+  # ── Deploy Client to Vercel (chỉ khi push main) ──────────────────────────
+  deploy-client:
+    name: Deploy Client to Vercel
+    needs: build-client
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: --prod
+          working-directory: client/dist
