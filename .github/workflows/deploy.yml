@@ -71,7 +71,7 @@ jobs:
           VITE_API_BASE_URL: https://skillmetrix-lms-production.up.railway.app/api
         working-directory: client
 
-  # ── Deploy Client to Vercel (Chỉ chạy khi push vào main) ──────────────────
+ # ── Deploy Client to Vercel (Chỉ chạy khi push vào main) ──────────────────
   deploy-client:
     name: Deploy Client to Vercel
     needs: build-client
@@ -81,13 +81,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Gọi Vercel CLI deploy trực tiếp từ thư mục source code (client)
-      # Đã thêm --yes để tự động xác nhận các câu hỏi [Y/n]
+      # Gọi trực tiếp Vercel CLI bản mới nhất (chuẩn chính chủ)
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod --yes'
-          working-directory: client
+        working-directory: client
+        env:
+          # Vercel sẽ tự động đọc 2 biến này và KHÔNG hỏi [Y/n] nữa
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel@latest --prod --token ${{ secrets.VERCEL_TOKEN }}
