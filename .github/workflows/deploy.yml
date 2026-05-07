@@ -59,25 +59,17 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: client
 
-      # 4. Chạy Lint để kiểm tra code style (Đảm bảo script 'lint' có trong package.json)
+      # 4. Chạy Lint để kiểm tra code style
       - name: Lint
         run: pnpm lint
         working-directory: client
 
-      # 5. Build dự án (Tạo ra thư mục dist)
+      # 5. Kiểm tra Build (CI Check) đảm bảo code không lỗi trước khi deploy
       - name: Build
         run: pnpm build
         env:
           VITE_API_BASE_URL: https://skillmetrix-lms-production.up.railway.app/api
         working-directory: client
-
-      # 6. Lưu trữ thư mục dist để dùng cho bước Deploy
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: client-dist
-          path: client/dist
-          retention-days: 1
 
   # ── Deploy Client to Vercel (Chỉ chạy khi push vào main) ──────────────────
   deploy-client:
@@ -89,17 +81,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: client-dist
-          path: client/dist
-
+      # Gọi Vercel CLI deploy trực tiếp từ thư mục source code (client)
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: --prod
-          working-directory: client/dist
+          vercel-args: '--prod'
+          working-directory: client
