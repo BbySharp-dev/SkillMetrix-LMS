@@ -18,6 +18,8 @@ using SkillMetrix_LMS.API.Features.Lessons;
 using SkillMetrix_LMS.API.Features.Upload;
 using SkillMetrix_LMS.API.Features.Transactions;
 using SkillMetrix_LMS.API.Features.Progress;
+using SkillMetrix_LMS.API.Features.Statistics;
+using SkillMetrix_LMS.API.Features.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,7 +42,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
     ?? "SkillMetrixLMS";
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
@@ -75,9 +77,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireInstructorOrAdmin", policy =>
-        policy.RequireRole("Instructor", "Admin"));
+        policy.RequireRole("Instructor", "Admin"))
+    .AddPolicy("RequireAdmin", policy =>
+        policy.RequireRole("Admin"));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<IFileUploadService, CloudinaryUploadService>();
@@ -91,6 +100,8 @@ builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

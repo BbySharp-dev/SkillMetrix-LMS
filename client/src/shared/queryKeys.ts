@@ -2,8 +2,14 @@ export const queryKeys = {
     courses: {
         all: ['courses'] as const,
         list: (params: object) => ['courses', 'list', params] as const,
+        mine: (params: object) => ['courses', 'mine', params] as const,
         detail: (id: string) => ['courses', 'detail', id] as const,
         curriculum: (id: string) => ['courses', 'curriculum', id] as const,
+    },
+    admin: {
+        all: ['admin'] as const,
+        courses: (params: object) => [...queryKeys.admin.all, 'courses', params] as const,
+        approvals: () => [...queryKeys.admin.all, 'approvals'] as const,
     },
     enrollments: {
         all: ['enrollments'] as const,
@@ -22,7 +28,7 @@ export const queryKeys = {
     instructor: {
         all: ['instructorStats'] as const,
         overview: () => [...queryKeys.instructor.all, 'overview'] as const,
-        revenue: (year?: number) => [...queryKeys.instructor.all, 'revenue', year] as const,
+        revenue: (months?: number) => [...queryKeys.instructor.all, 'revenue', months] as const,
         activity: (limit?: number) => [...queryKeys.instructor.all, 'activity', limit] as const,
         performance: (courseId?: string) => [...queryKeys.instructor.all, 'performance', courseId] as const,
     },
