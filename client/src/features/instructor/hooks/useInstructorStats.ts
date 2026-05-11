@@ -11,10 +11,10 @@ export const useInstructorOverview = () => {
     });
 };
 
-export const useInstructorRevenue = (year?: number) => {
+export const useInstructorRevenue = (months = 12) => {
     return useQuery({
-        queryKey: queryKeys.instructor.revenue(year),
-        queryFn: () => instructorStatsApi.getRevenueSeries(year),
+        queryKey: queryKeys.instructor.revenue(months),
+        queryFn: () => instructorStatsApi.getRevenueSeries(months),
         placeholderData: keepPreviousData,
         staleTime: 5 * 60 * 1000,
     });
@@ -33,7 +33,6 @@ export const useCoursePerformance = (courseId?: string) => {
     return useQuery({
         queryKey: queryKeys.instructor.performance(courseId),
         queryFn: () => instructorStatsApi.getCoursePerformance(courseId),
-        enabled: true,
         placeholderData: keepPreviousData,
     });
 };

@@ -54,4 +54,13 @@ export const courseApi = {
     submitCourse: async (id: string): Promise<void> => {
         await api.put(`/courses/${id}/submit`);
     },
+
+    getMyCourses: async (params: Omit<CourseQueryParams, 'instructorId'>): Promise<PaginatedApiResponse<CourseListItem[]>> => {
+        const cleanParams = {
+            ...params,
+            search: params.search?.trim() || undefined,
+        };
+        const res = await api.get('/courses/instructor/mine', { params: cleanParams }) as ApiResponseWrapper<CourseListItem[]>;
+        return normalizePaginated<CourseListItem[]>(res);
+    },
 };
