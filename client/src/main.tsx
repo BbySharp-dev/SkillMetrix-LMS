@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <QueryProvider>
             <RouterProvider router={appRouter} />
             <Toaster
-                position="top-right"
+                position="bottom-left"
                 richColors
                 expand={false}
                 toastOptions={{
