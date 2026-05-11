@@ -18,32 +18,41 @@ export interface RevenuePoint {
 
 export interface RecentActivity {
     id: string;
-    type: 'enrollment' | 'lesson_upload' | 'review' | 'rating';
+    type: 'enrollment' | 'review' | 'rating';
     studentName: string;
     courseTitle: string;
     createdAt: string;
 }
 
+export interface CoursePerformanceDto {
+    courseId: string;
+    courseTitle: string;
+    totalStudents: number;
+    totalRevenue: number;
+    averageRating: number;
+    reviewCount: number;
+    lessonCount: number;
+}
+
 export const instructorStatsApi = {
     getOverview: async (): Promise<InstructorOverviewDto> => {
-        const res = await api.get('/instructors/stats/overview') as unknown as ApiResponse<InstructorOverviewDto>;
+        const res = await api.get('/statistics/instructor/overview') as unknown as ApiResponse<InstructorOverviewDto>;
         return res.data!;
     },
 
-    getRevenueSeries: async (year?: number): Promise<RevenuePoint[]> => {
-        const params = year ? { year } : {};
-        const res = await api.get('/instructors/stats/revenue', { params }) as unknown as ApiResponse<RevenuePoint[]>;
+    getRevenueSeries: async (months = 12): Promise<RevenuePoint[]> => {
+        const res = await api.get('/statistics/instructor/revenue', { params: { months } }) as unknown as ApiResponse<RevenuePoint[]>;
         return res.data ?? [];
     },
 
     getRecentActivity: async (limit = 10): Promise<RecentActivity[]> => {
-        const res = await api.get('/instructors/stats/activity', { params: { limit } }) as unknown as ApiResponse<RecentActivity[]>;
+        const res = await api.get('/statistics/instructor/activity', { params: { limit } }) as unknown as ApiResponse<RecentActivity[]>;
         return res.data ?? [];
     },
 
-    getCoursePerformance: async (courseId?: string): Promise<InstructorOverviewDto[]> => {
+    getCoursePerformance: async (courseId?: string): Promise<CoursePerformanceDto[]> => {
         const params = courseId ? { courseId } : {};
-        const res = await api.get('/instructors/stats/performance', { params }) as unknown as ApiResponse<InstructorOverviewDto[]>;
+        const res = await api.get('/statistics/instructor/performance', { params }) as unknown as ApiResponse<CoursePerformanceDto[]>;
         return res.data ?? [];
     },
 };

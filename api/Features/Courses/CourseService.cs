@@ -32,7 +32,12 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         // 2. Lọc theo InstructorId
         if (query.InstructorId.HasValue)
         {
+            Console.WriteLine($"[CourseService.GetCoursesAsync] Filtering by InstructorId={query.InstructorId.Value}");
             baseQuery = baseQuery.Where(c => c.InstructorId == query.InstructorId.Value);
+        }
+        else
+        {
+            Console.WriteLine("[CourseService.GetCoursesAsync] WARNING: InstructorId is null - returning ALL courses!");
         }
 
         // 3. Search title
@@ -217,26 +222,34 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         };
     }
 
-    public async Task<Result<CourseResponseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto)
+    public async Task<Result<CourseResponseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto, Guid actorId)
     {
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (course == null) return Result<CourseResponseDto>.NotFound("Course not found");
+        if (course.InstructorId != actorId)
+            return Result<CourseResponseDto>.Failure("You can only update your own courses", ErrorType.Forbidden);
 
         course.Title = dto.Title ?? course.Title;
         course.Description = dto.Description ?? course.Description;
         course.Price = dto.Price ?? course.Price;
         course.Thumbnail = dto.Thumbnail ?? course.Thumbnail;
+        course.UpdatedAt = DateTime.UtcNow;
+        course.UpdatedBy = actorId;
 
         await context.SaveChangesAsync();
         return await GetCourseByIdAsync(id);
     }
 
-    public async Task<Result> DeleteCourseAsync(Guid id)
+    public async Task<Result> DeleteCourseAsync(Guid id, Guid actorId)
     {
-        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id);
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (course == null) return Result.Failure("Course not found");
+        if (course.InstructorId != actorId)
+            return Result.Failure("You can only delete your own courses", ErrorType.Forbidden);
 
         course.IsDeleted = true;
+        course.DeletedAt = DateTime.UtcNow;
+        course.DeletedBy = actorId;
         await context.SaveChangesAsync();
         return Result.Success();
     }
