@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { CourseStatus } from '@/types/instructor';
 
-import { useCourses, useCourseMutations } from '@/features/courses/hooks/useCourses';
+import { useMyCourses, useCourseMutations } from '@/features/courses/hooks/useCourses';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const statusStyles: Record<CourseStatus, string> = {
@@ -46,11 +46,10 @@ const statusLabels: Record<CourseStatus, string> = {
 };
 
 export default function InstructorCoursesPage() {
-
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<CourseStatus | 'All'>('All');
 
-    const { data: coursesData, isLoading } = useCourses({
+    const { data: coursesData, isLoading } = useMyCourses({
         pageSize: 100,
         search: searchTerm,
         status: statusFilter === 'All' ? undefined : statusFilter,

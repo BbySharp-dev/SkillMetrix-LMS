@@ -124,13 +124,19 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <response code="200">Cập nhật khóa học thành công.</response>
     /// <response code="400">Thông tin cập nhật không hợp lệ (ví dụ: đổi giá khóa public).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
+    [Authorize]
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResponse<CourseResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCourse(Guid id, UpdateCourseDto dto)
     {
-        var result = await courseService.UpdateCourseAsync(id, dto);
+        var actorId = GetCurrentUserId();
+        if (actorId == null)
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+
+        var result = await courseService.UpdateCourseAsync(id, dto, actorId.Value);
 
         if (!result.IsSuccess)
         {
@@ -151,13 +157,19 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <response code="200">Xóa khóa học thành công.</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
     /// <response code="409">Không thể xóa vì khóa học đã có học viên đăng ký.</response>
+    [Authorize]
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteCourse(Guid id)
     {
-        var result = await courseService.DeleteCourseAsync(id);
+        var actorId = GetCurrentUserId();
+        if (actorId == null)
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+
+        var result = await courseService.DeleteCourseAsync(id, actorId.Value);
 
         if (!result.IsSuccess)
         {
@@ -165,6 +177,37 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         }
 
         return Ok(new ApiResponse<object?>(null, "Course deleted successfully"));
+    }
+
+    /// <summary>
+    /// Lấy danh sách khóa học của instructor hiện tại.
+    /// Tự động inject InstructorId từ token.
+    /// </summary>
+    [Authorize(Policy = "RequireInstructorOrAdmin")]
+    [HttpGet("instructor/mine")]
+    [ProducesResponseType(typeof(PagedResponse<List<CourseResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyCourses(
+        [FromQuery] CourseQueryDto query,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var actorId = GetCurrentUserId();
+        if (actorId == null)
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+
+        // ⚠️ Debug: log actorId để verify token
+        Console.WriteLine($"[GetMyCourses] actorId={actorId}, role={GetCurrentUserRole()}");
+
+        query.InstructorId = actorId.Value;
+
+        // ⚠️ Debug: verify DTO binding
+        Console.WriteLine($"[GetMyCourses] After assignment: InstructorId={query.InstructorId}");
+
+        var result = await courseService.GetCoursesAsync(pageNumber, pageSize, query);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(result.Value);
     }
 
     /// <summary>
