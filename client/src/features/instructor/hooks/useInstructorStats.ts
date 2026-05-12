@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { instructorStatsApi } from '../api/instructorStatsApi';
-import { queryKeys } from '@/shared/queryKeys';
+import { queryKeys } from '@/shared';
 
 export const useInstructorOverview = () => {
     return useQuery({

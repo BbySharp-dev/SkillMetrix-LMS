@@ -2,16 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { chapterApi } from '../api/chapterApi';
 import { lessonApi } from '../api/lessonApi';
 import { courseApi } from '../api/courseApi';
+import { queryKeys } from '@/shared';
 import { toast } from 'sonner';
-
-export const curriculumQueryKeys = {
-    all: ['curriculum'] as const,
-    detail: (courseId: string) => [...curriculumQueryKeys.all, courseId] as const,
-};
 
 export const useCurriculum = (courseId: string) => {
     return useQuery({
-        queryKey: curriculumQueryKeys.detail(courseId),
+        queryKey: queryKeys.courses.curriculum(courseId),
         queryFn: () => courseApi.getCourseCurriculum(courseId),
         enabled: !!courseId,
     });
@@ -23,7 +19,7 @@ export const useChapterMutations = (courseId: string) => {
     const createMutation = useMutation({
         mutationFn: (data: { title: string }) => chapterApi.createChapter(courseId, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Đã thêm chương mới');
         },
     });
@@ -32,7 +28,7 @@ export const useChapterMutations = (courseId: string) => {
         mutationFn: ({ id, data }: { id: string, data: { title: string } }) => 
             chapterApi.updateChapter(courseId, id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Đã cập nhật chương');
         },
     });
@@ -40,7 +36,7 @@ export const useChapterMutations = (courseId: string) => {
     const deleteMutation = useMutation({
         mutationFn: (id: string) => chapterApi.deleteChapter(courseId, id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Đã xóa chương');
         },
     });
@@ -49,7 +45,7 @@ export const useChapterMutations = (courseId: string) => {
         mutationFn: ({ id, data }: { id: string, data: { oldIndex: number, newIndex: number } }) => 
             chapterApi.reorderChapter(courseId, id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
         },
     });
 
@@ -68,7 +64,7 @@ export const useLessonMutations = (courseId: string) => {
         mutationFn: ({ chapterId, data }: { chapterId: string, data: { title: string } }) => 
             lessonApi.createLesson(chapterId, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Đã thêm bài học');
         },
     });
@@ -77,7 +73,7 @@ export const useLessonMutations = (courseId: string) => {
         mutationFn: ({ id, data }: { id: string, data: { title: string, isFreePreview: boolean } }) => 
             lessonApi.updateLesson(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Đã cập nhật bài học');
         },
     });
@@ -85,7 +81,7 @@ export const useLessonMutations = (courseId: string) => {
     const deleteMutation = useMutation({
         mutationFn: (id: string) => lessonApi.deleteLesson(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Đã xóa bài học');
         },
     });
@@ -94,7 +90,7 @@ export const useLessonMutations = (courseId: string) => {
         mutationFn: ({ id, file }: { id: string, file: File }) => 
             lessonApi.uploadVideo(id, file),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: curriculumQueryKeys.detail(courseId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Upload video thành công');
         },
     });

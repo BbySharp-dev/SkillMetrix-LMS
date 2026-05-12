@@ -1,5 +1,7 @@
-export type { ApiResponse, PaginatedApiResponse } from '@/shared/api';
-export type { PaginationMetadata } from '@/shared/api';
+export type { ApiResponse, PaginatedApiResponse } from '@/shared';
+export type { PaginationMetadata } from '@/shared';
+
+export type CourseStatus = 'Draft' | 'Pending' | 'Published' | 'Rejected';
 
 export interface CourseListItem {
     id: string;

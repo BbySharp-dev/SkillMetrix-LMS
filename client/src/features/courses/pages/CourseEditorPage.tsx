@@ -13,15 +13,15 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import CurriculumEditor from '../components/CurriculumEditor';
 
 import { useUpload } from '@/features/upload/hooks/useUpload';
 import { useCourseDetail, useCourseMutations } from '@/features/courses/hooks/useCourses';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
-import type { CourseStatus } from '@/types/instructor';
+import type { CourseStatus } from '../types';
 import type { CourseEditorData } from '../types';
 
 

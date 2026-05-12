@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@/shared/api';
+import type { ApiResponse } from '@/shared';
 import type { TransactionDto } from '../types';
 import api from '@/lib/axios';
 

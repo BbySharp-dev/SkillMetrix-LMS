@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useMyEnrollments } from '../hooks/useEnrollments';
 import type { EnrollmentDto } from '../types';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui';
+import { Progress } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 
 import { BookOpen, Info, PlayCircle, Star } from 'lucide-react';
 

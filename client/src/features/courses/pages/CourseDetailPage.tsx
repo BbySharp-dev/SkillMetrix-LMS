@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, User, Calendar, Globe, AlertCircle, Play, Star } from 'lucide-react';
@@ -6,11 +6,12 @@ import { useCourseCurriculum, useCourseDetail } from '@/features/courses/hooks/u
 import { enrollmentApi } from '@/features/enrollments/api/enrollmentApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { useEnrollCourse } from '@/features/enrollments/hooks/useEnrollments';
+import { CourseReviewsPage } from '@/features/reviews';
 import ChapterAccordion from '../components/ChapterAccordion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ConfirmModal } from '@/components/ui/progress-bar';
+import { Card, CardContent } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
+import { ConfirmModal } from '@/components/ui';
 
 const fetchEnrollmentCheck = async (courseId: string) => {
     const response = await enrollmentApi.checkEnrollment(courseId);
@@ -35,12 +36,9 @@ export default function CourseDetailPage() {
         enabled: Boolean(id) && isAuthenticated,
     });
 
-    const [prevId, setPrevId] = useState(id);
-
-    if (id !== prevId) {
-        setPrevId(id);
+    useEffect(() => {
         setOptimisticEnrolled(false);
-    }
+    }, [id]);
 
     const isEnrolled = serverEnrolled || optimisticEnrolled;
 
@@ -120,7 +118,13 @@ export default function CourseDetailPage() {
                             <div className="flex flex-wrap items-center gap-6 text-sm font-medium">
                                 <div className="flex items-center gap-2">
                                     <span className="text-gray-500 font-normal">Giảng viên:</span>
-                                    <span className="text-indigo-400 font-bold">{course.instructorName}</span>
+                                    {course.instructorId ? (
+                                        <Link to={`/profile/instructor/${course.instructorId}`} className="text-indigo-400 font-bold hover:underline">
+                                            {course.instructorName}
+                                        </Link>
+                                    ) : (
+                                        <span className="text-indigo-400 font-bold">{course.instructorName}</span>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Calendar className="text-gray-500 size-4" />
@@ -236,13 +240,21 @@ export default function CourseDetailPage() {
                                         <User className="text-gray-300 size-8" />
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-black text-indigo-600">{course.instructorName}</h3>
+                                        {course.instructorId ? (
+                                            <Link to={`/profile/instructor/${course.instructorId}`} className="hover:underline">
+                                                <h3 className="text-xl font-black text-indigo-600">{course.instructorName}</h3>
+                                            </Link>
+                                        ) : (
+                                            <h3 className="text-xl font-black text-indigo-600">{course.instructorName}</h3>
+                                        )}
                                         <p className="text-sm font-bold text-gray-500">Giảng viên tại SkillMetrix</p>
                                     </div>
                                 </div>
                             </div>
                         </section>
-                    </div>
+                        <section className="space-y-6 pt-10 border-t border-gray-100">
+                            <CourseReviewsPage courseId={id!} />
+                        </section>                    </div>
                 </div>
             </div>
 

@@ -32,12 +32,10 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         // 2. Lọc theo InstructorId
         if (query.InstructorId.HasValue)
         {
-            Console.WriteLine($"[CourseService.GetCoursesAsync] Filtering by InstructorId={query.InstructorId.Value}");
             baseQuery = baseQuery.Where(c => c.InstructorId == query.InstructorId.Value);
         }
         else
         {
-            Console.WriteLine("[CourseService.GetCoursesAsync] WARNING: InstructorId is null - returning ALL courses!");
         }
 
         // 3. Search title
