@@ -173,6 +173,7 @@ public class StatisticsService(ApplicationDbContext context) : IStatisticsServic
 
         var totalStudents = await context.Users.CountAsync(u => u.Role == UserRole.Student);
         var totalInstructors = await context.Users.CountAsync(u => u.Role == UserRole.Instructor);
+        var totalModerators = await context.Users.CountAsync(u => u.Role == UserRole.Moderator);
         var totalAdmins = await context.Users.CountAsync(u => u.Role == UserRole.Admin);
 
         var draftCourses = await context.Courses.CountAsync(c => !c.IsDeleted && c.Status == CourseStatus.Draft);
@@ -188,6 +189,7 @@ public class StatisticsService(ApplicationDbContext context) : IStatisticsServic
             TotalRevenue = totalRevenue,
             TotalStudents = totalStudents,
             TotalInstructors = totalInstructors,
+            TotalModerators = totalModerators,
             TotalAdmins = totalAdmins,
             DraftCourses = draftCourses,
             PendingCourses = pendingCourses,
