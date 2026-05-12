@@ -1,31 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Search, Bell, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react';
+import { BookOpen, Search, Bell, ChevronDown, LayoutDashboard, LogOut, User } from 'lucide-react';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui';
+import { Input } from '@/components/ui';
+import { cn, getAvatarInitials, getDashboardRoute } from '@/lib/utils';
 
-const getInitials = (fullName: string): string => {
-    if (!fullName) return '';
-    
-    return fullName
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(word => word[0])
-        .join('')
-        .toUpperCase();
-};
-
-const getDashboardRoute = (role?: string): string => {
-    switch (role) {
-        case 'Admin': return '/admin';
-        case 'Instructor': return '/instructor';
-        default: return '/dashboard';
-    }
-};
 
 export default function Header() {
     const navigate = useNavigate();
@@ -126,7 +107,7 @@ export default function Header() {
                                     className="flex items-center gap-2 p-1 rounded-full border border-border hover:border-primary/20 hover:bg-primary/5 transition-all"
                                 >
                                     <div className="w-9 h-9 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-sm">
-                                        {getInitials(user.fullName)}
+                                        {getAvatarInitials(user.fullName)}
                                     </div>
                                     <span className={cn("text-gray-400 transition-transform", showProfileMenu && "rotate-180")}>
                                         <ChevronDown size={16} />
@@ -146,6 +127,15 @@ export default function Header() {
                                                 <p className="text-xs text-gray-500 truncate capitalize">{user.role}</p>
                                             </div>
                                             
+                                            <Link
+                                                to={user.role === 'Instructor' ? `/profile/instructor/${user.id}` : `/profile/student/${user.id}`}
+                                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                                                onClick={() => setShowProfileMenu(false)}
+                                            >
+                                                <User size={18} />
+                                                Hồ sơ của tôi
+                                            </Link>
+
                                             <Link
                                                 to={getDashboardRoute(user.role)}
                                                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"

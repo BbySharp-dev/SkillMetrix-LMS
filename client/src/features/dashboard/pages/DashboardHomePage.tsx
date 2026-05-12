@@ -9,11 +9,11 @@ import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { useMyEnrollments } from '@/features/enrollments/hooks/useEnrollments';
 import { useInstructorOverview, useInstructorRevenue, useInstructorRecentActivity } from '@/features/instructor/hooks/useInstructorStats';
 import { useAdminOverview } from '@/features/admin/hooks/useAdminUsers';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Progress } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Badge } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 import {
     AreaChart,
     Area,
