@@ -8,6 +8,7 @@ public class AdminOverviewDto
     public decimal TotalRevenue { get; set; }
     public int TotalStudents { get; set; }
     public int TotalInstructors { get; set; }
+    public int TotalModerators { get; set; }
     public int TotalAdmins { get; set; }
     public int DraftCourses { get; set; }
     public int PendingCourses { get; set; }
