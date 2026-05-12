@@ -1,8 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { adminApi, type AdminUserQueryParams, type UpdateRolePayload, type CreateUserPayload } from '../api/adminApi';
-import { queryKeys } from '@/shared/queryKeys';
-import { ApiError } from '@/shared/apiError';
+import { queryKeys } from '@/shared';
+import { ApiError } from '@/shared';
 
 export const useAdminUsers = (params: AdminUserQueryParams) => {
     return useQuery({
