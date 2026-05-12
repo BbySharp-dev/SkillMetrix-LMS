@@ -8,12 +8,12 @@ import {
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { useMyEnrollments } from '@/features/enrollments/hooks/useEnrollments';
 import { useInstructorOverview, useInstructorRevenue, useInstructorRecentActivity } from '@/features/instructor/hooks/useInstructorStats';
-import { useCourses } from '@/features/courses/hooks/useCourses';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useAdminOverview } from '@/features/admin/hooks/useAdminUsers';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Progress } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Badge } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 import {
     AreaChart,
     Area,
@@ -293,23 +293,30 @@ function InstructorSection() {
 }
 
 function AdminSection() {
-    const { data: pendingCourses } = useCourses({ pageSize: 5, status: 'Pending' });
+    const { data: overview } = useAdminOverview();
 
     return (
         <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Khóa học chờ duyệt', value: pendingCourses?.totalRecords ?? 0, icon: ClipboardCheck, color: 'text-amber-600', bg: 'bg-amber-50', fallback: '3' },
-                    { label: 'Tổng người dùng', value: '—', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', fallback: '1,284' },
-                    { label: 'Khóa học đang hiển thị', value: '—', icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50', fallback: '48' },
-                    { label: 'Doanh thu (tháng)', value: '—', icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', fallback: '156tr' },
-                ].map((card) => (
-                    <Card key={card.label} className="p-6 rounded-3xl border-gray-100 shadow-sm hover:shadow-xl transition-all group">
-                        <div className={`p-3 rounded-2xl ${card.bg} ${card.color} mb-4 inline-flex`}><card.icon className="size-6" /></div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{card.label}</p>
-                        <p className="text-2xl font-black text-gray-900 mt-1">{card.value || card.fallback}</p>
-                    </Card>
-                ))}
+                    { label: 'Khóa học chờ duyệt', value: overview?.pendingCourses ?? 0, icon: ClipboardCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: 'Tổng người dùng', value: overview?.totalUsers ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'Khóa học đang hiển thị', value: overview?.publishedCourses ?? 0, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { label: 'Doanh thu (tháng)', value: overview?.totalRevenue ?? 0, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                ].map((card) => {
+                    const displayValue = typeof card.value === 'number'
+                        ? card.value > 1000
+                            ? `${(card.value / 1000000).toFixed(1)}tr`
+                            : card.value.toLocaleString('vi-VN')
+                        : '—';
+                    return (
+                        <Card key={card.label} className="p-6 rounded-3xl border-gray-100 shadow-sm hover:shadow-xl transition-all group">
+                            <div className={`p-3 rounded-2xl ${card.bg} ${card.color} mb-4 inline-flex`}><card.icon className="size-6" /></div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{card.label}</p>
+                            <p className="text-2xl font-black text-gray-900 mt-1">{displayValue}</p>
+                        </Card>
+                    );
+                })}
             </div>
 
             <div className="space-y-4">

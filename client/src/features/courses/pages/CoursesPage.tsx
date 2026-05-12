@@ -6,7 +6,7 @@ import CourseFilters, { type CourseFilterState } from '../components/CourseFilte
 import CourseCardSkeleton from '../components/CourseCardSkeleton';
 import { useCourses } from '@/features/courses/hooks/useCourses';
 import { Pagination } from "@/components/ui/Pagination.tsx";
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 
 const PAGE_SIZE = 12;
 

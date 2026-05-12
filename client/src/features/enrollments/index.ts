@@ -1,2 +1,4 @@
+// Barrel export for enrollments feature
 export { enrollmentApi } from './api/enrollmentApi';
-export type { EnrollmentDto, EnrollmentCourseInfo } from './types';
+export { useEnrollCourse, useMyEnrollments } from './hooks/useEnrollments';
+export type * from './types';

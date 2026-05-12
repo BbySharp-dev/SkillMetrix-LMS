@@ -12,17 +12,9 @@ import {
 
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { authApi } from '@/features/auth/api/authApi';
-import { Button } from '@/components/ui/button';
-import { cn, getAvatarInitials } from '@/lib/utils';
+import { Button } from '@/components/ui';
+import { cn, getAvatarInitials, getDashboardRoute } from '@/lib/utils';
 
-
-const getDashboardRoute = (role?: string): string => {
-    switch (role) {
-        case 'Admin': return '/admin';
-        case 'Instructor': return '/instructor';
-        default: return '/dashboard';
-    }
-};
 
 const getLastName = (fullName?: string): string => {
     if (!fullName) return '';

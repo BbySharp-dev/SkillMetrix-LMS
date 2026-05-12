@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { uploadApi } from '../api/uploadApi';
 import { toast } from 'sonner';
-import { ApiError } from '@/shared/apiError';
+import { ApiError } from '@/shared';
 
 export const useUpload = () => {
     const uploadImageMutation = useMutation({

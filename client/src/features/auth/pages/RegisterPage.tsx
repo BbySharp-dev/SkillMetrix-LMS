@@ -9,10 +9,10 @@ import { authApi, type ApiError } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { registerSchema, type RegisterFormValues } from '../schemas';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui';
+import { Input } from '@/components/ui';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
