@@ -1,7 +1,7 @@
 import api from '@/lib/axios';
-import { getData, normalizePaginated } from '@/shared/normalizePaginated';
-import type { ApiResponseWrapper } from '@/shared/normalizePaginated';
-import type { PaginatedApiResponse } from '@/shared/api';
+import { getData, normalizePaginated } from '@/shared';
+import type { ApiResponseWrapper } from '@/shared';
+import type { PaginatedApiResponse } from '@/shared';
 
 export interface AdminCourseItem {
     id: string;
@@ -31,7 +31,6 @@ export interface AdminUserItem {
     id: string;
     fullName: string;
     email: string;
-    /** Backend trả về số (UserRole enum), cần normalize sang string */
     role: string;
     avatarUrl?: string | null;
     createdAt: string;
@@ -78,6 +77,7 @@ export interface AdminOverview {
     totalRevenue: number;
     totalStudents: number;
     totalInstructors: number;
+    totalModerators: number;
     totalAdmins: number;
     draftCourses: number;
     pendingCourses: number;
@@ -90,9 +90,6 @@ export interface AdminRejectPayload {
 }
 
 export const adminApi = {
-    /**
-     * Lấy danh sách khóa học cho admin (filter theo status: Pending, Published, Rejected...)
-     */
     getCourses: async (params: AdminCourseQueryParams): Promise<PaginatedApiResponse<AdminCourseItem[]>> => {
         const cleanParams = {
             pageNumber: params.pageNumber ?? 1,
@@ -101,7 +98,7 @@ export const adminApi = {
             status: params.status,
         };
         const res = await api.get('/admin/courses', { params: cleanParams }) as ApiResponseWrapper<AdminCourseItem[]>;
-        return normalizePaginated<AdminCourseItem[]>(res);
+        return normalizePaginated(res);
     },
 
     /** Admin duyệt khóa học */
@@ -124,7 +121,6 @@ export const adminApi = {
 
     // ─── Users ───────────────────────────────────────────────────────────────
 
-    /** Lấy danh sách users cho admin */
     getUsers: async (params: AdminUserQueryParams): Promise<PaginatedApiResponse<AdminUserItem[]>> => {
         const cleanParams = {
             pageNumber: params.pageNumber ?? 1,
@@ -133,8 +129,7 @@ export const adminApi = {
             role: params.role,
         };
         const res = await api.get('/admin/users', { params: cleanParams }) as ApiResponseWrapper<AdminUserItem[]>;
-        const normalized = normalizePaginated<AdminUserItem[]>(res);
-        // Normalize role từ số → string
+        const normalized = normalizePaginated(res);
         if (normalized.data) {
             for (const user of normalized.data) {
                 user.role = normalizeRole(user.role);
@@ -161,11 +156,25 @@ export const adminApi = {
         await api.delete(`/admin/users/${userId}`);
     },
 
-    /** Admin lấy overview thống kê (số liệu thực từ DB) */
     getOverview: async (): Promise<AdminOverview> => {
         const res = await api.get('/statistics/admin/overview') as ApiResponseWrapper<AdminOverview>;
-        const data = getData<AdminOverview>(res);
-        if (!data) throw new Error('Failed to fetch overview');
-        return data;
+        const raw = getData<AdminOverview>(res);
+        if (!raw) throw new Error('Failed to fetch overview');
+        const r = raw as unknown as Record<string, unknown>;
+        const n = (k: string) => (r[k] as number | undefined) ?? 0;
+        return {
+            totalUsers: n('totalUsers') || n('TotalUsers'),
+            totalCourses: n('totalCourses') || n('TotalCourses'),
+            totalEnrollments: n('totalEnrollments') || n('TotalEnrollments'),
+            totalRevenue: n('totalRevenue') || n('TotalRevenue'),
+            totalStudents: n('totalStudents') || n('TotalStudents'),
+            totalInstructors: n('totalInstructors') || n('TotalInstructors'),
+            totalModerators: n('totalModerators') || n('TotalModerators'),
+            totalAdmins: n('totalAdmins') || n('TotalAdmins'),
+            draftCourses: n('draftCourses') || n('DraftCourses'),
+            pendingCourses: n('pendingCourses') || n('PendingCourses'),
+            publishedCourses: n('publishedCourses') || n('PublishedCourses'),
+            rejectedCourses: n('rejectedCourses') || n('RejectedCourses'),
+        } as AdminOverview;
     },
 };

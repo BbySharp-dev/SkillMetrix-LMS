@@ -1,8 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { adminApi, type AdminCourseQueryParams } from '../api/adminApi';
-import { queryKeys } from '@/shared/queryKeys';
-import { ApiError } from '@/shared/apiError';
+import { queryKeys } from '@/shared';
+import { ApiError } from '@/shared';
 
 export const useAdminCourses = (params: AdminCourseQueryParams) => {
     return useQuery({

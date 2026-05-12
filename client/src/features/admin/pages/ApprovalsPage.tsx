@@ -16,12 +16,12 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+} from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Card } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
+import { Input } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import {
     Dialog,
     DialogContent,
@@ -29,8 +29,8 @@ import {
     DialogTitle,
     DialogFooter,
     DialogDescription,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+} from '@/components/ui';
+import { Textarea } from '@/components/ui';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { usePendingCourses, useAdminCourseMutations } from '../hooks/useAdminCourses';
 
