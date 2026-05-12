@@ -1,5 +1,5 @@
 import api from '@/lib/axios';
-import type { ApiResponse } from '@/shared/api';
+import type { ApiResponse } from '@/shared';
 
 export interface LessonResponseDto {
     id: string;

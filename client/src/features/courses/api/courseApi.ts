@@ -8,8 +8,8 @@ import type {
     UpdateCoursePayload,
 } from '../types';
 import api from '@/lib/axios';
-import { getData, normalizePaginated } from '@/shared/normalizePaginated';
-import type { ApiResponseWrapper } from '@/shared/normalizePaginated';
+import { getData, normalizePaginated } from '@/shared';
+import type { ApiResponseWrapper } from '@/shared';
 
 export const courseApi = {
     getCourses: async (params: CourseQueryParams): Promise<PaginatedApiResponse<CourseListItem[]>> => {
@@ -18,7 +18,7 @@ export const courseApi = {
             search: params.search?.trim() || undefined,
         };
         const res = await api.get('/courses', { params: cleanParams }) as ApiResponseWrapper<CourseListItem[]>;
-        return normalizePaginated<CourseListItem[]>(res);
+        return normalizePaginated(res);
     },
 
     getCourseById: async (courseId: string): Promise<CourseDetailDto> => {
@@ -61,6 +61,6 @@ export const courseApi = {
             search: params.search?.trim() || undefined,
         };
         const res = await api.get('/courses/instructor/mine', { params: cleanParams }) as ApiResponseWrapper<CourseListItem[]>;
-        return normalizePaginated<CourseListItem[]>(res);
+        return normalizePaginated(res);
     },
 };

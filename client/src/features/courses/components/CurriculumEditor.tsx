@@ -10,14 +10,14 @@ import {
     FileText,
     MoreVertical
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import { 
     DropdownMenu, 
     DropdownMenuContent, 
     DropdownMenuItem, 
     DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui';
 import { 
     DndContext, 
     closestCenter,
