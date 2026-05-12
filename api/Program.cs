@@ -12,6 +12,7 @@ using Scalar.AspNetCore;
 using SkillMetrix_LMS.API.Features.Seed;
 using SkillMetrix_LMS.API.Features.Auth;
 using SkillMetrix_LMS.API.Features.Courses;
+using SkillMetrix_LMS.API.Features.Reviews;
 using SkillMetrix_LMS.API.Features.Chapters;
 using SkillMetrix_LMS.API.Features.Enrollments;
 using SkillMetrix_LMS.API.Features.Lessons;
@@ -90,6 +91,7 @@ builder.Services.AddControllers()
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<IFileUploadService, CloudinaryUploadService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddMapster();
 builder.Services.AddScoped<ICourseService, CourseService>();
@@ -102,6 +104,8 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<SkillMetrix_LMS.API.Features.Profiles.IProfileService, SkillMetrix_LMS.API.Features.Profiles.ProfileService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

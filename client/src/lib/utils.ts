@@ -131,3 +131,11 @@ export function copyToClipboard(text: string): Promise<void> {
   }
   return navigator.clipboard.writeText(text)
 }
+
+export function getDashboardRoute(role?: string): string {
+  switch (role) {
+    case 'Admin': return '/admin';
+    case 'Instructor': return '/instructor';
+    default: return '/dashboard';
+  }
+}
