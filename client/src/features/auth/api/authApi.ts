@@ -1,6 +1,6 @@
 import api from '@/lib/axios';
-import { assertSuccess } from '@/shared/apiError';
-export { ApiError } from '@/shared/apiError';
+import { assertSuccess } from '@/shared';
+export { ApiError } from '@/shared';
 import type { AuthPayload, AuthResponse, LoginRequest, RegisterRequest } from '../types';
 
 export const authApi = {
