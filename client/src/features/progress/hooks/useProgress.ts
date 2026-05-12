@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { progressApi } from '../api/progressApi';
-import { queryKeys } from '@/shared/queryKeys';
+import { queryKeys } from '@/shared';
 
 export const useLessonProgress = (lessonId?: string) => {
     return useQuery({

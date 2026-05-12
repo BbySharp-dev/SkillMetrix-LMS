@@ -5,8 +5,8 @@ import { useCourseCurriculum } from '@/features/courses/hooks/useCourses';
 import { useLessonProgress, useUpdateLessonProgress } from '@/features/progress/hooks/useProgress';
 import LessonSidebar from '../components/LessonSidebar';
 import VideoPlayer from '../components/VideoPlayer';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui';
+import { Button } from '@/components/ui';
 
 export default function LearningPage() {
     const { courseId } = useParams<{ courseId: string }>();

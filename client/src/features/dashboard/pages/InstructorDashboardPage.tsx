@@ -9,9 +9,9 @@ import {
     ChevronRight,
     PlayCircle
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { useInstructorOverview, useInstructorRevenue, useInstructorRecentActivity } from '@/features/instructor/hooks/useInstructorStats';
 import { 

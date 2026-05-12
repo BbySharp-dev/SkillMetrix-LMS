@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Users } from 'lucide-react';
 import type { CourseListItem } from '../types';
-import { RatingStars } from '@/components/ui/rating-stars';
+import { RatingStars } from '@/components/ui';
 
 interface CourseCardProps {
     course: CourseListItem;

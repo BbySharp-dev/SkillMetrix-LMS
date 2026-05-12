@@ -1,2 +1,3 @@
+// Barrel export for progress feature
 export { progressApi } from './api/progressApi';
-export type { LessonProgressDto, CourseProgressSummary } from './types';
+export type * from './types';

@@ -17,6 +17,16 @@ export const useCourses = (params: CourseQueryParams) => {
   });
 };
 
+export const useMyCourses = (params: Omit<CourseQueryParams, 'instructorId'>) => {
+  return useQuery({
+    queryKey: queryKeys.courses.mine(params),
+    queryFn: () => courseApi.getMyCourses(params),
+    placeholderData: keepPreviousData,
+    staleTime: 0,
+    refetchOnMount: true,
+  });
+};
+
 export const useCourseDetail = (courseId?: string) => {
   return useQuery({
     enabled: Boolean(courseId),

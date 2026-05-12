@@ -43,6 +43,9 @@ const SettingsPage = Loadable(lazy(() => import('@/features/admin/pages/Settings
 const ForbiddenPage = Loadable(lazy(() => import('@/features/home/pages/ForbiddenPage')));
 const NotFoundPage = Loadable(lazy(() => import('@/features/home/pages/NotFoundPage')));
 const LearningPage = Loadable(lazy(() => import('@/features/learning/pages/LearningPage')));
+const InstructorDashboardPage = Loadable(lazy(() => import('@/features/dashboard/pages/InstructorDashboardPage')));
+const InstructorProfilePage = Loadable(lazy(() => import('@/features/profile/pages/InstructorProfilePage').then(module => ({ default: module.InstructorProfilePage }))));
+const StudentProfilePage = Loadable(lazy(() => import('@/features/profile/pages/StudentProfilePage').then(module => ({ default: module.StudentProfilePage }))));
 
 export const appRouter = createBrowserRouter([
   {
@@ -56,6 +59,8 @@ export const appRouter = createBrowserRouter([
       { path: 'courses', element: <CoursesPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'learning/:courseId', element: <LearningPage /> },
+      { path: 'profile/instructor/:instructorId', element: <InstructorProfilePage /> },
+      { path: 'profile/student/:studentId', element: <StudentProfilePage /> },
       { path: '403', element: <ForbiddenPage /> },
     ],
   },
@@ -87,7 +92,7 @@ export const appRouter = createBrowserRouter([
             path: 'instructor',
             element: <DashboardLayout />,
             children: [
-              { index: true, element: <DashboardHomePage /> },
+              { index: true, element: <InstructorDashboardPage /> },
               { path: 'courses', element: <InstructorCoursesPage /> },
               { path: 'courses/:id', element: <CourseEditorPage /> },
               { path: 'my-enrollments', element: <EnrollmentsPage /> },

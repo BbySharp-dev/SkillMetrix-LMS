@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Filter, ChevronRight, Search, Star } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Slider } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 const RATING_OPTIONS = [4.5, 4.0, 3.5, 3.0] as const;
