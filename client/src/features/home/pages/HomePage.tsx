@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Globe, Users } from 'lucide-react';
 import { useCourses } from '@/features/courses/hooks/useCourses';
 import CourseCard from '@/features/courses/components/CourseCard';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui';
+import { Button } from '@/components/ui';
 
 const CourseCardSkeleton = () => (
     <div className="space-y-4">
