@@ -37,6 +37,39 @@ public class DataSeederService(
         return summary;
     }
 
+    /// <summary>
+    /// seed chỉ users với các role (không có course, chapter, lesson...).
+    /// </summary>
+    public async Task<Result<SeedSummaryDto>> SeedUsersOnlyAsync()
+    {
+        if (!environment.IsDevelopment())
+            return Result<SeedSummaryDto>.Forbidden("Seed API is allowed only in Development mode.");
+
+        await ResetAllDataInternalAsync();
+        await EnsureRolesAsync();
+
+        var users = await SeedUsersAsync();
+
+        var summary = new SeedSummaryDto
+        {
+            DefaultPassword = DefaultPassword,
+            Counts = new SeedCountDto { Users = users.Count },
+            Credentials = users
+                .OrderBy(x => x.Role)
+                .ThenBy(x => x.Email)
+                .Select(x => new SeedCredentialDto
+                {
+                    Role = x.Role.ToString(),
+                    Email = x.Email!,
+                    FullName = x.FullName,
+                    Password = DefaultPassword
+                })
+                .ToList()
+        };
+
+        return summary;
+    }
+
     public async Task<Result> ResetAllDataAsync()
     {
         if (!environment.IsDevelopment())
