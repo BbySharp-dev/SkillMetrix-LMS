@@ -22,44 +22,37 @@ export function getData<T>(res: ApiResponseWrapper<T>): T | null {
     return res?.data ?? res?.Data ?? null;
 }
 
-export function normalizePaginated<T>(wrapper: ApiResponseWrapper<T>): PaginatedApiResponse<T> {
-    const inner = wrapper.data ?? wrapper.Data;
+export function normalizePaginated<T>(res: ApiResponseWrapper<T>): PaginatedApiResponse<T> {
+    const inner = getData<T>(res);
 
-    if (Array.isArray(inner)) {
-        return {
-            success: wrapper.success ?? wrapper.Success ?? true,
-            data: inner as unknown as T,
-            pageNumber: wrapper.pageNumber ?? wrapper.PageNumber ?? 1,
-            pageSize: wrapper.pageSize ?? wrapper.PageSize ?? 10,
-            totalRecords: wrapper.totalRecords ?? wrapper.TotalRecords ?? inner.length,
-            totalPages: wrapper.totalPages ?? wrapper.TotalPages ?? 0,
-            message: wrapper.message ?? null,
-            errors: wrapper.errors ?? null,
-        };
-    }
-
-    if (inner && typeof inner === 'object' && ('data' in inner || 'Data' in inner)) {
+    if (inner !== null && typeof inner === 'object') {
         const n = inner as Record<string, unknown>;
-        return {
-            success: wrapper.success ?? wrapper.Success ?? true,
-            data: (n.data ?? n.Data) as unknown as T,
-            pageNumber: (n.pageNumber ?? n.PageNumber ?? wrapper.pageNumber ?? wrapper.PageNumber ?? 1) as number,
-            pageSize: (n.pageSize ?? n.PageSize ?? wrapper.pageSize ?? wrapper.PageSize ?? 10) as number,
-            totalRecords: (n.totalRecords ?? n.TotalRecords ?? wrapper.totalRecords ?? wrapper.TotalRecords ?? 0) as number,
-            totalPages: (n.totalPages ?? n.TotalPages ?? wrapper.totalPages ?? wrapper.TotalPages ?? 0) as number,
-            message: wrapper.message ?? null,
-            errors: wrapper.errors ?? null,
-        };
+        if ('pageNumber' in n || 'PageNumber' in n || 'totalRecords' in n || 'TotalRecords' in n) {
+            return {
+                success: res.success ?? res.Success ?? true,
+                data: (n.data ?? n.Data ?? null) as T | null,
+                pageNumber: (n.pageNumber ?? n.PageNumber ?? 1) as number,
+                pageSize: (n.pageSize ?? n.PageSize ?? 12) as number,
+                totalRecords: (n.totalRecords ?? n.TotalRecords ?? 0) as number,
+                totalPages: (n.totalPages ?? n.TotalPages ?? 0) as number,
+                message: (n.message as string | null) ?? null,
+                errors: (n.errors as string[] | null) ?? null,
+            };
+        }
     }
+
+    const pageNumber = (res.pageNumber ?? res.PageNumber ?? 1) as number;
+    const pageSize = (res.pageSize ?? res.PageSize ?? 12) as number;
+    const totalRecords = (res.totalRecords ?? res.TotalRecords ?? 0) as number;
 
     return {
-        success: wrapper.success ?? wrapper.Success ?? true,
-        data: inner as unknown as T,
-        pageNumber: wrapper.pageNumber ?? wrapper.PageNumber ?? 1,
-        pageSize: wrapper.pageSize ?? wrapper.PageSize ?? 10,
-        totalRecords: wrapper.totalRecords ?? wrapper.TotalRecords ?? 0,
-        totalPages: wrapper.totalPages ?? wrapper.TotalPages ?? 0,
-        message: wrapper.message ?? null,
-        errors: wrapper.errors ?? null,
+        success: res.success ?? res.Success ?? true,
+        data: inner,
+        pageNumber,
+        pageSize,
+        totalRecords,
+        totalPages: pageSize > 0 ? Math.ceil(totalRecords / pageSize) : 0,
+        message: res.message ?? null,
+        errors: res.errors ?? null,
     };
 }

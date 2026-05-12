@@ -31,5 +31,6 @@ export const queryKeys = {
         revenue: (months?: number) => [...queryKeys.instructor.all, 'revenue', months] as const,
         activity: (limit?: number) => [...queryKeys.instructor.all, 'activity', limit] as const,
         performance: (courseId?: string) => [...queryKeys.instructor.all, 'performance', courseId] as const,
+        profile: (instructorId: string) => [...queryKeys.instructor.all, 'profile', instructorId] as const,
     },
 } as const;
