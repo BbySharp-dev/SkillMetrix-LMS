@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { enrollmentApi } from '../api/enrollmentApi';
 import { toast } from 'sonner';
-import { queryKeys } from '@/shared/queryKeys';
-import { ApiError } from '@/shared/apiError';
+import { queryKeys } from '@/shared';
+import { ApiError } from '@/shared';
 
 export function useEnrollCourse() {
     const qc = useQueryClient();

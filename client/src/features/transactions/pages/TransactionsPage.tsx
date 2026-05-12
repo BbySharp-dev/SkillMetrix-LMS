@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowUpCircle, ArrowDownCircle, ShoppingBag, History, AlertCircle, CreditCard } from 'lucide-react';
 import { transactionApi } from '../api/transactionApi';
 import type { TransactionDto } from '../types';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui';
+import { Badge } from '@/components/ui';
+import { Card, CardContent } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 type TxStatusInfo = { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' }

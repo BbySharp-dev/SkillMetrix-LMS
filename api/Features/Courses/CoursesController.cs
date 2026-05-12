@@ -1,6 +1,7 @@
 using SkillMetrix_LMS.API.Features.Chapters;
 using SkillMetrix_LMS.API.Features.Chapters.DTOs;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
+using SkillMetrix_LMS.API.Features.Admin.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Courses;
 
@@ -196,12 +197,10 @@ public class CoursesController(ICourseService courseService, IChapterService cha
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
         // ⚠️ Debug: log actorId để verify token
-        Console.WriteLine($"[GetMyCourses] actorId={actorId}, role={GetCurrentUserRole()}");
 
         query.InstructorId = actorId.Value;
 
         // ⚠️ Debug: verify DTO binding
-        Console.WriteLine($"[GetMyCourses] After assignment: InstructorId={query.InstructorId}");
 
         var result = await courseService.GetCoursesAsync(pageNumber, pageSize, query);
         if (!result.IsSuccess)
@@ -292,7 +291,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RejectCourse(Guid id, [FromBody] RejectCourseDto dto)
+    public async Task<IActionResult> RejectCourse(Guid id, [FromBody] AdminRejectCourseDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Reason))
         {
