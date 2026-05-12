@@ -10,8 +10,8 @@ import {
     Filter,
     ArrowUpDown
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui';
+import { Button } from '@/components/ui';
 import {
     Table,
     TableBody,
@@ -26,10 +26,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { CourseStatus } from '@/types/instructor';
+import type { CourseStatus } from '../types';
 
-import { useCourses, useCourseMutations } from '@/features/courses/hooks/useCourses';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useMyCourses, useCourseMutations } from '@/features/courses/hooks/useCourses';
+import { Skeleton } from '@/components/ui';
 
 const statusStyles: Record<CourseStatus, string> = {
     Published: 'bg-emerald-50 text-emerald-600 border-emerald-100',
@@ -46,11 +46,10 @@ const statusLabels: Record<CourseStatus, string> = {
 };
 
 export default function InstructorCoursesPage() {
-
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<CourseStatus | 'All'>('All');
 
-    const { data: coursesData, isLoading } = useCourses({
+    const { data: coursesData, isLoading } = useMyCourses({
         pageSize: 100,
         search: searchTerm,
         status: statusFilter === 'All' ? undefined : statusFilter,

@@ -34,6 +34,9 @@ public class Course
     public DateTime? UpdatedAt { get; set; }
     public Guid? UpdatedBy { get; set; }
     public DateTime? PublishedAt { get; set; }
+    public Guid? ApprovedBy { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public string? RejectionReason { get; set; }
 
     [Column(TypeName = "decimal(3,2)")]
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]

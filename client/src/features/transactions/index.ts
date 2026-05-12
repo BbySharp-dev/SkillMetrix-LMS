@@ -1,2 +1,3 @@
+// Barrel export for transactions feature
 export { transactionApi } from './api/transactionApi';
-export type { TransactionDto, TransactionType, TransactionStatus } from './types';
+export type * from './types';

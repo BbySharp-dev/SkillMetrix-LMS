@@ -7,6 +7,19 @@ namespace SkillMetrix_LMS.API.Features.Seed;
 public class SeedController(DataSeederService dataSeederService) : BaseApiController
 {
     /// <summary>
+    /// seed chỉ users với các role (không có course, chapter, lesson...).
+    /// </summary>
+    [HttpPost("users")]
+    public async Task<IActionResult> SeedUsers()
+    {
+        var result = await dataSeederService.SeedUsersOnlyAsync();
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<SeedSummaryDto>(result.Value!, "Users seed completed."));
+    }
+
+    /// <summary>
     /// seed dữ liệu mẫu (strict relational).
     /// </summary>
     [HttpPost("strict")]
