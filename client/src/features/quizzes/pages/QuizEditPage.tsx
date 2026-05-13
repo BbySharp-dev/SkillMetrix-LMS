@@ -68,7 +68,8 @@ export default function QuizEditPage() {
                 ],
             });
             setAddOpen(false);
-        } catch {
+        } catch (err) {
+            console.error('Add question failed:', err);
         }
     }, [quizId, newQuestion, addQuestionMutation, quiz]);
 
@@ -76,7 +77,8 @@ export default function QuizEditPage() {
         if (!quizId) return;
         try {
             await deleteQuestionMutation.mutateAsync({ quizId, questionId });
-        } catch {
+        } catch (err) {
+            console.error('Delete question failed:', err);
         }
     }, [quizId, deleteQuestionMutation]);
 
