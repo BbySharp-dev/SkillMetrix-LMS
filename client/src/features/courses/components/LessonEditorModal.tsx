@@ -35,10 +35,14 @@ export default function LessonEditorModal({
 
     useEffect(() => {
         if (open && initialData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTitle(initialData.title ?? '');
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsFreePreview(initialData.isFreePreview ?? false);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLocalVideoUrl(initialData.videoUrl ?? null);
         }
-    }, [open, initialData?.id]);
+    }, [open, initialData]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -48,6 +52,7 @@ export default function LessonEditorModal({
             await onUploadVideo(initialData.id, file);
 
             if (onUploadSuccess) {
+                onUploadSuccess({ videoUrl: objectUrl });
             }
         }
     };

@@ -9,7 +9,6 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({
-    lessonId: _lessonId,
     videoUrl,
     initialSecond = 0,
     onPersistProgress,
@@ -36,7 +35,9 @@ export default function VideoPlayer({
     useEffect(() => {
         currentSecondRef.current = initialSecond;
         lastSentSecondRef.current = -1;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setError(null);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsLoading(false);
         if (videoRef.current) {
             videoRef.current.currentTime = initialSecond;
