@@ -28,7 +28,7 @@ export default function CourseDetailPage() {
     const enrollMutation = useEnrollCourse();
 
     const [openEnrollModal, setOpenEnrollModal] = useState(false);
-    const [optimisticEnrolled, setOptimisticEnrolled] = useState(false);
+    const [optimisticEnrolledId, setOptimisticEnrolledId] = useState<string | null>(null);
 
     const { data: serverEnrolled = false } = useQuery({
         queryKey: ['enrollment-check', id],
@@ -36,11 +36,7 @@ export default function CourseDetailPage() {
         enabled: Boolean(id) && isAuthenticated,
     });
 
-    useEffect(() => {
-        setOptimisticEnrolled(false);
-    }, [id]);
-
-    const isEnrolled = serverEnrolled || optimisticEnrolled;
+    const isEnrolled = serverEnrolled || (optimisticEnrolledId === id);
 
     const handleEnrollClick = useCallback(() => {
         if (!isAuthenticated) {
@@ -57,7 +53,7 @@ export default function CourseDetailPage() {
     const handleEnrollConfirm = useCallback(async () => {
         if (!id) return;
         await enrollMutation.mutateAsync(id);
-        setOptimisticEnrolled(true);
+        setOptimisticEnrolledId(id);
         setOpenEnrollModal(false);
         navigate(`/learning/${id}`);
     }, [id, enrollMutation, navigate]);

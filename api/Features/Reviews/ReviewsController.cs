@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SkillMetrix_LMS.API.Controllers;
 using SkillMetrix_LMS.API.Features.Reviews.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Reviews;

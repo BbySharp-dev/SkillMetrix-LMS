@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
     ChevronLeft, 
     Save, 
@@ -9,7 +9,8 @@ import {
     AlertCircle,
     Upload, 
     X,
-    Loader2
+    Loader2,
+    ClipboardList
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -203,6 +204,13 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
                                 Giáo trình
                             </TabsTrigger>
                             <TabsTrigger 
+                                value="quiz" 
+                                className="rounded-xl py-3 px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-gray-900 data-[state=active]:text-white transition-all whitespace-nowrap"
+                            >
+                                <ClipboardList className="size-4 mr-2" />
+                                Quiz
+                            </TabsTrigger>
+                            <TabsTrigger 
                                 value="settings" 
                                 className="rounded-xl py-3 px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-gray-900 data-[state=active]:text-white transition-all whitespace-nowrap"
                             >
@@ -318,6 +326,30 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
                         <>
                             <TabsContent value="curriculum" className="m-0 focus-visible:outline-none">
                                 <CurriculumEditor />
+                            </TabsContent>
+
+                            <TabsContent value="quiz" className="m-0 focus-visible:outline-none">
+                                <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h2 className="text-lg font-bold">Quản lý Quiz</h2>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                Tạo và quản lý bài kiểm tra cho khóa học
+                                            </p>
+                                        </div>
+                                        <Link
+                                            to={`/instructor/quiz/${courseId}`}
+                                            className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors"
+                                        >
+                                            Quản lý Quiz
+                                        </Link>
+                                    </div>
+                                    <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-6 text-center">
+                                        <p className="text-sm text-indigo-700 font-medium">
+                                            Nhấn "Quản lý Quiz" để tạo và chỉnh sửa các bài kiểm tra
+                                        </p>
+                                    </div>
+                                </div>
                             </TabsContent>
 
                             <TabsContent value="settings" className="m-0 focus-visible:outline-none">

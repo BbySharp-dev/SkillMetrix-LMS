@@ -18,6 +18,7 @@ using SkillMetrix_LMS.API.Features.Enrollments;
 using SkillMetrix_LMS.API.Features.Lessons;
 using SkillMetrix_LMS.API.Features.Upload;
 using SkillMetrix_LMS.API.Features.Transactions;
+using SkillMetrix_LMS.API.Features.Quizzes;
 using SkillMetrix_LMS.API.Features.Progress;
 using SkillMetrix_LMS.API.Features.Statistics;
 using SkillMetrix_LMS.API.Features.Admin;
@@ -105,6 +106,7 @@ builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<SkillMetrix_LMS.API.Features.Profiles.IProfileService, SkillMetrix_LMS.API.Features.Profiles.ProfileService>();
+builder.Services.AddScoped<IQuizService, QuizService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
