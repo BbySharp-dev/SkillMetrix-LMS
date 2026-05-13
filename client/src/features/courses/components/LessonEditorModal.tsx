@@ -28,21 +28,11 @@ export default function LessonEditorModal({
     isUploading,
     onUploadSuccess,
 }: LessonEditorModalProps) {
-    const [title, setTitle] = useState('');
-    const [isFreePreview, setIsFreePreview] = useState(false);
-    const [localVideoUrl, setLocalVideoUrl] = useState<string | null>(null);
+    const [title, setTitle] = useState(initialData?.title ?? '');
+    const [isFreePreview, setIsFreePreview] = useState(initialData?.isFreePreview ?? false);
+    const [localVideoUrl, setLocalVideoUrl] = useState<string | null>(initialData?.videoUrl ?? null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        if (open && initialData) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setTitle(initialData.title ?? '');
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsFreePreview(initialData.isFreePreview ?? false);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setLocalVideoUrl(initialData.videoUrl ?? null);
-        }
-    }, [open, initialData]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
