@@ -1,6 +1,4 @@
 using SkillMetrix_LMS.API.Features.Admin.DTOs;
-using SkillMetrix_LMS.API.Models.Enums;
-using SkillMetrix_LMS.API.Shared.Common;
 
 namespace SkillMetrix_LMS.API.Features.Admin;
 
