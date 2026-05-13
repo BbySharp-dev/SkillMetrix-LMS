@@ -29,8 +29,26 @@ export default function QuizTakingPage() {
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    const handleSubmit = useCallback(async () => {
+        if (!quizId || !attemptId || isSubmitted) return;
+
+        const submitAnswers: SubmitAnswerPayload[] = quiz!.questions.map((q) => ({
+            questionId: q.id,
+            selectedOptionId: answers[q.id] ?? '',
+        }));
+
+        try {
+            const result = await submitMutation.mutateAsync({ quizId, attemptId, answers: submitAnswers });
+            setResultData(result);
+            setIsSubmitted(true);
+        } catch (err) {
+            console.error('Submit quiz failed:', err);
+        }
+    }, [quizId, attemptId, quiz, answers, submitMutation, isSubmitted]);
+
     useEffect(() => {
         if (quiz?.timeLimitMinutes) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTimeLeft(quiz.timeLimitMinutes * 60);
         }
     }, [quiz]);
@@ -59,7 +77,8 @@ export default function QuizTakingPage() {
         try {
             const id = await startMutation.mutateAsync(quizId);
             setAttemptId(id);
-        } catch {
+        } catch (err) {
+            console.error('Start quiz failed:', err);
         }
     }, [quizId, startMutation]);
 
@@ -67,21 +86,6 @@ export default function QuizTakingPage() {
         setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
     }, []);
 
-    const handleSubmit = useCallback(async (_forceSubmit = false) => {
-        if (!quizId || !attemptId || isSubmitted) return;
-
-        const submitAnswers: SubmitAnswerPayload[] = quiz!.questions.map((q) => ({
-            questionId: q.id,
-            selectedOptionId: answers[q.id] ?? '',
-        }));
-
-        try {
-            const result = await submitMutation.mutateAsync({ quizId, attemptId, answers: submitAnswers });
-            setResultData(result);
-            setIsSubmitted(true);
-        } catch {
-        }
-    }, [quizId, attemptId, quiz, answers, submitMutation, isSubmitted]);
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
