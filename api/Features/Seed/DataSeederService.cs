@@ -85,6 +85,12 @@ public class DataSeederService(
         context.Transactions.RemoveRange(context.Transactions);
         context.Enrollments.RemoveRange(context.Enrollments);
         context.RefreshTokens.RemoveRange(context.RefreshTokens);
+        context.QuizAttemptAnswers.RemoveRange(context.QuizAttemptAnswers);
+        context.QuizAttempts.RemoveRange(context.QuizAttempts);
+        context.QuizOptions.RemoveRange(context.QuizOptions);
+        context.QuizQuestions.RemoveRange(context.QuizQuestions);
+        context.Quizzes.RemoveRange(context.Quizzes);
+        context.CourseReviews.RemoveRange(context.CourseReviews);
         context.Lessons.RemoveRange(context.Lessons);
         context.Chapters.RemoveRange(context.Chapters);
         context.Courses.RemoveRange(context.Courses);
@@ -269,6 +275,140 @@ public class DataSeederService(
         context.Lessons.AddRange(lessons);
         await context.SaveChangesAsync();
 
+        // ─── Seed Quizzes ──────────────────────────────────────────────────────
+        var quizzes = new List<Quiz>();
+        var quizQuestions = new List<QuizQuestion>();
+        var quizOptions = new List<QuizOption>();
+        var quizAttempts = new List<QuizAttempt>();
+        var quizAttemptAnswers = new List<QuizAttemptAnswer>();
+
+        var quizTitles = new[]
+        {
+            "Knowledge Check Quiz",
+            "Final Examination",
+            "Module Assessment",
+            "Practice Test",
+            "Chapter Review Quiz"
+        };
+
+        foreach (var course in courses.Where(c => c.Status == CourseStatus.Published))
+        {
+            var isFinalQuiz = true;
+            for (var qi = 0; qi < 2; qi++)
+            {
+                var quizId = Guid.NewGuid();
+                var quiz = new Quiz
+                {
+                    Id = quizId,
+                    CourseId = course.Id,
+                    Title = qi == 1 ? $"Final Exam - {course.Title}" : $"{quizTitles[rng.Next(quizTitles.Length)]}",
+                    Description = $"Assessment quiz for {course.Title}",
+                    PassingScore = 70,
+                    TimeLimitMinutes = qi == 1 ? 30 : 15,
+                    MaxAttempts = qi == 1 ? 2 : 3,
+                    IsFinalQuiz = isFinalQuiz,
+                    CreatedAt = course.CreatedAt.AddHours(5),
+                    IsDeleted = false
+                };
+                quizzes.Add(quiz);
+
+                // 3-5 questions per quiz
+                var questionCount = 3 + rng.Next(3);
+                for (var qi2 = 0; qi2 < questionCount; qi2++)
+                {
+                    var questionId = Guid.NewGuid();
+                    var question = new QuizQuestion
+                    {
+                        Id = questionId,
+                        QuizId = quizId,
+                        Content = $"Question {qi2 + 1}: What is the correct answer for topic related to {course.Title}?",
+                        Point = 1,
+                        OrderIndex = qi2 + 1
+                    };
+                    quizQuestions.Add(question);
+
+                    // 4 options per question, 1 correct
+                    var correctIndex = rng.Next(4);
+                    var optionTexts = new[]
+                    {
+                        $"Correct answer for {course.Title}",
+                        $"Incorrect answer A for {course.Title}",
+                        $"Incorrect answer B for {course.Title}",
+                        $"Incorrect answer C for {course.Title}"
+                    };
+
+                    for (var oi = 0; oi < 4; oi++)
+                    {
+                        quizOptions.Add(new QuizOption
+                        {
+                            Id = Guid.NewGuid(),
+                            QuestionId = questionId,
+                            Content = optionTexts[oi],
+                            IsCorrect = oi == correctIndex,
+                            OrderIndex = oi + 1
+                        });
+                    }
+                }
+            }
+        }
+
+        context.Quizzes.AddRange(quizzes);
+        context.QuizQuestions.AddRange(quizQuestions);
+        context.QuizOptions.AddRange(quizOptions);
+        await context.SaveChangesAsync();
+
+        // ─── Seed Quiz Attempts for some students ──────────────────────────────
+        foreach (var student in students.Take(6))
+        {
+            var enrolledCourses = enrollments
+                .Where(e => e.UserId == student.Id)
+                .Select(e => courses.First(c => c.Id == e.CourseId))
+                .ToList();
+
+            foreach (var course in enrolledCourses.Take(1))
+            {
+                var courseQuizzes = quizzes.Where(q => q.CourseId == course.Id && q.IsFinalQuiz).ToList();
+                foreach (var quiz in courseQuizzes)
+                {
+                    var attemptId = Guid.NewGuid();
+                    var quizQuestionsList = quizQuestions.Where(q => q.QuizId == quiz.Id).ToList();
+                    var attempt = new QuizAttempt
+                    {
+                        Id = attemptId,
+                        QuizId = quiz.Id,
+                        UserId = student.Id,
+                        Score = rng.Next(50, 101),
+                        IsPassed = rng.Next(100) > 30,
+                        StartedAt = DateTime.UtcNow.AddDays(-rng.Next(1, 10)),
+                        SubmittedAt = DateTime.UtcNow.AddDays(-rng.Next(1, 10))
+                    };
+                    attempt.Score = Math.Max(attempt.Score, quiz.PassingScore - 1); // ensure some pass/fail variety
+                    attempt.IsPassed = attempt.Score >= quiz.PassingScore;
+                    quizAttempts.Add(attempt);
+
+                    foreach (var question in quizQuestionsList.Take(2))
+                    {
+                        var options = quizOptions.Where(o => o.QuestionId == question.Id).ToList();
+                        var correctOption = options.First(o => o.IsCorrect);
+                        var selectedOption = rng.Next(100) > 20 ? correctOption : options[rng.Next(options.Count)];
+
+                        quizAttemptAnswers.Add(new QuizAttemptAnswer
+                        {
+                            Id = Guid.NewGuid(),
+                            AttemptId = attemptId,
+                            QuestionId = question.Id,
+                            SelectedOptionId = selectedOption.Id,
+                            IsCorrect = selectedOption.IsCorrect
+                        });
+                    }
+                }
+            }
+        }
+
+        context.QuizAttempts.AddRange(quizAttempts);
+        context.QuizAttemptAnswers.AddRange(quizAttemptAnswers);
+        await context.SaveChangesAsync();
+
         var publishedCourses = courses.Where(c => c.Status == CourseStatus.Published).OrderBy(c => c.CreatedAt).ToList();
 
         foreach (var (student, studentIndex) in students.Select((value, index) => (value, index)))
@@ -350,7 +490,10 @@ public class DataSeederService(
                 Lessons = lessons.Count,
                 Enrollments = enrollments.Count,
                 Transactions = transactions.Count,
-                LessonProgressRecords = progresses.Count
+                LessonProgressRecords = progresses.Count,
+                Quizzes = quizzes.Count,
+                QuizQuestions = quizQuestions.Count,
+                QuizAttempts = quizAttempts.Count
             }
         };
     }
@@ -389,6 +532,9 @@ public class SeedCountDto
     public int Enrollments { get; set; }
     public int Transactions { get; set; }
     public int LessonProgressRecords { get; set; }
+    public int Quizzes { get; set; }
+    public int QuizQuestions { get; set; }
+    public int QuizAttempts { get; set; }
 }
 
 public class SeedCredentialDto

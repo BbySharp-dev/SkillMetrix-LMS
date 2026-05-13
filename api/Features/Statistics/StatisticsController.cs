@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SkillMetrix_LMS.API.Controllers;
-using SkillMetrix_LMS.API.Shared.Common;
 using SkillMetrix_LMS.API.Features.Admin.DTOs;
 using SkillMetrix_LMS.API.Features.Statistics.DTOs;
 using System.Security.Claims;

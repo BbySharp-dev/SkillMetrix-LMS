@@ -14,5 +14,18 @@ public class CourseDetailResponseDto
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
     public decimal Rating { get; set; }
-    public List<ChapterWithLessonsDto> Curriculum {get; set;} = new();
+    public List<ChapterWithLessonsDto> Curriculum { get; set; } = new();
+    public List<CourseQuizDto> Quizzes { get; set; } = new();
+}
+
+public class CourseQuizDto
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public decimal PassingScore { get; set; }
+    public int? TimeLimitMinutes { get; set; }
+    public int MaxAttempts { get; set; }
+    public bool IsFinalQuiz { get; set; }
+    public int QuestionCount { get; set; }
 }
