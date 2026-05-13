@@ -32,17 +32,6 @@ export default function VideoPlayer({
         }
     }, [onPersistProgress]);
 
-    useEffect(() => {
-        currentSecondRef.current = initialSecond;
-        lastSentSecondRef.current = -1;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setError(null);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsLoading(false);
-        if (videoRef.current) {
-            videoRef.current.currentTime = initialSecond;
-        }
-    }, [initialSecond, videoUrl]);
 
     useEffect(() => {
         intervalRef.current = setInterval(() => { void flushProgress(false); }, 30_000);
@@ -96,6 +85,11 @@ export default function VideoPlayer({
                 onCanPlay={() => setIsLoading(false)}
                 onTimeUpdate={() => {
                     if (videoRef.current) currentSecondRef.current = videoRef.current.currentTime;
+                }}
+                onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                        videoRef.current.currentTime = initialSecond;
+                    }
                 }}
                 onPause={() => { void flushProgress(true); }}
                 onEnded={() => { void flushProgress(true); }}
