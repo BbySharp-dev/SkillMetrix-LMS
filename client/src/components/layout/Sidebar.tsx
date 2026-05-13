@@ -9,6 +9,7 @@ import {
     Settings,
     ChevronRight,
     Library,
+    ClipboardList,
     type LucideIcon,
 } from 'lucide-react';
 
@@ -41,6 +42,7 @@ const INSTRUCTOR_NAV_SECTIONS: NavSectionConfig[] = [
         items: [
             { label: 'Tổng quan', to: '/instructor', icon: LayoutDashboard, end: true },
             { label: 'Khóa học', to: '/instructor/courses', icon: BookOpen },
+            { label: 'Quiz', to: '/instructor/courses', icon: ClipboardList },
         ],
     },
     {
