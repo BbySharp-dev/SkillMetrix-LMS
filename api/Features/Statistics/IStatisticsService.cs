@@ -1,6 +1,5 @@
 using SkillMetrix_LMS.API.Features.Admin.DTOs;
 using SkillMetrix_LMS.API.Features.Statistics.DTOs;
-using SkillMetrix_LMS.API.Shared.Common;
 
 namespace SkillMetrix_LMS.API.Features.Statistics;
 

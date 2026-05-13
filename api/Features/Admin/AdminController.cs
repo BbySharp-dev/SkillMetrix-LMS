@@ -1,23 +1,16 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SkillMetrix_LMS.API.Controllers;
-using SkillMetrix_LMS.API.Features.Admin;
-using SkillMetrix_LMS.API.Features.Admin.DTOs;
-using SkillMetrix_LMS.API.Shared.Common;
 using System.Security.Claims;
+using SkillMetrix_LMS.API.Features.Admin.DTOs;
 
-namespace SkillMetrix_LMS.API.Features.Statistics;
+namespace SkillMetrix_LMS.API.Features.Admin;
 
 [Authorize(Policy = "RequireAdmin")]
 [Route("api/[controller]")]
 public class AdminController(IAdminService adminService) : BaseApiController
 {
-    private readonly IAdminService _adminService = adminService;
-
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers([FromQuery] AdminUserQueryDto query)
     {
-        var result = await _adminService.GetUsersAsync(query);
+        var result = await adminService.GetUsersAsync(query);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -31,7 +24,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         if (actorId == null)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await _adminService.CreateUserAsync(dto, actorId.Value);
+        var result = await adminService.CreateUserAsync(dto, actorId.Value);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -45,7 +38,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         if (actorId == null)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await _adminService.DeleteUserAsync(id, actorId.Value);
+        var result = await adminService.DeleteUserAsync(id, actorId.Value);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -59,7 +52,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await _adminService.UpdateUserRoleAsync(id, dto.Role, actorId);
+        var result = await adminService.UpdateUserRoleAsync(id, dto.Role, actorId);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -69,7 +62,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
     [HttpGet("courses")]
     public async Task<IActionResult> GetCourses([FromQuery] AdminCourseQueryDto query)
     {
-        var result = await _adminService.GetCoursesAsync(query);
+        var result = await adminService.GetCoursesAsync(query);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -83,7 +76,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await _adminService.ApproveCourseAsync(id, actorId);
+        var result = await adminService.ApproveCourseAsync(id, actorId);
         if (!result.IsSuccess)
             return HandleError(result);
 
@@ -97,7 +90,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await _adminService.RejectCourseAsync(id, dto.Reason, actorId);
+        var result = await adminService.RejectCourseAsync(id, dto.Reason, actorId);
         if (!result.IsSuccess)
             return HandleError(result);
 
