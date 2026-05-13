@@ -60,7 +60,7 @@ export default function QuizTakingPage() {
             setTimeLeft((prev) => {
                 if (prev === null || prev <= 1) {
                     clearInterval(timerRef.current!);
-                    handleSubmit(true);
+                    handleSubmit();
                     return 0;
                 }
                 return prev - 1;
