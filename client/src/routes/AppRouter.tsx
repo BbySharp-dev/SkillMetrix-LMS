@@ -29,6 +29,9 @@ const Loadable = <P extends object>(Component: ComponentType<P>) => {
 };
 
 const CoursesPage = Loadable(lazy(() => import('@/features/courses/pages/CoursesPage')));
+const QuizTakingPage = Loadable(lazy(() => import('@/features/quizzes/pages/QuizTakingPage')));
+const QuizListPage = Loadable(lazy(() => import('@/features/quizzes/pages/QuizListPage').then(m => ({ default: m.QuizListPage }))));
+const QuizEditPage = Loadable(lazy(() => import('@/features/quizzes/pages/QuizEditPage')));
 const CourseDetailPage = Loadable(lazy(() => import('@/features/courses/pages/CourseDetailPage')));
 const InstructorCoursesPage = Loadable(lazy(() => import('@/features/courses/pages/InstructorCoursesPage')));
 const CourseEditorPage = Loadable(lazy(() => import('@/features/courses/pages/CourseEditorPage')));
@@ -59,6 +62,7 @@ export const appRouter = createBrowserRouter([
       { path: 'courses', element: <CoursesPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'learning/:courseId', element: <LearningPage /> },
+      { path: 'quiz/:quizId', element: <QuizTakingPage /> },
       { path: 'profile/instructor/:instructorId', element: <InstructorProfilePage /> },
       { path: 'profile/student/:studentId', element: <StudentProfilePage /> },
       { path: '403', element: <ForbiddenPage /> },
@@ -95,6 +99,8 @@ export const appRouter = createBrowserRouter([
               { index: true, element: <InstructorDashboardPage /> },
               { path: 'courses', element: <InstructorCoursesPage /> },
               { path: 'courses/:id', element: <CourseEditorPage /> },
+              { path: 'quiz/:courseId', element: <QuizListPage /> },
+              { path: 'quiz/:quizId/edit', element: <QuizEditPage /> },
               { path: 'my-enrollments', element: <EnrollmentsPage /> },
               { path: 'my-transactions', element: <TransactionsPage /> },
             ],
