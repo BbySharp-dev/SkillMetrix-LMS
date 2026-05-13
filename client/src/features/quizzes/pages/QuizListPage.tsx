@@ -310,4 +310,5 @@ export function QuizListPage() {
                 confirmText="Xóa"
             />
         </div>
+    );
 }
