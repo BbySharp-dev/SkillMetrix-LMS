@@ -29,7 +29,8 @@ export default function QuizTakingPage() {
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const handleSubmit = useCallback(async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleSubmit = useCallback(async (_force = false) => {
         if (!quizId || !attemptId || isSubmitted) return;
 
         const submitAnswers: SubmitAnswerPayload[] = quiz!.questions.map((q) => ({
