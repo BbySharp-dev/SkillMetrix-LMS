@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Models.Enums;
-using SkillMetrix_LMS.API.Shared.Common;
 using SkillMetrix_LMS.API.Features.Courses.DTOs;
 using SkillMetrix_LMS.API.Features.Chapters.DTOs;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
@@ -155,6 +152,11 @@ public class CourseService(ApplicationDbContext context) : ICourseService
             .Include(ch => ch.Lessons)
             .ToListAsync();
 
+        var quizzes = await context.Quizzes
+            .AsNoTracking()
+            .Where(q => q.CourseId == id && !q.IsDeleted && q.IsFinalQuiz)
+            .ToListAsync();
+
         return new CourseDetailResponseDto
         {
             Id = course.Id,
@@ -183,6 +185,17 @@ public class CourseService(ApplicationDbContext context) : ICourseService
                         IsFreePreview = l.IsFreePreview,
                         OrderIndex = l.OrderIndex
                     }).ToList()
+            }).ToList(),
+            Quizzes = quizzes.Select(q => new CourseQuizDto
+            {
+                Id = q.Id,
+                Title = q.Title,
+                Description = q.Description,
+                PassingScore = q.PassingScore,
+                TimeLimitMinutes = q.TimeLimitMinutes,
+                MaxAttempts = q.MaxAttempts,
+                IsFinalQuiz = q.IsFinalQuiz,
+                QuestionCount = context.QuizQuestions.Count(qq => qq.QuizId == q.Id)
             }).ToList()
         };
     }

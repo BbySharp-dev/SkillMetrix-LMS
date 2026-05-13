@@ -1,5 +1,6 @@
 import api from '@/lib/axios';
-import type { ApiResponse } from '@/shared';
+import { getData } from '@/shared';
+import type { ApiResponseWrapper } from '@/shared';
 
 export interface LessonResponseDto {
     id: string;
@@ -11,18 +12,22 @@ export interface LessonResponseDto {
 
 export const lessonApi = {
     getLessons: async (chapterId: string): Promise<LessonResponseDto[]> => {
-        const res = await api.get(`/chapters/${chapterId}/lessons`) as unknown as ApiResponse<LessonResponseDto[]>;
-        return res.data ?? [];
+        const res = await api.get(`/chapters/${chapterId}/lessons`) as ApiResponseWrapper<LessonResponseDto[]>;
+        return getData(res) ?? [];
     },
 
     createLesson: async (chapterId: string, data: { title: string }): Promise<LessonResponseDto> => {
-        const res = await api.post(`/chapters/${chapterId}/lessons`, data) as unknown as ApiResponse<LessonResponseDto>;
-        return res.data!;
+        const res = await api.post(`/chapters/${chapterId}/lessons`, data) as ApiResponseWrapper<LessonResponseDto>;
+        const d = getData(res);
+        if (!d) throw new Error('Failed to create lesson');
+        return d;
     },
 
     updateLesson: async (id: string, data: { title: string, isFreePreview: boolean }): Promise<LessonResponseDto> => {
-        const res = await api.put(`/lessons/${id}`, data) as unknown as ApiResponse<LessonResponseDto>;
-        return res.data!;
+        const res = await api.put(`/lessons/${id}`, data) as ApiResponseWrapper<LessonResponseDto>;
+        const d = getData(res);
+        if (!d) throw new Error('Failed to update lesson');
+        return d;
     },
 
     deleteLesson: async (id: string): Promise<void> => {
@@ -34,7 +39,9 @@ export const lessonApi = {
         formData.append('file', file);
         const res = await api.post(`/lessons/${id}/video`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
-        }) as unknown as ApiResponse<LessonResponseDto>;
-        return res.data!;
+        }) as ApiResponseWrapper<LessonResponseDto>;
+        const d = getData(res);
+        if (!d) throw new Error('Upload failed');
+        return d;
     }
 };

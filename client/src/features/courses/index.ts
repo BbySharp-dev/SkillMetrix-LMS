@@ -1,4 +1,3 @@
-// Barrel export for courses feature
 export { courseApi } from './api/courseApi';
 export { chapterApi } from './api/chapterApi';
 export { lessonApi } from './api/lessonApi';

@@ -73,6 +73,19 @@ export interface CourseDetailDto {
     status?: string | null;
     createdAt: string;
     rating: number;
+    curriculum?: ChapterWithLessonsDto[];
+    quizzes?: CourseQuizDto[];
+}
+
+export interface CourseQuizDto {
+    id: string;
+    title: string;
+    description?: string | null;
+    passingScore: number;
+    timeLimitMinutes?: number | null;
+    maxAttempts: number;
+    isFinalQuiz: boolean;
+    questionCount: number;
 }
 
 export interface CreateCoursePayload {
