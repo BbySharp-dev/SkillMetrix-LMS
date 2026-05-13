@@ -70,7 +70,7 @@ export default function QuizTakingPage() {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [timeLeft, isSubmitted]);
+    }, [timeLeft, isSubmitted, handleSubmit]);
 
     const handleStartQuiz = useCallback(async () => {
         if (!quizId) return;
