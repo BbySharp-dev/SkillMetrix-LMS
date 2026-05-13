@@ -1,5 +1,4 @@
 using FluentValidation;
-using SkillMetrix_LMS.API.Features.Courses.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Enrollments.DTOs;
 

@@ -1,10 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using SkillMetrix_LMS.API.Features.Admin.DTOs;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
-using SkillMetrix_LMS.API.Models;
-using SkillMetrix_LMS.API.Models.Enums;
-using SkillMetrix_LMS.API.Shared.Common;
 
 namespace SkillMetrix_LMS.API.Features.Admin;
 
@@ -18,10 +13,10 @@ public class AdminService(
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var keyword = query.Search.Trim().ToLower();
+            var keyword = query.Search.Trim();
             usersQuery = usersQuery.Where(u =>
-                u.FullName.ToLower().Contains(keyword) ||
-                u.Email!.ToLower().Contains(keyword));
+                u.FullName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
         if (query.Role.HasValue)
@@ -37,7 +32,7 @@ public class AdminService(
             {
                 Id = u.Id,
                 FullName = u.FullName,
-                Email = u.Email!,
+                Email = u.Email,
                 Role = u.Role,
                 CreatedAt = u.CreatedAt
             })
@@ -96,7 +91,7 @@ public class AdminService(
         {
             Id = user.Id,
             FullName = user.FullName,
-            Email = user.Email!,
+            Email = user.Email,
             Role = user.Role,
             CreatedAt = user.CreatedAt,
         };
@@ -138,8 +133,8 @@ public class AdminService(
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var keyword = query.Search.Trim().ToLower();
-            coursesQuery = coursesQuery.Where(c => c.Title.ToLower().Contains(keyword));
+            var keyword = query.Search.Trim();
+            coursesQuery = coursesQuery.Where(c => c.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
         if (query.Status.HasValue)

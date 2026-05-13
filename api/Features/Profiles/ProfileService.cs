@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
-using SkillMetrix_LMS.API.Models;
 using SkillMetrix_LMS.API.Features.Profiles.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Profiles;
