@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
     Dialog, 
     DialogContent, 
@@ -7,7 +7,7 @@ import {
     DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, Check, Video, Loader2 } from 'lucide-react';
+import { Check, Video, Loader2 } from 'lucide-react';
 
 interface LessonEditorModalProps {
     open: boolean;
@@ -16,6 +16,7 @@ interface LessonEditorModalProps {
     initialData?: { id?: string; title?: string; isFreePreview?: boolean; videoUrl?: string | null } | null;
     onUploadVideo?: (lessonId: string, file: File) => Promise<void>;
     isUploading?: boolean;
+    onUploadSuccess?: (updatedLesson: { videoUrl: string }) => void;
 }
 
 export default function LessonEditorModal({ 
@@ -24,28 +25,30 @@ export default function LessonEditorModal({
     onSave, 
     initialData,
     onUploadVideo,
-    isUploading 
+    isUploading,
+    onUploadSuccess,
 }: LessonEditorModalProps) {
     const [title, setTitle] = useState('');
     const [isFreePreview, setIsFreePreview] = useState(false);
+    const [localVideoUrl, setLocalVideoUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useState(() => {
-        if (open) {
-            setTitle(initialData?.title ?? '');
-            setIsFreePreview(initialData?.isFreePreview ?? false);
+    useEffect(() => {
+        if (open && initialData) {
+            setTitle(initialData.title ?? '');
+            setIsFreePreview(initialData.isFreePreview ?? false);
         }
-    });
-
-    if (open && title === '' && initialData?.title && initialData.title !== title) {
-        setTitle(initialData.title);
-        setIsFreePreview(initialData.isFreePreview ?? false);
-    }
+    }, [open, initialData?.id]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && initialData?.id && onUploadVideo) {
+            const objectUrl = URL.createObjectURL(file);
+            setLocalVideoUrl(objectUrl);
             await onUploadVideo(initialData.id, file);
+
+            if (onUploadSuccess) {
+            }
         }
     };
 
@@ -54,7 +57,7 @@ export default function LessonEditorModal({
             <DialogContent className="sm:max-w-150 rounded-3xl p-8">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-black text-gray-900 tracking-tight">
-                        {initialData ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}
+                        {initialData?.id ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}
                     </DialogTitle>
                 </DialogHeader>
                 <div className="py-6 space-y-6">
@@ -72,33 +75,29 @@ export default function LessonEditorModal({
                     <div className="space-y-2">
                         <label className="text-sm font-black text-gray-700 uppercase tracking-widest">Video bài giảng</label>
                         
-                        {!initialData?.id ? (
-                            <div className="p-6 rounded-2xl bg-amber-50 border border-amber-100 flex items-center gap-4">
-                                <Video className="size-6 text-amber-500" />
-                                <p className="text-sm font-bold text-amber-700">
-                                    Vui lòng lưu bài học trước khi tải video lên.
-                                </p>
-                            </div>
-                        ) : initialData.videoUrl ? (
+                        {initialData?.id ? (
+                            localVideoUrl ? (
                             <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 bg-black group">
-                                <video 
-                                    src={initialData.videoUrl} 
+                                <video
+                                    key={localVideoUrl}
+                                    src={localVideoUrl}
                                     className="w-full h-full object-contain"
                                     controls
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Button 
+                                    <Button
                                         variant="destructive"
                                         size="sm"
                                         className="rounded-xl font-black"
-                                        onClick={() => fileInputRef.current?.click()}
+                                        onClick={() => !isUploading && fileInputRef.current?.click()}
+                                        disabled={isUploading}
                                     >
                                         THAY ĐỔI VIDEO
                                     </Button>
                                 </div>
                             </div>
-                        ) : (
-                            <div 
+                            ) : (
+                            <div
                                 onClick={() => !isUploading && fileInputRef.current?.click()}
                                 className={`aspect-video rounded-2xl bg-gray-50 border-2 border-dashed flex flex-col items-center justify-center p-6 group transition-all cursor-pointer ${
                                     isUploading ? 'border-indigo-500 bg-indigo-50/30' : 'border-gray-200 hover:bg-gray-100 hover:border-indigo-300'
@@ -111,11 +110,21 @@ export default function LessonEditorModal({
                                     </>
                                 ) : (
                                     <>
-                                        <PlayCircle className="size-8 text-gray-400 group-hover:text-indigo-600 transition-colors mb-2" />
+                                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mb-3">
+                                            <Video className="size-6 text-orange-500" />
+                                        </div>
                                         <p className="text-sm font-black text-gray-900">Tải video lên</p>
-                                        <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest text-center">MP4, MOV, tối đa 500MB</p>
+                                        <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest text-center">MP4, MOV, AVI • Tối đa 500MB</p>
                                     </>
                                 )}
+                            </div>
+                            )
+                        ) : (
+                            <div className="p-6 rounded-2xl bg-amber-50 border border-amber-100 flex items-center gap-4">
+                                <Video className="size-6 text-amber-500" />
+                                <p className="text-sm font-bold text-amber-700">
+                                    Lưu bài học trước để tải video lên.
+                                </p>
                             </div>
                         )}
                         <input 
@@ -145,12 +154,12 @@ export default function LessonEditorModal({
                     <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12 px-6 rounded-xl font-black border-gray-200 hover:bg-gray-50">
                         HỦY BỎ
                     </Button>
-                    <Button 
+                    <Button
                         onClick={() => onSave({ title, isFreePreview })}
                         disabled={!title.trim() || isUploading}
                         className="h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-black"
                     >
-                        LƯU BÀI HỌC
+                        {initialData?.id ? "LƯU THAY ĐỔI" : "TẠO BÀI HỌC"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

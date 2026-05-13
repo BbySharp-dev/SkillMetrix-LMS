@@ -8,7 +8,8 @@ import {
     ChevronDown, 
     ChevronUp,
     FileText,
-    MoreVertical
+    MoreVertical,
+    Video
 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui';
@@ -41,7 +42,6 @@ import { useCurriculum, useChapterMutations, useLessonMutations } from '../hooks
 import type { ChapterWithLessonsDto, LessonDto } from '../types';
 
 interface CurriculumEditorProps {
-    /** Pass undefined when creating a new course to skip curriculum fetch */
     courseId?: string;
 }
 
@@ -122,14 +122,22 @@ export default function CurriculumEditor({ courseId: propCourseId }: CurriculumE
         if (!courseId) return;
         if (editingLesson) {
             updateLesson.mutate({ id: editingLesson.id, data });
+            setIsLessonModalOpen(false);
         } else if (targetChapterId) {
-            createLesson.mutate({ chapterId: targetChapterId, data });
+            createLesson.mutate(
+                { chapterId: targetChapterId, data },
+                {
+                    onSuccess: (newLesson) => {
+                        setEditingLesson(newLesson as unknown as LessonDto);
+                    },
+                }
+            );
         }
-        setIsLessonModalOpen(false);
     };
 
     const handleUploadVideo = async (lessonId: string, file: File) => {
-        await uploadVideo.mutateAsync({ id: lessonId, file });
+        const updated = await uploadVideo.mutateAsync({ id: lessonId, file });
+        setEditingLesson(updated as unknown as LessonDto);
     };
 
     if (isLoading) {
@@ -181,8 +189,7 @@ export default function CurriculumEditor({ courseId: propCourseId }: CurriculumE
                             <SortableItem key={chapter.id} id={chapter.id}>
                                 {({ listeners }: { listeners?: Record<string, unknown> }) => (
                                     <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all">
-                                        {/* Chapter Header */}
-                                        <div className="p-5 flex items-center gap-4 bg-gray-50/50">
+                        <div className="p-5 flex items-center gap-4 bg-gray-50/50">
                                             <div 
                                                 {...listeners}
                                                 className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors"
@@ -234,54 +241,68 @@ export default function CurriculumEditor({ courseId: propCourseId }: CurriculumE
                                             </div>
                                         </div>
 
-                                        {/* Lessons List */}
                                         {expandedChapters.includes(chapter.id) && (
                                             <div className="p-4 pt-0 space-y-2">
                                                 <div className="border-t border-gray-100 mt-0 pt-4">
                                                     {chapter.lessons.map((lesson) => (
                                                         <div key={lesson.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100">
-                                                            <div className="cursor-grab active:cursor-grabbing text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <GripVertical className="size-4" />
-                                                            </div>
-                                                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-sm">
-                                                                <PlayCircle className="size-4" />
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-sm font-bold text-gray-900">{lesson.title}</span>
-                                                                    {lesson.isFreePreview && (
-                                                                        <Badge className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest border-emerald-100 px-1.5 py-0">
-                                                                            Preview
-                                                                        </Badge>
-                                                                    )}
+                                                            <div className="flex items-center gap-2">
+                                                                    <div
+                                                                        className="flex items-center gap-3 flex-1 cursor-pointer group/lesson"
+                                                                        onClick={() => handleEditLesson(lesson)}
+                                                                    >
+                                                                        <div className="cursor-grab active:cursor-grabbing text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                            <GripVertical className="size-4" />
+                                                                        </div>
+                                                                        <div className={lesson.videoUrl ? 'w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shadow-sm' : 'w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shadow-sm'}>
+                                                                            {lesson.videoUrl
+                                                                                ? <PlayCircle className="size-4 text-emerald-600" />
+                                                                                : <Video className="size-4 text-orange-500" />}
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="text-sm font-bold text-gray-900">{lesson.title}</span>
+                                                                                {lesson.isFreePreview && (
+                                                                                    <Badge className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest border-emerald-100 px-1.5 py-0">
+                                                                                        Preview
+                                                                                    </Badge>
+                                                                                )}
+                                                                                {!lesson.videoUrl && (
+                                                                                    <Badge className="bg-orange-50 text-orange-500 text-[9px] font-black uppercase tracking-widest border-orange-100 px-1.5 py-0">
+                                                                                        Chưa có video
+                                                                                    </Badge>
+                                                                                )}
+                                                                            </div>
+                                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-0.5">
+                                                                                <FileText className="size-3" />
+                                                                                {Math.floor(lesson.durationSeconds / 60)}:{(lesson.durationSeconds % 60).toString().padStart(2, '0')}
+                                                                                {lesson.videoUrl && <span className="text-emerald-400">• Đã có video</span>}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1 opacity-0 group-hover/lesson:opacity-100 transition-opacity">
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => handleEditLesson(lesson)}
+                                                                            className="h-8 w-8 rounded-lg hover:bg-white border border-transparent hover:border-gray-200"
+                                                                        >
+                                                                            <Edit2 className="size-3.5 text-gray-500" />
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => {
+                                                                                if (confirm('Bạn có chắc chắn muốn xóa bài học này?')) {
+                                                                                    deleteLesson.mutate(lesson.id);
+                                                                                }
+                                                                            }}
+                                                                            className="h-8 w-8 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 text-red-500 hover:text-red-600"
+                                                                        >
+                                                                            <Trash2 className="size-3.5" />
+                                                                        </Button>
+                                                                    </div>
                                                                 </div>
-                                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-0.5">
-                                                                    <FileText className="size-3" />
-                                                                    {Math.floor(lesson.durationSeconds / 60)}:{(lesson.durationSeconds % 60).toString().padStart(2, '0')}
-                                                                </p>
-                                                            </div>
-                                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <Button 
-                                                                    variant="ghost" 
-                                                                    size="icon" 
-                                                                    onClick={() => handleEditLesson(lesson)}
-                                                                    className="h-8 w-8 rounded-lg hover:bg-white border border-transparent hover:border-gray-200"
-                                                                >
-                                                                    <Edit2 className="size-3.5 text-gray-500" />
-                                                                </Button>
-                                                                <Button 
-                                                                    variant="ghost" 
-                                                                    size="icon" 
-                                                                    onClick={() => {
-                                                                        if (confirm('Bạn có chắc chắn muốn xóa bài học này?')) {
-                                                                            deleteLesson.mutate(lesson.id);
-                                                                        }
-                                                                    }}
-                                                                    className="h-8 w-8 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 text-red-500 hover:text-red-600"
-                                                                >
-                                                                    <Trash2 className="size-3.5" />
-                                                                </Button>
-                                                            </div>
                                                         </div>
                                                     ))}
                                                     <Button 
@@ -303,7 +324,6 @@ export default function CurriculumEditor({ courseId: propCourseId }: CurriculumE
                 </SortableContext>
             </DndContext>
 
-            {/* Modals */}
             <ChapterEditorModal 
                 open={isChapterModalOpen} 
                 onOpenChange={setIsChapterModalOpen}

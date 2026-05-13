@@ -49,4 +49,3 @@ export function RoleStats({ roleCounts, roleFilter, onRoleClick }: RoleStatsProp
     );
 }
 
-export { roleConfig, allRoles };
