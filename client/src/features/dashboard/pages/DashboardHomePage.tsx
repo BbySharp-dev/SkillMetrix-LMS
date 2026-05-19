@@ -380,7 +380,8 @@ function AdminSection() {
 
 export default function DashboardHomePage() {
     const user = useAuthStore((s) => s.user);
-    const { data: enrollments, isLoading } = useMyEnrollments();
+    const { data: enrollmentsData, isLoading } = useMyEnrollments();
+    const enrollments = enrollmentsData?.data ?? [];
     const isInstructor = user?.role === 'Instructor';
     const isAdmin = user?.role === 'Admin';
 

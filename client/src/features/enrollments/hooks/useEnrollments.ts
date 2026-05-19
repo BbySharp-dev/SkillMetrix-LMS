@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { enrollmentApi } from '../api/enrollmentApi';
+import { enrollmentApi, type EnrollmentQueryParams } from '../api/enrollmentApi';
 import { toast } from 'sonner';
 import { queryKeys } from '@/shared';
 import { ApiError } from '@/shared';
@@ -21,12 +21,10 @@ export function useEnrollCourse() {
     });
 }
 
-export function useMyEnrollments() {
+export function useMyEnrollments(params?: EnrollmentQueryParams) {
     return useQuery({
-        queryKey: queryKeys.enrollments.me,
-        queryFn: async () => {
-            const res = await enrollmentApi.getMyEnrollments();
-            return res.data ?? [];
-        },
+        queryKey: [...queryKeys.enrollments.me, params ?? {}] as const,
+        queryFn: () => enrollmentApi.getMyEnrollments(params),
     });
 }
+
