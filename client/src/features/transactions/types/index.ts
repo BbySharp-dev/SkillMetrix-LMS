@@ -1,5 +1,5 @@
-export type TransactionType = 1 | 2 | 3 | number;
-export type TransactionStatus = 0 | 1 | 2 | 3 | 4 | number;
+export type TransactionType = 'Deposit' | 'Withdraw' | 'Purchase' | number | string;
+export type TransactionStatus = 'Pending' | 'Completed' | 'Failed' | 'Cancelled' | number | string;
 
 export interface TransactionDto {
     id: string;
@@ -13,3 +13,4 @@ export interface TransactionDto {
     createdAt: string;
     courseTitle?: string;
 }
+
