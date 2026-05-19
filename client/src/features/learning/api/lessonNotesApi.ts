@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios';
+import api from '@/lib/axios';
 import type { LessonNoteDto } from '@/features/courses/types';
 
 const NOTES_URL = '/lessons';
