@@ -16,6 +16,7 @@ export interface AdminCourseItem {
     updatedAt: string | null;
     rating: number;
     rejectionReason: string | null;
+    isDeleted?: boolean;
 }
 
 export interface AdminCourseQueryParams {
@@ -23,6 +24,7 @@ export interface AdminCourseQueryParams {
     pageSize?: number;
     search?: string;
     status?: string;
+    includeDeleted?: boolean;
 }
 
 export type UserRole = 'Student' | 'Instructor' | 'Admin' | 'Moderator';
@@ -96,6 +98,7 @@ export const adminApi = {
             pageSize: params.pageSize ?? 20,
             search: params.search?.trim() || undefined,
             status: params.status,
+            includeDeleted: params.includeDeleted,
         };
         const res = await api.get('/admin/courses', { params: cleanParams }) as ApiResponseWrapper<AdminCourseItem[]>;
         return normalizePaginated(res);
@@ -109,6 +112,11 @@ export const adminApi = {
     /** Admin từ chối khóa học kèm lý do */
     rejectCourse: async (courseId: string, payload: AdminRejectPayload): Promise<void> => {
         await api.put(`/admin/courses/${courseId}/reject`, payload);
+    },
+
+    /** Khôi phục khóa học đã xóa mềm */
+    restoreCourse: async (courseId: string): Promise<void> => {
+        await api.post(`/courses/${courseId}/restore`);
     },
 
     /** Lấy chi tiết khóa học cho admin */
