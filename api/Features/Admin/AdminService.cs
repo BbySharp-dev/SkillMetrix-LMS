@@ -13,10 +13,10 @@ public class AdminService(
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var keyword = query.Search.Trim();
+            var keyword = query.Search.Trim().ToLower();
             usersQuery = usersQuery.Where(u =>
-                (u.FullName ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                (u.Email ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                (u.FullName ?? string.Empty).ToLower().Contains(keyword) ||
+                (u.Email ?? string.Empty).ToLower().Contains(keyword));
         }
 
         if (query.Role.HasValue)
@@ -133,8 +133,8 @@ public class AdminService(
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var keyword = query.Search.Trim();
-            coursesQuery = coursesQuery.Where(c => c.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+            var keyword = query.Search.Trim().ToLower();
+            coursesQuery = coursesQuery.Where(c => c.Title.ToLower().Contains(keyword));
         }
 
         if (query.Status.HasValue)
