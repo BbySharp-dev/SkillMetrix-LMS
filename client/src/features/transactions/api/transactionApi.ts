@@ -4,5 +4,5 @@ import api from '@/lib/axios';
 
 export const transactionApi = {
     getMyTransactions: (): Promise<ApiResponse<TransactionDto[]>> =>
-        api.get('/Transactions/me'),
+        api.get('/transactions/me'),
 };

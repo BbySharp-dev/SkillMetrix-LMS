@@ -1,5 +1,6 @@
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 using SkillMetrix_LMS.API.Features.Upload;
+using CloudinaryDotNet.Actions;
 
 namespace SkillMetrix_LMS.API.Features.Lessons;
 
@@ -198,7 +199,11 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             return Result<LessonResponseDto>.Failure(uploadResult.ErrorMessage, uploadResult.ErrorType);
         }
 
-        lesson.VideoUrl = uploadResult.Value;
+        lesson.VideoUrl = uploadResult.Value.Url;
+        if (uploadResult.Value.DurationSeconds > 0)
+        {
+            lesson.DurationSeconds = (int)uploadResult.Value.DurationSeconds;
+        }
         lesson.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 

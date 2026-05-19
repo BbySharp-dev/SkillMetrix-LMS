@@ -39,11 +39,11 @@ public class CloudinaryUploadService : IFileUploadService
         return result.SecureUrl.ToString();
     }
 
-    public async Task<Result<string>> UploadVideoAsync(IFormFile file, string folder)
+    public async Task<Result<(string Url, double DurationSeconds)>> UploadVideoAsync(IFormFile file, string folder)
     {
         if (file.Length == 0)
         {
-            return Result<string>.ValidationError("Empty file");
+            return Result<(string, double)>.ValidationError("Empty file");
         }
 
         var uploadParams = new VideoUploadParams
@@ -55,9 +55,9 @@ public class CloudinaryUploadService : IFileUploadService
         var result = await _cloudinary.UploadAsync(uploadParams);
         if (result.Error != null)
         {
-            return Result<string>.Failure(result.Error.Message, ErrorType.InternalError);
+            return Result<(string, double)>.Failure(result.Error.Message, ErrorType.InternalError);
         }
 
-        return result.SecureUrl.ToString();
+        return (result.SecureUrl.ToString(), result.Duration);
     }
 }

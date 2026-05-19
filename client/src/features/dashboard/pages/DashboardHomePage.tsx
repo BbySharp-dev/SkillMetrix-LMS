@@ -356,7 +356,7 @@ function AdminSection() {
                     Quản lý khóa học
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Link to="/instructor/courses/new">
+                    <Link to="/admin/courses/new">
                         <Card className="group hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-200">
                             <CardContent className="p-6 flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><PlusCircle size={24} /></div>
@@ -364,7 +364,7 @@ function AdminSection() {
                             </CardContent>
                         </Card>
                     </Link>
-                    <Link to="/instructor/courses">
+                    <Link to="/admin/my-courses">
                         <Card className="group hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-200">
                             <CardContent className="p-6 flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><BookMarked size={24} /></div>
@@ -423,7 +423,7 @@ export default function DashboardHomePage() {
                     )}
                     {(isInstructor || isAdmin) && (
                         <Button asChild className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700">
-                            <Link to="/instructor/courses/new"><PlusCircle size={16} className="mr-2" />Tạo khóa học mới</Link>
+                            <Link to={isAdmin ? '/admin/courses/new' : '/instructor/courses/new'}><PlusCircle size={16} className="mr-2" />Tạo khóa học mới</Link>
                         </Button>
                     )}
                 </div>
