@@ -102,3 +102,40 @@ export const useLessonMutations = (courseId: string) => {
         uploadVideo: uploadVideoMutation,
     };
 };
+
+import { quizApi, type CreateQuizPayload, type UpdateQuizPayload } from '../api/quizApi';
+
+export const useQuizMutations = (courseId: string) => {
+    const queryClient = useQueryClient();
+
+    const createMutation = useMutation({
+        mutationFn: (payload: CreateQuizPayload) => quizApi.createQuiz(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
+            toast.success('Đã tạo quiz mới');
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: UpdateQuizPayload }) =>
+            quizApi.updateQuiz(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
+            toast.success('Đã cập nhật quiz');
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => quizApi.deleteQuiz(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
+            toast.success('Đã xóa quiz');
+        },
+    });
+
+    return {
+        createQuiz: createMutation,
+        updateQuiz: updateMutation,
+        deleteQuiz: deleteMutation,
+    };
+};

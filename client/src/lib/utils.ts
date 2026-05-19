@@ -134,8 +134,12 @@ export function copyToClipboard(text: string): Promise<void> {
 
 export function getDashboardRoute(role?: string): string {
   switch (role) {
-    case 'Admin': return '/admin';
-    case 'Instructor': return '/instructor';
-    default: return '/dashboard';
+    case 'Admin':
+    case 'Moderator':
+      return '/admin';
+    case 'Instructor':
+      return '/instructor';
+    default:
+      return '/dashboard';
   }
 }
