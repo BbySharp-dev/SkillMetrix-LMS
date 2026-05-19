@@ -54,3 +54,5 @@ api/appsettings.Development.json
 **/*.key
 **/*.pem
 **/*.crt
+.vercel
+.env*.local
