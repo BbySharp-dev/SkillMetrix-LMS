@@ -15,8 +15,8 @@ public class AdminService(
         {
             var keyword = query.Search.Trim();
             usersQuery = usersQuery.Where(u =>
-                u.FullName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                u.Email.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                (u.FullName ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                (u.Email ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
         if (query.Role.HasValue)
@@ -31,8 +31,8 @@ public class AdminService(
             .Select(u => new AdminUserListItemDto
             {
                 Id = u.Id,
-                FullName = u.FullName,
-                Email = u.Email,
+                FullName = u.FullName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
                 Role = u.Role,
                 CreatedAt = u.CreatedAt
             })
@@ -90,8 +90,8 @@ public class AdminService(
         return new AdminUserListItemDto
         {
             Id = user.Id,
-            FullName = user.FullName,
-            Email = user.Email,
+            FullName = user.FullName ?? string.Empty,
+            Email = user.Email ?? string.Empty,
             Role = user.Role,
             CreatedAt = user.CreatedAt,
         };

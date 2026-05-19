@@ -73,6 +73,8 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         {
             Id = Guid.NewGuid(),
             CourseId = dto.CourseId,
+            ChapterId = dto.ChapterId,
+            LessonId = dto.LessonId,
             Title = dto.Title,
             Description = dto.Description,
             PassingScore = dto.PassingScore,
@@ -104,6 +106,8 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         if (dto.TimeLimitMinutes.HasValue) quiz.TimeLimitMinutes = dto.TimeLimitMinutes.Value;
         if (dto.MaxAttempts.HasValue) quiz.MaxAttempts = dto.MaxAttempts.Value;
         if (dto.IsFinalQuiz.HasValue) quiz.IsFinalQuiz = dto.IsFinalQuiz.Value;
+        if (dto.ChapterId.HasValue || dto.ChapterId == null) quiz.ChapterId = dto.ChapterId;
+        if (dto.LessonId.HasValue || dto.LessonId == null) quiz.LessonId = dto.LessonId;
         quiz.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
@@ -317,6 +321,8 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         return new QuizForTakingDto(
             quiz.Id,
             quiz.CourseId,
+            quiz.ChapterId,
+            quiz.LessonId,
             quiz.Title,
             quiz.Description,
             quiz.PassingScore,
@@ -560,6 +566,8 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         new(
             quiz.Id,
             quiz.CourseId,
+            quiz.ChapterId,
+            quiz.LessonId,
             quiz.Title,
             quiz.Description,
             quiz.PassingScore,
@@ -574,6 +582,8 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         new(
             quiz.Id,
             quiz.CourseId,
+            quiz.ChapterId,
+            quiz.LessonId,
             quiz.Title,
             quiz.Description,
             quiz.PassingScore,
