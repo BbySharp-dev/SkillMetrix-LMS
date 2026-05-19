@@ -7,13 +7,35 @@ namespace SkillMetrix_LMS.API.Features.Certificates;
 
 public class CertificateService(ApplicationDbContext context) : ICertificateService
 {
-    public async Task<Result<List<CertificateDto>>> GetUserCertificatesAsync(Guid userId)
+    public async Task<Result<PagedResponse<List<CertificateDto>>>> GetUserCertificatesAsync(Guid userId, CertificateQueryDto query)
     {
-        var certs = await context.Certificates
+        var baseQuery = context.Certificates
             .Where(c => c.UserId == userId)
             .Include(c => c.Course).ThenInclude(c => c.Instructor)
             .Include(c => c.User)
-            .OrderByDescending(c => c.IssuedAt)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var keyword = query.Search.Trim();
+            baseQuery = baseQuery.Where(c =>
+                c.Course.Title.Contains(keyword) ||
+                c.CertificateCode.Contains(keyword) ||
+                c.Course.Instructor.FullName.Contains(keyword));
+        }
+
+        var totalCount = await baseQuery.CountAsync();
+
+        baseQuery = query.SortBy?.ToLower() switch
+        {
+            "title" => baseQuery.OrderBy(c => c.Course.Title),
+            "oldest" => baseQuery.OrderBy(c => c.IssuedAt),
+            _ => baseQuery.OrderByDescending(c => c.IssuedAt)
+        };
+
+        var certs = await baseQuery
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(c => new CertificateDto
             {
                 Id = c.Id,
@@ -28,8 +50,9 @@ public class CertificateService(ApplicationDbContext context) : ICertificateServ
             })
             .ToListAsync();
 
-        return certs;
+        return new PagedResponse<List<CertificateDto>>(certs, query.PageNumber, query.PageSize, totalCount);
     }
+
 
     public async Task<Result<CertificateDto>> GetCertificateByIdAsync(Guid userId, Guid certificateId)
     {
