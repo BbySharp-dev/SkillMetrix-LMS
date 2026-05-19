@@ -22,6 +22,7 @@ using SkillMetrix_LMS.API.Features.Quizzes;
 using SkillMetrix_LMS.API.Features.Progress;
 using SkillMetrix_LMS.API.Features.Statistics;
 using SkillMetrix_LMS.API.Features.Admin;
+using SkillMetrix_LMS.API.Features.Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,6 +101,9 @@ builder.Services.AddScoped<DataSeederService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IChapterService, ChapterService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<ILessonDocumentService, LessonDocumentService>();
+builder.Services.AddScoped<ILessonNoteService, LessonNoteService>();
+builder.Services.AddScoped<ILessonQAService, LessonQAService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
@@ -107,6 +111,7 @@ builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<SkillMetrix_LMS.API.Features.Profiles.IProfileService, SkillMetrix_LMS.API.Features.Profiles.ProfileService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -167,6 +172,8 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 
