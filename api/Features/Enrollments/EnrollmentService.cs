@@ -76,14 +76,20 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
         };
     }
 
-    public async Task<Result<List<EnrollmentResponseDto>>> GetUserEnrollmentsAsync(Guid userId)
+    public async Task<Result<PagedResponse<List<EnrollmentResponseDto>>>> GetUserEnrollmentsAsync(Guid userId, EnrollmentQueryDto query)
     {
-        var enrollments = await context.Enrollments
+        var baseQuery = context.Enrollments
             .Include(e => e.Course)
             .ThenInclude(c => c.Instructor)
             .Where(e => e.UserId == userId)
             .OrderByDescending(e => e.EnrolledAt)
-            .AsNoTracking()
+            .AsNoTracking();
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var enrollments = await baseQuery
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .ToListAsync();
 
         var dto = new List<EnrollmentResponseDto>();
@@ -113,8 +119,9 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
             });
         }
 
-        return dto;
+        return new PagedResponse<List<EnrollmentResponseDto>>(dto, query.PageNumber, query.PageSize, totalCount);
     }
+
 
     public async Task<Result<bool>> CheckEnrollmentAsync(Guid userId, Guid courseId)
     {

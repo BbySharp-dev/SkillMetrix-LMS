@@ -128,7 +128,7 @@ public class AdminService(
         var coursesQuery = context.Courses
             .AsNoTracking()
             .Include(c => c.Instructor)
-            .Where(c => !c.IsDeleted)
+            .Where(c => query.IncludeDeleted || !c.IsDeleted)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -159,6 +159,8 @@ public class AdminService(
                 c.UpdatedAt,
                 c.Rating,
                 c.RejectionReason,
+                c.IsDeleted,
+                c.DeletedAt,
                 EnrollmentCount = context.Enrollments.Count(e => e.CourseId == c.Id)
             })
             .ToListAsync();
@@ -176,7 +178,9 @@ public class AdminService(
             CreatedAt = c.CreatedAt,
             UpdatedAt = c.UpdatedAt,
             Rating = c.Rating ?? 0,
-            RejectionReason = c.RejectionReason
+            RejectionReason = c.RejectionReason,
+            IsDeleted = c.IsDeleted,
+            DeletedAt = c.DeletedAt
         }).ToList();
 
         return new PagedResponse<List<AdminCourseListItemDto>>(
@@ -217,6 +221,35 @@ public class AdminService(
         course.RejectionReason = reason.Trim();
         course.ApprovedBy = actorId;
         course.ApprovedAt = DateTime.UtcNow;
+
+        await context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Result<bool>> DeleteCourseAsync(Guid courseId, Guid actorId)
+    {
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
+        if (course == null)
+            return Result<bool>.NotFound("Course not found or already deleted");
+
+        course.IsDeleted = true;
+        course.DeletedAt = DateTime.UtcNow;
+        course.DeletedBy = actorId;
+
+        await context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Result<bool>> RestoreCourseAsync(Guid courseId, Guid actorId)
+    {
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == courseId && c.IsDeleted);
+        if (course == null)
+            return Result<bool>.NotFound("Course not found or not deleted");
+
+        course.IsDeleted = false;
+        course.DeletedAt = null;
+        course.DeletedBy = null;
+        course.Status = CourseStatus.Draft;
 
         await context.SaveChangesAsync();
         return true;

@@ -16,7 +16,8 @@ export interface AdminCourseItem {
     updatedAt: string | null;
     rating: number;
     rejectionReason: string | null;
-    isDeleted?: boolean;
+    isDeleted: boolean;
+    deletedAt: string | null;
 }
 
 export interface AdminCourseQueryParams {
@@ -114,9 +115,14 @@ export const adminApi = {
         await api.put(`/admin/courses/${courseId}/reject`, payload);
     },
 
-    /** Khôi phục khóa học đã xóa mềm */
+    /** Xóa mềm khóa học (Admin) */
+    deleteCourse: async (courseId: string): Promise<void> => {
+        await api.delete(`/admin/courses/${courseId}`);
+    },
+
+    /** Khôi phục khóa học đã xóa mềm (Admin) */
     restoreCourse: async (courseId: string): Promise<void> => {
-        await api.post(`/courses/${courseId}/restore`);
+        await api.post(`/admin/courses/${courseId}/restore`);
     },
 
     /** Lấy chi tiết khóa học cho admin */

@@ -6,4 +6,5 @@ public class AdminCourseQueryDto
     public int PageSize { get; set; } = 10;
     public string? Search { get; set; }
     public CourseStatus? Status { get; set; }
+    public bool IncludeDeleted { get; set; } = false;
 }
