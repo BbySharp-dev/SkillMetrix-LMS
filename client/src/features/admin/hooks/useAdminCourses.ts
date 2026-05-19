@@ -49,5 +49,17 @@ export const useAdminCourseMutations = () => {
         },
     });
 
-    return { approveCourse: approveMutation, rejectCourse: rejectMutation };
+    const restoreMutation = useMutation({
+        mutationFn: (courseId: string) => adminApi.restoreCourse(courseId),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.admin.all });
+            toast.success('Đã khôi phục khóa học');
+        },
+        onError: (err: unknown) => {
+            const error = err as ApiError;
+            toast.error(error.message ?? 'Khôi phục khóa học thất bại');
+        },
+    });
+
+    return { approveCourse: approveMutation, rejectCourse: rejectMutation, restoreCourse: restoreMutation };
 };

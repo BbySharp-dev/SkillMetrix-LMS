@@ -9,4 +9,5 @@ public class CourseQueryDto
     public decimal? MaxPrice { get; set; }
     public decimal? MinRating { get; set; }
     public string? SortBy { get; set; }
+    public bool IncludeDeleted { get; set; }
 }

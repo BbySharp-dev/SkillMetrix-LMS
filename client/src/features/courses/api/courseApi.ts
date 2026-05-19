@@ -51,6 +51,10 @@ export const courseApi = {
         await api.delete(`/courses/${id}`);
     },
 
+    restoreCourse: async (id: string): Promise<void> => {
+        await api.post(`/courses/${id}/restore`);
+    },
+
     submitCourse: async (id: string): Promise<void> => {
         await api.put(`/courses/${id}/submit`);
     },

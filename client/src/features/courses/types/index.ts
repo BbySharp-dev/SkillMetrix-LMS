@@ -15,6 +15,7 @@ export interface CourseListItem {
     status: string | null;
     createdAt: string;
     rating: number;
+    isDeleted?: boolean;
 }
 
 export interface CourseQueryParams {
@@ -27,6 +28,7 @@ export interface CourseQueryParams {
     status?: string;
     instructorId?: string;
     sortBy?: string;
+    includeDeleted?: boolean;
 }
 
 export interface CourseEditorData {
