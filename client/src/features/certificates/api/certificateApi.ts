@@ -1,13 +1,29 @@
 import api from '@/lib/axios';
 import { getData } from '@/shared';
-import type { ApiResponseWrapper } from '@/shared';
+import type { PaginatedApiResponse, ApiResponseWrapper } from '@/shared';
+import { normalizePaginated } from '@/shared';
 import type { CertificateDto } from '../types';
 
+export interface CertificateQueryParams {
+    pageNumber?: number;
+    pageSize?: number;
+    search?: string;
+    sortBy?: string;
+}
+
 export const certificateApi = {
-    getMyCertificates: async (): Promise<CertificateDto[]> => {
-        const res = await api.get('/certificates/me') as ApiResponseWrapper<CertificateDto[]>;
-        return getData(res) ?? [];
+    getMyCertificates: async (params?: CertificateQueryParams): Promise<PaginatedApiResponse<CertificateDto[]>> => {
+        const cleanParams = params ? {
+            pageNumber: params.pageNumber ?? 1,
+            pageSize: params.pageSize ?? 10,
+            search: params.search?.trim() || undefined,
+            sortBy: params.sortBy || undefined,
+        } : undefined;
+
+        const res = await api.get('/certificates/me', { params: cleanParams }) as ApiResponseWrapper<CertificateDto[]>;
+        return normalizePaginated(res);
     },
+
 
     getCertificateById: async (certificateId: string): Promise<CertificateDto> => {
         const res = await api.get(`/certificates/${certificateId}`) as ApiResponseWrapper<CertificateDto>;

@@ -32,10 +32,13 @@ export interface UpdateReviewDto {
     comment?: string;
 }
 
+import type { PaginatedApiResponse } from '@/shared';
+import { normalizePaginated } from '@/shared';
+
 export const reviewsApi = {
-    getCourseReviews: async (courseId: string, page = 1): Promise<ReviewDto[]> => {
+    getCourseReviews: async (courseId: string, page = 1): Promise<PaginatedApiResponse<ReviewDto[]>> => {
         const res = await api.get(`/reviews/courses/${courseId}`, { params: { page } });
-        return (res as { data: ReviewDto[] }).data ?? [];
+        return normalizePaginated(res);
     },
 
     getCourseReviewStats: async (courseId: string): Promise<CourseReviewStatsDto> => {
