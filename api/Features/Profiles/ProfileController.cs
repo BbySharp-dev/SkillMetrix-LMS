@@ -26,13 +26,14 @@ public class ProfileController(IProfileService profileService) : BaseApiControll
     /// Lấy danh sách khóa học của giảng viên.
     /// </summary>
     [HttpGet("instructors/{instructorId:guid}/courses")]
-    public async Task<IActionResult> GetInstructorCourses(Guid instructorId, [FromQuery] string? status = null)
+    [ProducesResponseType(typeof(PagedResponse<List<InstructorCourseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetInstructorCourses(Guid instructorId, [FromQuery] InstructorCourseQueryDto query)
     {
-        var result = await profileService.GetInstructorCoursesAsync(instructorId, status);
+        var result = await profileService.GetInstructorCoursesAsync(instructorId, query);
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(new ApiResponse<List<InstructorCourseDto>>(result.Value!, "Lấy danh sách khóa học thành công."));
+        return Ok(result.Value);
     }
 
     // ─── Student ─────────────────────────────────────────────────────────────
@@ -54,12 +55,13 @@ public class ProfileController(IProfileService profileService) : BaseApiControll
     /// Lấy danh sách khóa học đã đăng ký của học viên.
     /// </summary>
     [HttpGet("students/{studentId:guid}/enrollments")]
-    public async Task<IActionResult> GetStudentEnrollments(Guid studentId)
+    [ProducesResponseType(typeof(PagedResponse<List<StudentEnrollmentDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetStudentEnrollments(Guid studentId, [FromQuery] StudentEnrollmentQueryDto query)
     {
-        var result = await profileService.GetStudentEnrollmentsAsync(studentId);
+        var result = await profileService.GetStudentEnrollmentsAsync(studentId, query);
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(new ApiResponse<List<StudentEnrollmentDto>>(result.Value!, "Lấy danh sách khóa học thành công."));
+        return Ok(result.Value);
     }
 }

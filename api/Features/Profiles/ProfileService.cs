@@ -51,28 +51,46 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
         };
     }
 
-    public async Task<Result<List<InstructorCourseDto>>> GetInstructorCoursesAsync(Guid instructorId, string? status = null)
+    public async Task<Result<PagedResponse<List<InstructorCourseDto>>>> GetInstructorCoursesAsync(Guid instructorId, InstructorCourseQueryDto query)
     {
         var instructor = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == instructorId && u.Role == UserRole.Instructor);
 
         if (instructor == null)
-            return Result<List<InstructorCourseDto>>.NotFound("Không tìm thấy giảng viên.");
+            return Result<PagedResponse<List<InstructorCourseDto>>>.NotFound("Không tìm thấy giảng viên.");
 
-        var query = context.Courses
+        var baseQuery = context.Courses
             .AsNoTracking()
             .Where(c => c.InstructorId == instructorId && !c.IsDeleted);
 
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<CourseStatus>(status, true, out var courseStatus))
+        if (!string.IsNullOrEmpty(query.Status) && Enum.TryParse<CourseStatus>(query.Status, true, out var courseStatus))
         {
-            query = query.Where(c => c.Status == courseStatus);
+            baseQuery = baseQuery.Where(c => c.Status == courseStatus);
         }
 
-        var courses = await query
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var keyword = query.Search.Trim();
+            baseQuery = baseQuery.Where(c => c.Title.Contains(keyword) || c.Description.Contains(keyword));
+        }
+
+        var totalCount = await baseQuery.CountAsync();
+
+        baseQuery = query.SortBy?.ToLower() switch
+        {
+            "title" => baseQuery.OrderBy(c => c.Title),
+            "price" => baseQuery.OrderByDescending(c => c.Price),
+            "rating" => baseQuery.OrderByDescending(c => c.Rating),
+            "oldest" => baseQuery.OrderBy(c => c.CreatedAt),
+            _ => baseQuery.OrderByDescending(c => c.CreatedAt)
+        };
+
+        var courses = await baseQuery
             .Include(c => c.Chapters)
                 .ThenInclude(ch => ch.Lessons)
-            .OrderByDescending(c => c.CreatedAt)
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .ToListAsync();
 
         var courseIds = courses.Select(c => c.Id).ToList();
@@ -83,7 +101,7 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.CourseId, x => x.Count);
 
-        return courses.Select(c => new InstructorCourseDto
+        var result = courses.Select(c => new InstructorCourseDto
         {
             Id = c.Id,
             Title = c.Title,
@@ -98,6 +116,8 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
             CreatedAt = c.CreatedAt,
             PublishedAt = c.PublishedAt,
         }).ToList();
+
+        return new PagedResponse<List<InstructorCourseDto>>(result, query.PageNumber, query.PageSize, totalCount);
     }
 
     // ─── Student Profile ─────────────────────────────────────────────────
@@ -152,16 +172,16 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
         };
     }
 
-    public async Task<Result<List<StudentEnrollmentDto>>> GetStudentEnrollmentsAsync(Guid studentId)
+    public async Task<Result<PagedResponse<List<StudentEnrollmentDto>>>> GetStudentEnrollmentsAsync(Guid studentId, StudentEnrollmentQueryDto query)
     {
         var student = await context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == studentId);
 
         if (student == null)
-            return Result<List<StudentEnrollmentDto>>.NotFound("Không tìm thấy học viên.");
+            return Result<PagedResponse<List<StudentEnrollmentDto>>>.NotFound("Không tìm thấy học viên.");
 
-        var enrollments = await context.Enrollments
+        var baseQuery = context.Enrollments
             .AsNoTracking()
             .Where(e => e.UserId == studentId)
             .Include(e => e.Course)
@@ -169,12 +189,34 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
                     .ThenInclude(ch => ch.Lessons)
             .Include(e => e.Course)
                 .ThenInclude(c => c.Instructor)
-            .ToListAsync();
+            .AsQueryable();
 
-        var enrollmentIds = enrollments.Select(e => e.Id).ToList();
-        
-        // Get completed lessons for this student's courses
-        var courseLessonIds = enrollments
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var keyword = query.Search.Trim();
+            baseQuery = baseQuery.Where(e =>
+                e.Course.Title.Contains(keyword) ||
+                (e.Course.Instructor != null && e.Course.Instructor.FullName.Contains(keyword)));
+        }
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var allEnrollments = await baseQuery.ToListAsync();
+
+        var sortedEnrollments = query.SortBy?.ToLower() switch
+        {
+            "title" => allEnrollments.OrderBy(e => e.Course.Title).ToList(),
+            "price" => allEnrollments.OrderByDescending(e => e.PricePaid).ToList(),
+            "oldest" => allEnrollments.OrderBy(e => e.EnrolledAt).ToList(),
+            _ => allEnrollments.OrderByDescending(e => e.EnrolledAt).ToList()
+        };
+
+        var pagedEnrollments = sortedEnrollments
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToList();
+
+        var courseLessonIds = pagedEnrollments
             .SelectMany(e => e.Course.Chapters.SelectMany(ch => ch.Lessons))
             .Select(l => l.Id)
             .ToHashSet();
@@ -187,7 +229,7 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
 
         var completedLessonIdSet = completedLessonIds.ToHashSet();
 
-        return enrollments.Select(e =>
+        var dto = pagedEnrollments.Select(e =>
         {
             var lessonIds = e.Course.Chapters.SelectMany(ch => ch.Lessons).Select(l => l.Id).ToList();
             var totalLessons = lessonIds.Count;
@@ -209,6 +251,8 @@ public class ProfileService(ApplicationDbContext context) : IProfileService
                 CompletionPercent = completionPercent,
                 InstructorName = e.Course.Instructor?.FullName ?? string.Empty,
             };
-        }).OrderByDescending(e => e.EnrolledAt).ToList();
+        }).ToList();
+
+        return new PagedResponse<List<StudentEnrollmentDto>>(dto, query.PageNumber, query.PageSize, totalCount);
     }
 }
