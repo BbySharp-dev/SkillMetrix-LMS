@@ -87,6 +87,23 @@ const INSTRUCTOR_NAV_SECTIONS: NavSectionConfig[] = [
     },
 ];
 
+const MODERATOR_NAV_SECTIONS: NavSectionConfig[] = [
+    {
+        title: 'Kiểm duyệt',
+        items: [
+            { label: 'Tổng quan', to: '/admin', icon: LayoutDashboard, end: true },
+            { label: 'Duyệt khóa học', to: '/admin/approvals', icon: BookOpen, end: true },
+            { label: 'Quản lý khóa học', to: '/admin/courses', icon: Library, end: true },
+        ],
+    },
+    {
+        title: 'Cá nhân',
+        items: [
+            { label: 'Khóa học đã ghi danh', to: '/admin/my-enrollments', icon: GraduationCap },
+            { label: 'Lịch sử thanh toán', to: '/admin/my-transactions', icon: CreditCard },
+        ],
+    },
+];
 
 interface NavItemProps {
     to: string;
@@ -126,13 +143,16 @@ export default function Sidebar() {
     const userRole = useAuthStore((s) => s.user?.role);
 
     const isAdmin = userRole === 'Admin';
+    const isModerator = userRole === 'Moderator';
     const isInstructor = userRole === 'Instructor';
 
     const activeNavSections = isAdmin
         ? ADMIN_NAV_SECTIONS
-        : isInstructor
-            ? INSTRUCTOR_NAV_SECTIONS
-            : USER_NAV_SECTIONS;
+        : isModerator
+            ? MODERATOR_NAV_SECTIONS
+            : isInstructor
+                ? INSTRUCTOR_NAV_SECTIONS
+                : USER_NAV_SECTIONS;
 
     return (
         <aside className="w-72 border-r border-border bg-background p-6 hidden lg:block overflow-y-auto">
