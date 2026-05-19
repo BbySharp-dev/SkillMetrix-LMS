@@ -32,6 +32,7 @@ import type { CourseStatus } from '../types';
 import { useMyCourses, useCourseMutations } from '@/features/courses/hooks/useCourses';
 import { Skeleton } from '@/components/ui';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { Pagination } from '@/components/ui/Pagination';
 
 const statusStyles: Record<CourseStatus, string> = {
     Published: 'bg-emerald-50 text-emerald-600 border-emerald-100',
@@ -53,9 +54,12 @@ export default function InstructorCoursesPage() {
     const [showDeleted, setShowDeleted] = useState(false);
     const [deleteCourseId, setDeleteCourseId] = useState<string | null>(null);
     const [restoreCourseId, setRestoreCourseId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const pageSize = 20;
 
     const { data: coursesData, isLoading } = useMyCourses({
-        pageSize: 100,
+        pageNumber: page,
+        pageSize,
         search: searchTerm,
         status: statusFilter === 'All' ? undefined : statusFilter,
         includeDeleted: showDeleted || undefined,
@@ -64,6 +68,8 @@ export default function InstructorCoursesPage() {
     const { deleteCourse, submitCourse, restoreCourse } = useCourseMutations();
 
     const courses = coursesData?.data ?? [];
+    const totalRecords = coursesData?.totalRecords ?? 0;
+    const totalPages = coursesData?.totalPages ?? 1;
 
 
     return (
@@ -247,7 +253,20 @@ export default function InstructorCoursesPage() {
                             </TableRow>
                         ))}
                     </TableBody>
+                    {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
+                            <div className="text-sm font-bold text-gray-500">
+                                Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
+                            </div>
+                            <Pagination
+                                pageNumber={page}
+                                totalPages={totalPages}
+                                onChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                            />
+                        </div>
+                    )}
                 </Table>
+            </div>
 
                 {/* Confirm Modals */}
                 <ConfirmModal
@@ -287,6 +306,5 @@ export default function InstructorCoursesPage() {
                     </div>
                 )}
             </div>
-        </div>
     );
 }

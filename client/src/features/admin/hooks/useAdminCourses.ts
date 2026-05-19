@@ -61,5 +61,17 @@ export const useAdminCourseMutations = () => {
         },
     });
 
-    return { approveCourse: approveMutation, rejectCourse: rejectMutation, restoreCourse: restoreMutation };
+    const deleteMutation = useMutation({
+        mutationFn: (courseId: string) => adminApi.deleteCourse(courseId),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.admin.all });
+            toast.success('Đã xóa khóa học');
+        },
+        onError: (err: unknown) => {
+            const error = err as ApiError;
+            toast.error(error.message ?? 'Xóa khóa học thất bại');
+        },
+    });
+
+    return { approveCourse: approveMutation, rejectCourse: rejectMutation, restoreCourse: restoreMutation, deleteCourse: deleteMutation };
 };

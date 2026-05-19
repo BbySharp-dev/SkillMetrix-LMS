@@ -12,4 +12,6 @@ public interface IAdminService
     Task<Result<PagedResponse<List<AdminCourseListItemDto>>>> GetCoursesAsync(AdminCourseQueryDto query);
     Task<Result<bool>> ApproveCourseAsync(Guid courseId, Guid actorId);
     Task<Result<bool>> RejectCourseAsync(Guid courseId, string reason, Guid actorId);
+    Task<Result<bool>> DeleteCourseAsync(Guid courseId, Guid actorId);
+    Task<Result<bool>> RestoreCourseAsync(Guid courseId, Guid actorId);
 }

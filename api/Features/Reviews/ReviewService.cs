@@ -4,13 +4,17 @@ namespace SkillMetrix_LMS.API.Features.Reviews;
 
 public class ReviewService(ApplicationDbContext context) : IReviewService
 {
-    public async Task<Result<List<ReviewDto>>> GetCourseReviewsAsync(Guid courseId, int page, int pageSize)
+    public async Task<Result<PagedResponse<List<ReviewDto>>>> GetCourseReviewsAsync(Guid courseId, int page, int pageSize)
     {
-        var reviews = await context.CourseReviews
+        var baseQuery = context.CourseReviews
             .AsNoTracking()
             .Include(r => r.User)
             .Where(r => r.CourseId == courseId && !r.IsDeleted)
-            .OrderByDescending(r => r.CreatedAt)
+            .OrderByDescending(r => r.CreatedAt);
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var reviews = await baseQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(r => new ReviewDto
@@ -26,8 +30,9 @@ public class ReviewService(ApplicationDbContext context) : IReviewService
             })
             .ToListAsync();
 
-        return reviews;
+        return new PagedResponse<List<ReviewDto>>(reviews, page, pageSize, totalCount);
     }
+
 
     public async Task<Result<CourseReviewStatsDto>> GetCourseReviewStatsAsync(Guid courseId)
     {

@@ -31,6 +31,7 @@ import {
     DialogDescription,
 } from '@/components/ui';
 import { Textarea } from '@/components/ui';
+import { Pagination } from '@/components/ui/Pagination';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { usePendingCourses, useAdminCourseMutations } from '../hooks/useAdminCourses';
 
@@ -40,19 +41,20 @@ export default function ApprovalsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [rejectingCourseId, setRejectingCourseId] = useState<string | null>(null);
     const [rejectReason, setRejectReason] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 20;
 
     const { data, isLoading, isError, refetch } = usePendingCourses({
-        pageSize: 100,
+        pageNumber: page,
+        pageSize,
         search: searchTerm || undefined,
     });
 
     const { approveCourse, rejectCourse } = useAdminCourseMutations();
 
     const courses = data?.data ?? [];
-    const filteredCourses = courses.filter((c) =>
-        c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.instructorName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const totalRecords = data?.totalRecords ?? 0;
+    const totalPages = data?.totalPages ?? 1;
 
     const handleReject = () => {
         if (!rejectingCourseId || !rejectReason.trim()) return;
@@ -139,7 +141,7 @@ export default function ApprovalsPage() {
                                     <TableCell><Skeleton className="h-9 w-40 ml-auto rounded-xl" /></TableCell>
                                 </TableRow>
                             ))
-                            : filteredCourses.length === 0 && !searchTerm ? (
+                            : courses.length === 0 && !searchTerm ? (
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-64 text-center">
                                         <div className="flex flex-col items-center justify-center gap-3 opacity-50">
@@ -151,14 +153,14 @@ export default function ApprovalsPage() {
                                         </div>
                                     </TableCell>
                                 </TableRow>
-                            ) : filteredCourses.length === 0 && searchTerm ? (
+                            ) : courses.length === 0 && searchTerm ? (
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-32 text-center text-sm font-medium text-gray-400">
                                         Không tìm thấy khóa học phù hợp với "{searchTerm}"
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredCourses.map((course) => {
+                                courses.map((course) => {
                                     const isApproving = approveCourse.isPending && approveCourse.variables === course.id;
                                     const isRejecting = rejectCourse.isPending && rejectCourse.variables?.courseId === course.id;
                                     const isProcessing = isApproving || isRejecting;
@@ -229,6 +231,18 @@ export default function ApprovalsPage() {
                                 })
                             )}
                     </TableBody>
+                    {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
+                            <div className="text-sm font-bold text-gray-500">
+                                Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học chờ duyệt
+                            </div>
+                            <Pagination
+                                pageNumber={page}
+                                totalPages={totalPages}
+                                onChange={setPage}
+                            />
+                        </div>
+                    )}
                 </Table>
             </Card>
 

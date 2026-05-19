@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
     BookImage, Search, Eye, CheckCircle2, XCircle, Filter,
-    User, Star, Users, Loader2, AlertCircle,
+    User, Star, Users, Loader2, AlertCircle, Trash2, RotateCcw,
 } from 'lucide-react';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -18,6 +18,8 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui';
 import { Textarea } from '@/components/ui';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { Pagination } from '@/components/ui/Pagination';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAdminCourses, useAdminCourseMutations } from '../hooks/useAdminCourses';
 import { useAdminOverview } from '../hooks/useAdminUsers';
@@ -36,17 +38,21 @@ const statusLabels: Record<string, string> = {
 export default function AdminCoursesPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('All');
+    const [showDeleted, setShowDeleted] = useState(false);
     const [page, setPage] = useState(1);
     const pageSize = 20;
     const [rejectingCourseId, setRejectingCourseId] = useState<string | null>(null);
     const [rejectReason, setRejectReason] = useState('');
+    const [deleteCourseId, setDeleteCourseId] = useState<string | null>(null);
+    const [restoreCourseId, setRestoreCourseId] = useState<string | null>(null);
 
     const { data, isLoading, isError, refetch } = useAdminCourses({
         search: searchTerm || undefined,
         status: statusFilter === 'All' ? undefined : statusFilter,
         pageNumber: page, pageSize,
+        includeDeleted: showDeleted,
     });
-    const { approveCourse, rejectCourse } = useAdminCourseMutations();
+    const { approveCourse, rejectCourse, deleteCourse, restoreCourse } = useAdminCourseMutations();
     const { data: overviewData } = useAdminOverview();
 
     const courses = data?.data ?? [];
@@ -107,6 +113,18 @@ export default function AdminCoursesPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-gray-200" onClick={() => refetch()}>Làm mới</Button>
+                    <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
+                        <input
+                            type="checkbox"
+                            id="show-deleted"
+                            checked={showDeleted}
+                            onChange={e => { setShowDeleted(e.target.checked); setPage(1); }}
+                            className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500"
+                        />
+                        <label htmlFor="show-deleted" className="text-sm font-bold text-gray-500 cursor-pointer select-none whitespace-nowrap">
+                            Hiển thị đã xóa
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -181,7 +199,7 @@ export default function AdminCoursesPage() {
                                 const isRejecting = rejectCourse.isPending && rejectCourse.variables?.courseId === course.id;
                                 const isProcessing = isApproving || isRejecting;
                                 return (
-                                    <TableRow key={course.id} className="hover:bg-gray-50/40 border-gray-50 group transition-colors">
+                                    <TableRow key={course.id} className={`hover:bg-gray-50/40 border-gray-50 group transition-colors ${course.isDeleted ? 'opacity-50 bg-red-50/20' : ''}`}>
                                         <TableCell className="py-5 pl-6">
                                             <div className="flex items-center gap-3">
                                                 {course.thumbnail
@@ -189,7 +207,7 @@ export default function AdminCoursesPage() {
                                                     : <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0"><BookImage className="size-5 text-indigo-400" /></div>
                                                 }
                                                 <div className="min-w-0">
-                                                    <p className="font-black text-sm text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{course.title}</p>
+                                                    <p className={`font-black text-sm truncate transition-colors ${course.isDeleted ? 'text-gray-400 line-through' : 'text-gray-900 group-hover:text-indigo-600'}`}>{course.title}</p>
                                                     <p className="text-xs text-gray-400 font-medium mt-0.5">Cập nhật: {formatDate(course.updatedAt ?? course.createdAt)}</p>
                                                 </div>
                                             </div>
@@ -226,44 +244,52 @@ export default function AdminCoursesPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="pr-6">
-                                            <div className="flex items-center justify-end gap-1.5">
-                                                <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 hover:bg-gray-50 text-gray-500" asChild>
-                                                    <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer"><Eye className="size-3.5" /></a>
+                                            {!course.isDeleted ? (
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 hover:bg-gray-50 text-gray-500" asChild>
+                                                        <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer"><Eye className="size-3.5" /></a>
+                                                    </Button>
+                                                    {course.status === 'Pending' && (
+                                                        <>
+                                                            <Button size="sm" className="h-8 rounded-lg font-bold px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                                                onClick={() => approveCourse.mutate(course.id)} disabled={isProcessing} title="Duyệt">
+                                                                {isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+                                                            </Button>
+                                                            <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-red-200 text-red-600 hover:bg-red-50"
+                                                                onClick={() => setRejectingCourseId(course.id)} disabled={isProcessing} title="Từ chối">
+                                                                {isRejecting ? <Loader2 className="size-3.5 animate-spin" /> : <XCircle className="size-3.5" />}
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 text-red-500 hover:bg-red-50"
+                                                        onClick={() => setDeleteCourseId(course.id)} disabled={isProcessing} title="Xóa mềm">
+                                                        <Trash2 className="size-3.5" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                                    onClick={() => setRestoreCourseId(course.id)} title="Khôi phục">
+                                                    <RotateCcw className="size-3.5" />
                                                 </Button>
-                                                {course.status === 'Pending' && (
-                                                    <>
-                                                        <Button size="sm" className="h-8 rounded-lg font-bold px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                                            onClick={() => approveCourse.mutate(course.id)} disabled={isProcessing} title="Duyệt">
-                                                            {isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
-                                                        </Button>
-                                                        <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-red-200 text-red-600 hover:bg-red-50"
-                                                            onClick={() => setRejectingCourseId(course.id)} disabled={isProcessing} title="Từ chối">
-                                                            {isRejecting ? <Loader2 className="size-3.5 animate-spin" /> : <XCircle className="size-3.5" />}
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </div>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 );
                             })}
                     </TableBody>
+                    {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
+                            <div className="text-sm font-bold text-gray-500">
+                                Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
+                            </div>
+                            <Pagination
+                                pageNumber={page}
+                                totalPages={totalPages}
+                                onChange={setPage}
+                            />
+                        </div>
+                    )}
                 </Table>
-
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-                        <div className="text-sm font-bold text-gray-500">
-                            Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-gray-200"
-                                onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>← Trước</Button>
-                            <span className="text-sm font-black text-gray-900 px-2">Trang {page}/{totalPages}</span>
-                            <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-gray-200"
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Sau →</Button>
-                        </div>
-                    </div>
-                )}
             </Card>
 
             <Dialog open={!!rejectingCourseId} onOpenChange={open => { if (!open) { setRejectingCourseId(null); setRejectReason(''); } }}>
@@ -297,6 +323,34 @@ export default function AdminCoursesPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Confirm xóa mềm */}
+            <ConfirmModal
+                open={deleteCourseId !== null}
+                title="Xóa khóa học"
+                message="Khóa học sẽ được chuyển vào thùng rác và có thể khôi phục sau."
+                confirmText="Xóa"
+                loading={deleteCourse.isPending}
+                onConfirm={() => {
+                    if (deleteCourseId) deleteCourse.mutate(deleteCourseId);
+                    setDeleteCourseId(null);
+                }}
+                onCancel={() => setDeleteCourseId(null)}
+            />
+
+            {/* Confirm khôi phục */}
+            <ConfirmModal
+                open={restoreCourseId !== null}
+                title="Khôi phục khóa học"
+                message="Khóa học sẽ được khôi phục và quay lại trạng thái bản nháp."
+                confirmText="Khôi phục"
+                loading={restoreCourse.isPending}
+                onConfirm={() => {
+                    if (restoreCourseId) restoreCourse.mutate(restoreCourseId);
+                    setRestoreCourseId(null);
+                }}
+                onCancel={() => setRestoreCourseId(null)}
+            />
         </div>
     );
 }

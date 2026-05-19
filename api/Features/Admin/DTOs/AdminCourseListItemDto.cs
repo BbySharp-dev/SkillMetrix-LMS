@@ -14,4 +14,6 @@ public class AdminCourseListItemDto
     public DateTime? UpdatedAt { get; set; }
     public decimal Rating { get; set; }
     public string? RejectionReason { get; set; }
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 }
