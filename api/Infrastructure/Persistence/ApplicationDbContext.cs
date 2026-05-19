@@ -21,6 +21,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<QuizAttempt> QuizAttempts { get; set; } = null!;
     public DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; } = null!;
     public DbSet<Certificate> Certificates { get; set; } = null!;
+    public DbSet<LessonDocument> LessonDocuments { get; set; } = null!;
+    public DbSet<LessonNote> LessonNotes { get; set; } = null!;
+    public DbSet<LessonQuestion> LessonQuestions { get; set; } = null!;
+    public DbSet<LessonAnswer> LessonAnswers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -212,6 +216,24 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Quiz>()
             .HasIndex(q => q.CourseId);
 
+        builder.Entity<Quiz>()
+            .HasIndex(q => q.ChapterId);
+
+        builder.Entity<Quiz>()
+            .HasIndex(q => q.LessonId);
+
+        builder.Entity<Quiz>()
+            .HasOne(q => q.Chapter)
+            .WithMany()
+            .HasForeignKey(q => q.ChapterId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Quiz>()
+            .HasOne(q => q.Lesson)
+            .WithMany()
+            .HasForeignKey(q => q.LessonId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Entity<QuizQuestion>()
             .Property(q => q.Point)
             .HasColumnType("decimal(5,2)");
@@ -287,5 +309,60 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasIndex(rt => rt.ExpiresAt);
         builder.Entity<RefreshToken>()
             .HasIndex(rt => new { rt.UserId, rt.Revoked });
+
+        // LessonDocument
+        builder.Entity<LessonDocument>()
+            .HasIndex(d => d.LessonId);
+        builder.Entity<LessonDocument>()
+            .HasIndex(d => d.OrderIndex);
+        builder.Entity<LessonDocument>()
+            .HasOne(d => d.Lesson)
+            .WithMany()
+            .HasForeignKey(d => d.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // LessonNote
+        builder.Entity<LessonNote>()
+            .HasIndex(n => n.LessonId);
+        builder.Entity<LessonNote>()
+            .HasIndex(n => n.UserId);
+        builder.Entity<LessonNote>()
+            .HasOne(n => n.Lesson)
+            .WithMany()
+            .HasForeignKey(n => n.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<LessonNote>()
+            .HasOne(n => n.User)
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // LessonQuestion
+        builder.Entity<LessonQuestion>()
+            .HasIndex(q => q.LessonId);
+        builder.Entity<LessonQuestion>()
+            .HasOne(q => q.Lesson)
+            .WithMany()
+            .HasForeignKey(q => q.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<LessonQuestion>()
+            .HasOne(q => q.User)
+            .WithMany()
+            .HasForeignKey(q => q.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // LessonAnswer
+        builder.Entity<LessonAnswer>()
+            .HasIndex(a => a.QuestionId);
+        builder.Entity<LessonAnswer>()
+            .HasOne(a => a.Question)
+            .WithMany(q => q.Answers)
+            .HasForeignKey(a => a.QuestionId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<LessonAnswer>()
+            .HasOne(a => a.User)
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

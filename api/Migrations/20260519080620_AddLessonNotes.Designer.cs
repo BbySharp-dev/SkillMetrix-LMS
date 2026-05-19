@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkillMetrix_LMS.API.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using SkillMetrix_LMS.API.Infrastructure.Persistence;
 namespace SkillMetrix_LMS.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519080620_AddLessonNotes")]
+    partial class AddLessonNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -469,35 +472,6 @@ namespace SkillMetrix_LMS.API.Migrations
                     b.ToTable("Lessons");
                 });
 
-            modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonAnswer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("QuestionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("LessonAnswers");
-                });
-
             modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonDocument", b =>
                 {
                     b.Property<Guid>("Id")
@@ -579,41 +553,6 @@ namespace SkillMetrix_LMS.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("LessonNotes");
-                });
-
-            modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonQuestion", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("AnswerCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("LessonId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("VideoTimestampSeconds")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LessonId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("LessonQuestions");
                 });
 
             modelBuilder.Entity("SkillMetrix_LMS.API.Models.Quiz", b =>
@@ -1142,25 +1081,6 @@ namespace SkillMetrix_LMS.API.Migrations
                     b.Navigation("Chapter");
                 });
 
-            modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonAnswer", b =>
-                {
-                    b.HasOne("SkillMetrix_LMS.API.Models.LessonQuestion", "Question")
-                        .WithMany("Answers")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SkillMetrix_LMS.API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Question");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonDocument", b =>
                 {
                     b.HasOne("SkillMetrix_LMS.API.Models.Lesson", "Lesson")
@@ -1173,25 +1093,6 @@ namespace SkillMetrix_LMS.API.Migrations
                 });
 
             modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonNote", b =>
-                {
-                    b.HasOne("SkillMetrix_LMS.API.Models.Lesson", "Lesson")
-                        .WithMany()
-                        .HasForeignKey("LessonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SkillMetrix_LMS.API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lesson");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonQuestion", b =>
                 {
                     b.HasOne("SkillMetrix_LMS.API.Models.Lesson", "Lesson")
                         .WithMany()
@@ -1369,11 +1270,6 @@ namespace SkillMetrix_LMS.API.Migrations
                     b.Navigation("Chapters");
 
                     b.Navigation("Enrollments");
-                });
-
-            modelBuilder.Entity("SkillMetrix_LMS.API.Models.LessonQuestion", b =>
-                {
-                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("SkillMetrix_LMS.API.Models.Quiz", b =>
