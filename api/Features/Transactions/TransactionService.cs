@@ -9,10 +9,34 @@ public class TransactionService(ApplicationDbContext context) : ITransactionServ
         var baseQuery = context.Transactions
             .Include(t => t.Course)
             .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.CreatedAt)
             .AsNoTracking();
 
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var keyword = query.Search.Trim();
+            baseQuery = baseQuery.Where(t =>
+                (t.Course != null && t.Course.Title.Contains(keyword)) ||
+                (t.Description != null && t.Description.Contains(keyword)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Status) && Enum.TryParse<TransactionStatus>(query.Status, true, out var status))
+        {
+            baseQuery = baseQuery.Where(t => t.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Type) && Enum.TryParse<TransactionType>(query.Type, true, out var type))
+        {
+            baseQuery = baseQuery.Where(t => t.Type == type);
+        }
+
         var totalCount = await baseQuery.CountAsync();
+
+        baseQuery = query.SortBy?.ToLower() switch
+        {
+            "amount" => baseQuery.OrderByDescending(t => t.Amount),
+            "oldest" => baseQuery.OrderBy(t => t.CreatedAt),
+            _ => baseQuery.OrderByDescending(t => t.CreatedAt)
+        };
 
         var transactions = await baseQuery
             .Skip((query.PageNumber - 1) * query.PageSize)
