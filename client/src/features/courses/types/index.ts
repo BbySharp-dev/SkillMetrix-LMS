@@ -51,6 +51,53 @@ export interface LessonDto {
     createdAt: string;
 }
 
+export interface LessonDocumentDto {
+    id: string;
+    lessonId: string;
+    fileName: string;
+    fileUrl: string;
+    fileType: string;
+    fileTypeLabel: string;
+    fileSizeBytes: number;
+    formattedSize: string;
+    title?: string | null;
+    orderIndex: number;
+    createdAt: string;
+}
+
+export interface LessonNoteDto {
+    id: string;
+    lessonId: string;
+    content: string;
+    videoTimestampSeconds: number;
+    formattedTimestamp: string;
+    createdAt: string;
+}
+
+export interface LessonAnswerDto {
+    id: string;
+    questionId: string;
+    content: string;
+    userId: string;
+    userFullName: string;
+    userAvatarUrl?: string | null;
+    createdAt: string;
+}
+
+export interface LessonQuestionDto {
+    id: string;
+    lessonId: string;
+    content: string;
+    videoTimestampSeconds?: number | null;
+    formattedTimestamp?: string | null;
+    answerCount: number;
+    userId: string;
+    userFullName: string;
+    userAvatarUrl?: string | null;
+    createdAt: string;
+    answers: LessonAnswerDto[];
+}
+
 export interface ChapterWithLessonsDto {
     id: string;
     courseId: string;
@@ -58,6 +105,7 @@ export interface ChapterWithLessonsDto {
     description?: string | null;
     orderIndex: number;
     lessons: LessonDto[];
+    quizzes: CourseQuizDto[];
 }
 
 export interface CourseDetailDto {
@@ -79,6 +127,9 @@ export interface CourseDetailDto {
 
 export interface CourseQuizDto {
     id: string;
+    courseId: string;
+    chapterId?: string | null;
+    lessonId?: string | null;
     title: string;
     description?: string | null;
     passingScore: number;
@@ -86,6 +137,7 @@ export interface CourseQuizDto {
     maxAttempts: number;
     isFinalQuiz: boolean;
     questionCount: number;
+    createdAt: string;
 }
 
 export interface CreateCoursePayload {
