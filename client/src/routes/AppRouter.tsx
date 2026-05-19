@@ -91,14 +91,13 @@ export const appRouter = createBrowserRouter([
 
 
       {
-        element: <RoleRoute allowedRoles={['Admin']} />,
+        element: <RoleRoute allowedRoles={['Admin', 'Moderator']} />,
         children: [
           {
             path: 'admin',
             element: <DashboardLayout />,
             children: [
               { index: true, element: <DashboardHomePage /> },
-              { path: 'users', element: <UsersPage /> },
               { path: 'approvals', element: <ApprovalsPage /> },
               { path: 'courses', element: <AdminCoursesPage /> },
               { path: 'my-courses', element: <InstructorCoursesPage /> },
@@ -108,7 +107,13 @@ export const appRouter = createBrowserRouter([
               { path: 'quiz/:quizId/edit', element: <QuizEditPage /> },
               { path: 'my-enrollments', element: <EnrollmentsPage /> },
               { path: 'my-transactions', element: <TransactionsPage /> },
-              { path: 'settings', element: <SettingsPage /> },
+              {
+                element: <RoleRoute allowedRoles={['Admin']} />,
+                children: [
+                  { path: 'users', element: <UsersPage /> },
+                  { path: 'settings', element: <SettingsPage /> },
+                ],
+              },
             ],
           },
         ],

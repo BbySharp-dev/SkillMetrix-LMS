@@ -65,7 +65,7 @@ public class StatisticsController(IStatisticsService statisticsService) : BaseAp
         return Ok(new ApiResponse<List<CoursePerformanceDto>>(result.Value!, "Course performance retrieved"));
     }
 
-    [Authorize(Policy = "RequireAdmin")]
+    [Authorize(Policy = "RequireAdminOrModerator")]
     [HttpGet("admin/overview")]
     public async Task<IActionResult> GetAdminOverview()
     {

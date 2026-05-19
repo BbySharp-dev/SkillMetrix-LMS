@@ -3,10 +3,11 @@ using SkillMetrix_LMS.API.Features.Admin.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Admin;
 
-[Authorize(Policy = "RequireAdmin")]
+[Authorize(Policy = "RequireAdminOrModerator")]
 [Route("api/[controller]")]
 public class AdminController(IAdminService adminService) : BaseApiController
 {
+    [Authorize(Policy = "RequireAdmin")]
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers([FromQuery] AdminUserQueryDto query)
     {
@@ -17,6 +18,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         return Ok(new ApiResponse<PagedResponse<List<AdminUserListItemDto>>>(result.Value!, "Users retrieved"));
     }
 
+    [Authorize(Policy = "RequireAdmin")]
     [HttpPost("users")]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
     {
@@ -31,6 +33,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         return CreatedAtAction(nameof(GetUsers), new ApiResponse<AdminUserListItemDto>(result.Value!, "User created successfully"));
     }
 
+    [Authorize(Policy = "RequireAdmin")]
     [HttpDelete("users/{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
@@ -45,6 +48,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
         return Ok(new ApiResponse<object?>(null, "User deleted successfully"));
     }
 
+    [Authorize(Policy = "RequireAdmin")]
     [HttpPut("users/{id:guid}/role")]
     public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UpdateUserRoleDto dto)
     {
@@ -100,6 +104,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
     /// <summary>
     /// Xóa mềm một khóa học (Admin).
     /// </summary>
+    [Authorize(Policy = "RequireAdmin")]
     [HttpDelete("courses/{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -119,6 +124,7 @@ public class AdminController(IAdminService adminService) : BaseApiController
     /// <summary>
     /// Khôi phục một khóa học đã xóa mềm (Admin).
     /// </summary>
+    [Authorize(Policy = "RequireAdmin")]
     [HttpPost("courses/{id:guid}/restore")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]

@@ -292,18 +292,26 @@ function InstructorSection() {
     );
 }
 
-function AdminSection() {
+function AdminSection({ role }: { role: string }) {
     const { data: overview } = useAdminOverview();
+
+    const cards = [
+        { label: 'Khóa học chờ duyệt', value: overview?.pendingCourses ?? 0, icon: ClipboardCheck, color: 'text-amber-600', bg: 'bg-amber-50', show: true },
+        { label: 'Tổng người dùng', value: overview?.totalUsers ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', show: role === 'Admin' },
+        { label: 'Khóa học đang hiển thị', value: overview?.publishedCourses ?? 0, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50', show: true },
+        { label: 'Doanh thu (tháng)', value: overview?.totalRevenue ?? 0, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', show: role === 'Admin' },
+    ].filter((c) => c.show);
+
+    const actions = [
+        { title: 'Duyệt khóa học', desc: 'Phê duyệt hoặc từ chối các khóa học mới được nộp.', icon: <FileCheck size={24} />, iconBg: 'bg-amber-50', iconColor: 'text-amber-600', hoverIconBg: 'bg-amber-600', path: '/admin/approvals', show: true },
+        { title: 'Quản lý người dùng', desc: 'Quản lý tài khoản học viên và giảng viên.', icon: <Users size={24} />, iconBg: 'bg-blue-50', iconColor: 'text-blue-600', hoverIconBg: 'bg-blue-600', path: '/admin/users', show: role === 'Admin' },
+        { title: 'Cài đặt hệ thống', desc: 'Cấu hình các tham số và tính năng của nền tảng.', icon: <Settings size={24} />, iconBg: 'bg-slate-100', iconColor: 'text-slate-600', hoverIconBg: 'bg-slate-600', path: '/admin/settings', show: role === 'Admin' },
+    ].filter((a) => a.show);
 
     return (
         <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                    { label: 'Khóa học chờ duyệt', value: overview?.pendingCourses ?? 0, icon: ClipboardCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Tổng người dùng', value: overview?.totalUsers ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'Khóa học đang hiển thị', value: overview?.publishedCourses ?? 0, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Doanh thu (tháng)', value: overview?.totalRevenue ?? 0, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                ].map((card) => {
+                {cards.map((card) => {
                     const displayValue = typeof card.value === 'number'
                         ? card.value > 1000
                             ? `${(card.value / 1000000).toFixed(1)}tr`
@@ -325,11 +333,7 @@ function AdminSection() {
                     Quản trị hệ thống
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                        { title: 'Duyệt khóa học', desc: 'Phê duyệt hoặc từ chối các khóa học mới được nộp.', icon: <FileCheck size={24} />, iconBg: 'bg-amber-50', iconColor: 'text-amber-600', hoverIconBg: 'bg-amber-600', path: '/admin/approvals' },
-                        { title: 'Quản lý người dùng', desc: 'Quản lý tài khoản học viên và giảng viên.', icon: <Users size={24} />, iconBg: 'bg-blue-50', iconColor: 'text-blue-600', hoverIconBg: 'bg-blue-600', path: '/admin/users' },
-                        { title: 'Cài đặt hệ thống', desc: 'Cấu hình các tham số và tính năng của nền tảng.', icon: <Settings size={24} />, iconBg: 'bg-slate-100', iconColor: 'text-slate-600', hoverIconBg: 'bg-slate-600', path: '/admin/settings' },
-                    ].map((action) => (
+                    {actions.map((action) => (
                         <Link key={action.title} to={action.path}>
                             <Card className="group hover:shadow-xl transition-all cursor-pointer overflow-hidden">
                                 <CardContent className="p-8 space-y-6">
@@ -356,15 +360,17 @@ function AdminSection() {
                     Quản lý khóa học
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Link to="/admin/courses/new">
-                        <Card className="group hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-200">
-                            <CardContent className="p-6 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><PlusCircle size={24} /></div>
-                                <div><p className="font-bold text-foreground group-hover:text-indigo-600 transition-colors">Tạo khóa học mới</p><p className="text-xs text-muted-foreground">Bắt đầu xây dựng</p></div>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link to="/admin/my-courses">
+                    {role === 'Admin' && (
+                        <Link to="/admin/courses/new">
+                            <Card className="group hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-200">
+                                <CardContent className="p-6 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><PlusCircle size={24} /></div>
+                                    <div><p className="font-bold text-foreground group-hover:text-indigo-600 transition-colors">Tạo khóa học mới</p><p className="text-xs text-muted-foreground">Bắt đầu xây dựng</p></div>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    )}
+                    <Link to="/admin/courses">
                         <Card className="group hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-200">
                             <CardContent className="p-6 flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors"><BookMarked size={24} /></div>
@@ -384,6 +390,8 @@ export default function DashboardHomePage() {
     const enrollments = enrollmentsData?.data ?? [];
     const isInstructor = user?.role === 'Instructor';
     const isAdmin = user?.role === 'Admin';
+    const isModerator = user?.role === 'Moderator';
+    const isStaff = isAdmin || isModerator;
 
     if (isLoading) {
         return (
@@ -405,19 +413,19 @@ export default function DashboardHomePage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                        {isAdmin ? <><ShieldCheck size={32} className="text-primary" />Chào Sếp {user?.fullName}!</> : isInstructor ? <>Chào Giảng viên {user?.fullName}!</> : <>Chào mừng {user?.fullName}!</>}
+                        {isAdmin ? <><ShieldCheck size={32} className="text-primary" />Chào Sếp {user?.fullName}!</> : isModerator ? <><ShieldCheck size={32} className="text-primary" />Chào Kiểm duyệt viên {user?.fullName}!</> : isInstructor ? <>Chào Giảng viên {user?.fullName}!</> : <>Chào mừng {user?.fullName}!</>}
                     </h1>
                     <p className="text-muted-foreground text-base font-medium">
-                        {isAdmin ? 'Quản trị hệ thống SkillMetrix tại đây.' : isInstructor ? 'Tổng quan hoạt động giảng dạy của bạn.' : 'Hôm nay là một ngày tuyệt vời để học thêm điều mới.'}
+                        {isAdmin ? 'Quản trị hệ thống SkillMetrix tại đây.' : isModerator ? 'Kiểm duyệt nội dung khóa học trên hệ thống.' : isInstructor ? 'Tổng quan hoạt động giảng dạy của bạn.' : 'Hôm nay là một ngày tuyệt vời để học thêm điều mới.'}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    {!isAdmin && (
+                    {!isStaff && (
                         <Button asChild variant="outline" className="rounded-xl font-bold">
                             <Link to="/courses"><Search size={16} className="mr-2" />Khám phá khóa học</Link>
                         </Button>
                     )}
-                    {isAdmin && (
+                    {isStaff && (
                         <Button asChild variant="outline" className="rounded-xl font-bold">
                             <Link to="/admin/approvals"><AlertTriangle size={16} className="mr-2" />Duyệt khóa học</Link>
                         </Button>
@@ -431,8 +439,8 @@ export default function DashboardHomePage() {
             </div>
 
             {/* Role-based content */}
-            {isAdmin ? (
-                <AdminSection />
+            {isStaff ? (
+                <AdminSection role={user?.role ?? ''} />
             ) : isInstructor ? (
                 <InstructorSection />
             ) : (
