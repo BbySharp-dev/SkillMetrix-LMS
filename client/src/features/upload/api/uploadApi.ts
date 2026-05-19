@@ -1,4 +1,4 @@
-import api, { api as axiosInstance } from '@/lib/axios';
+import api from '@/lib/axios';
 import type { ApiResponse } from '@/shared';
 
 export interface DocumentUploadResult {
@@ -21,7 +21,7 @@ export const uploadApi = {
     uploadDocument: async (file: File): Promise<DocumentUploadResult> => {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await axiosInstance.post<{ data: DocumentUploadResult }>(
+        const res = await api.post<{ data: DocumentUploadResult }>(
             '/upload/document',
             formData,
             { headers: { 'Content-Type': 'multipart/form-data' } }
