@@ -4,5 +4,5 @@ namespace SkillMetrix_LMS.API.Features.Transactions;
 
 public interface ITransactionService
 {
-    Task<Result<List<TransactionResponseDto>>> GetUserTransactionsAsync(Guid userId);
+    Task<Result<PagedResponse<List<TransactionResponseDto>>>> GetUserTransactionsAsync(Guid userId, TransactionQueryDto query);
 }

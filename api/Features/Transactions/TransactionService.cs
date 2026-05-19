@@ -4,13 +4,19 @@ namespace SkillMetrix_LMS.API.Features.Transactions;
 
 public class TransactionService(ApplicationDbContext context) : ITransactionService
 {
-    public async Task<Result<List<TransactionResponseDto>>> GetUserTransactionsAsync(Guid userId)
+    public async Task<Result<PagedResponse<List<TransactionResponseDto>>>> GetUserTransactionsAsync(Guid userId, TransactionQueryDto query)
     {
-        var transactions = await context.Transactions
+        var baseQuery = context.Transactions
             .Include(t => t.Course)
             .Where(t => t.UserId == userId)
             .OrderByDescending(t => t.CreatedAt)
-            .AsNoTracking()
+            .AsNoTracking();
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var transactions = await baseQuery
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .ToListAsync();
 
         var dto = transactions.Select(t => new TransactionResponseDto
@@ -28,6 +34,6 @@ public class TransactionService(ApplicationDbContext context) : ITransactionServ
             CreatedAt = t.CreatedAt
         }).ToList();
 
-        return dto;
+        return new PagedResponse<List<TransactionResponseDto>>(dto, query.PageNumber, query.PageSize, totalCount);
     }
 }

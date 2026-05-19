@@ -96,4 +96,42 @@ public class AdminController(IAdminService adminService) : BaseApiController
 
         return Ok(new ApiResponse<object?>(null, "Course rejected"));
     }
+
+    /// <summary>
+    /// Xóa mềm một khóa học (Admin).
+    /// </summary>
+    [HttpDelete("courses/{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteCourse(Guid id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+
+        var result = await adminService.DeleteCourseAsync(id, actorId);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<object?>(null, "Course deleted successfully"));
+    }
+
+    /// <summary>
+    /// Khôi phục một khóa học đã xóa mềm (Admin).
+    /// </summary>
+    [HttpPost("courses/{id:guid}/restore")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RestoreCourse(Guid id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var actorId) || actorId == Guid.Empty)
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+
+        var result = await adminService.RestoreCourseAsync(id, actorId);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<object?>(null, "Course restored successfully"));
+    }
 }

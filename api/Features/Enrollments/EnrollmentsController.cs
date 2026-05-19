@@ -18,18 +18,20 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseA
     /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
     [Authorize]
     [HttpGet("me")]
-    public async Task<IActionResult> GetMyEnrollments()
+    [ProducesResponseType(typeof(PagedResponse<List<EnrollmentResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyEnrollments([FromQuery] EnrollmentQueryDto query)
     {
         var userId = GetCurrentUserId();
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await enrollmentService.GetUserEnrollmentsAsync(userId.Value);
+        var result = await enrollmentService.GetUserEnrollmentsAsync(userId.Value, query);
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(new ApiResponse<List<EnrollmentResponseDto>>(result.Value!, "Enrollments retrieved successfully."));
+        return Ok(result.Value);
     }
+
 
     /// <summary>
     /// Đăng ký khóa học cho user hiện tại.

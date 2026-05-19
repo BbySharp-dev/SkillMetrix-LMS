@@ -17,16 +17,17 @@ public class TransactionsController(ITransactionService transactionService) : Ba
     /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
     [Authorize]
     [HttpGet("me")]
-    public async Task<IActionResult> GetMyTransactions()
+    [ProducesResponseType(typeof(PagedResponse<List<TransactionResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyTransactions([FromQuery] TransactionQueryDto query)
     {
-        var userId = GetCurrentUserId(); // ✅ dùng helper từ BaseApiController
+        var userId = GetCurrentUserId();
         if (userId is null)
             return Unauthorized(new ApiResponse<object>("Invalid token."));
 
-        var result = await transactionService.GetUserTransactionsAsync(userId.Value);
+        var result = await transactionService.GetUserTransactionsAsync(userId.Value, query);
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(new ApiResponse<List<TransactionResponseDto>>(result.Value!, "Transactions retrieved successfully."));
+        return Ok(result.Value);
     }
 }

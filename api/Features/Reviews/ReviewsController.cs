@@ -7,14 +7,16 @@ namespace SkillMetrix_LMS.API.Features.Reviews;
 public class ReviewsController(IReviewService reviewService) : BaseApiController
 {
     [HttpGet("courses/{courseId:guid}")]
+    [ProducesResponseType(typeof(PagedResponse<List<ReviewDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourseReviews(Guid courseId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var result = await reviewService.GetCourseReviewsAsync(courseId, page, pageSize);
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(new ApiResponse<List<ReviewDto>>(result.Value!, "Lấy danh sách đánh giá thành công."));
+        return Ok(result.Value);
     }
+
 
     [HttpGet("courses/{courseId:guid}/stats")]
     public async Task<IActionResult> GetCourseReviewStats(Guid courseId)
