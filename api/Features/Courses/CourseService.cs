@@ -10,7 +10,7 @@ public class CourseService(ApplicationDbContext context) : ICourseService
     {
         var baseQuery = context.Courses
             .Include(c => c.Instructor)
-            .Where(c => !c.IsDeleted);
+            .Where(c => query.IncludeDeleted || !c.IsDeleted);
 
         // 1. Lọc theo trạng thái (Status)
         if (!string.IsNullOrWhiteSpace(query.Status) && query.Status != "All")
@@ -261,6 +261,21 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         course.IsDeleted = true;
         course.DeletedAt = DateTime.UtcNow;
         course.DeletedBy = actorId;
+        await context.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result> RestoreCourseAsync(Guid id, Guid actorId)
+    {
+        var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && c.IsDeleted);
+        if (course == null) return Result.Failure("Course not found or not deleted");
+        if (course.InstructorId != actorId)
+            return Result.Failure("You can only restore your own courses", ErrorType.Forbidden);
+
+        course.IsDeleted = false;
+        course.DeletedAt = null;
+        course.DeletedBy = null;
+        course.Status = CourseStatus.Draft;
         await context.SaveChangesAsync();
         return Result.Success();
     }

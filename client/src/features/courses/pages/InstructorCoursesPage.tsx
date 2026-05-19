@@ -8,7 +8,8 @@ import {
     Eye,
     MoreHorizontal,
     Filter,
-    ArrowUpDown
+    ArrowUpDown,
+    RotateCcw
 } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { Button } from '@/components/ui';
@@ -30,6 +31,7 @@ import type { CourseStatus } from '../types';
 
 import { useMyCourses, useCourseMutations } from '@/features/courses/hooks/useCourses';
 import { Skeleton } from '@/components/ui';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 const statusStyles: Record<CourseStatus, string> = {
     Published: 'bg-emerald-50 text-emerald-600 border-emerald-100',
@@ -48,14 +50,18 @@ const statusLabels: Record<CourseStatus, string> = {
 export default function InstructorCoursesPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<CourseStatus | 'All'>('All');
+    const [showDeleted, setShowDeleted] = useState(false);
+    const [deleteCourseId, setDeleteCourseId] = useState<string | null>(null);
+    const [restoreCourseId, setRestoreCourseId] = useState<string | null>(null);
 
     const { data: coursesData, isLoading } = useMyCourses({
         pageSize: 100,
         search: searchTerm,
         status: statusFilter === 'All' ? undefined : statusFilter,
+        includeDeleted: showDeleted || undefined,
     });
 
-    const { deleteCourse, submitCourse } = useCourseMutations();
+    const { deleteCourse, submitCourse, restoreCourse } = useCourseMutations();
 
     const courses = coursesData?.data ?? [];
 
@@ -77,8 +83,18 @@ export default function InstructorCoursesPage() {
             </div>
 
             {/* Filters & Search */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-                <div className="relative flex-1 w-full">
+            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">                <div className="flex items-center gap-2 shrink-0">
+                    <input
+                        type="checkbox"
+                        id="show-deleted"
+                        checked={showDeleted}
+                        onChange={(e) => setShowDeleted(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500"
+                    />
+                    <label htmlFor="show-deleted" className="text-sm font-bold text-gray-500 cursor-pointer select-none whitespace-nowrap">
+                        Hiển thị đã xóa
+                    </label>
+                </div>                <div className="relative flex-1 w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                     <input 
                         type="text" 
@@ -141,7 +157,7 @@ export default function InstructorCoursesPage() {
                                 </TableRow>
                             ))
                         ) : courses.map((course) => (
-                            <TableRow key={course.id} className="group hover:bg-gray-50/50 transition-colors">
+                            <TableRow key={course.id} className={`group hover:bg-gray-50/50 transition-colors ${course.isDeleted ? 'opacity-50 bg-red-50/20' : ''}`}>
                                 <TableCell className="py-6 pl-8">
                                     <div className="flex items-center gap-4">
                                         <div className="w-20 h-12 rounded-lg bg-gray-100 shrink-0 overflow-hidden border border-gray-100 flex items-center justify-center">
@@ -156,8 +172,8 @@ export default function InstructorCoursesPage() {
                                             )}
                                         </div>
                                         <Link 
-                                            to={`/instructor/courses/${course.id}`}
-                                            className="font-bold text-sm text-gray-900 hover:text-indigo-600 transition-colors line-clamp-2"
+                                            to={course.isDeleted ? '#' : `/instructor/courses/${course.id}`}
+                                            className={`font-bold text-sm transition-colors line-clamp-2 ${course.isDeleted ? 'text-gray-400 line-through pointer-events-none' : 'text-gray-900 hover:text-indigo-600'}`}
                                         >
                                             {course.title}
                                         </Link>
@@ -185,38 +201,46 @@ export default function InstructorCoursesPage() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 shadow-xl border-gray-100">
-                                            <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
-                                                <Link to={`/instructor/courses/${course.id}`}>
-                                                    <Edit2 className="size-4 mr-3 text-gray-400" />
-                                                    Chỉnh sửa
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            {course.status === 'Draft' && (
+                                            {!course.isDeleted ? (
+                                                <>
+                                                    <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
+                                                        <Link to={`/instructor/courses/${course.id}`}>
+                                                            <Edit2 className="size-4 mr-3 text-gray-400" />
+                                                            Chỉnh sửa
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    {course.status === 'Draft' && (
+                                                        <DropdownMenuItem 
+                                                            onClick={() => submitCourse.mutate(course.id)}
+                                                            className="rounded-lg py-2 font-bold text-sm cursor-pointer text-indigo-600 focus:bg-indigo-50"
+                                                        >
+                                                            <Plus className="size-4 mr-3" />
+                                                            Nộp duyệt
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
+                                                        <Link to={`/courses/${course.id}`}>
+                                                            <Eye className="size-4 mr-3 text-gray-400" />
+                                                            Xem trước
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem 
+                                                        onClick={() => setDeleteCourseId(course.id)}
+                                                        className="rounded-lg py-2 font-bold text-sm text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-600"
+                                                    >
+                                                        <Trash2 className="size-4 mr-3" />
+                                                        Xóa
+                                                    </DropdownMenuItem>
+                                                </>
+                                            ) : (
                                                 <DropdownMenuItem 
-                                                    onClick={() => submitCourse.mutate(course.id)}
-                                                    className="rounded-lg py-2 font-bold text-sm cursor-pointer text-indigo-600 focus:bg-indigo-50"
+                                                    onClick={() => setRestoreCourseId(course.id)}
+                                                    className="rounded-lg py-2 font-bold text-sm text-emerald-600 cursor-pointer focus:bg-emerald-50 focus:text-emerald-600"
                                                 >
-                                                    <Plus className="size-4 mr-3" />
-                                                    Nộp duyệt
+                                                    <RotateCcw className="size-4 mr-3" />
+                                                    Khôi phục
                                                 </DropdownMenuItem>
                                             )}
-                                            <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
-                                                <Link to={`/courses/${course.id}`}>
-                                                    <Eye className="size-4 mr-3 text-gray-400" />
-                                                    Xem trước
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem 
-                                                onClick={() => {
-                                                    if (confirm('Bạn có chắc chắn muốn xóa khóa học này?')) {
-                                                        deleteCourse.mutate(course.id);
-                                                    }
-                                                }}
-                                                className="rounded-lg py-2 font-bold text-sm text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-600"
-                                            >
-                                                <Trash2 className="size-4 mr-3" />
-                                                Xóa
-                                            </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
@@ -224,6 +248,32 @@ export default function InstructorCoursesPage() {
                         ))}
                     </TableBody>
                 </Table>
+
+                {/* Confirm Modals */}
+                <ConfirmModal
+                    open={deleteCourseId !== null}
+                    title="Xóa khóa học"
+                    message="Bạn có chắc chắn muốn xóa khóa học này? Khóa học sẽ được chuyển vào thùng rác và có thể khôi phục sau."
+                    confirmText="Xóa"
+                    loading={deleteCourse.isPending}
+                    onConfirm={() => {
+                        if (deleteCourseId) deleteCourse.mutate(deleteCourseId);
+                        setDeleteCourseId(null);
+                    }}
+                    onCancel={() => setDeleteCourseId(null)}
+                />
+                <ConfirmModal
+                    open={restoreCourseId !== null}
+                    title="Khôi phục khóa học"
+                    message="Khôi phục khóa học này? Khóa học sẽ quay lại trạng thái bản nháp."
+                    confirmText="Khôi phục"
+                    loading={restoreCourse.isPending}
+                    onConfirm={() => {
+                        if (restoreCourseId) restoreCourse.mutate(restoreCourseId);
+                        setRestoreCourseId(null);
+                    }}
+                    onCancel={() => setRestoreCourseId(null)}
+                />
 
                 {courses.length === 0 && !isLoading && (
                     <div className="py-20 text-center">
