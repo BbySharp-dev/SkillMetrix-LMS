@@ -1,6 +1,7 @@
 import api from '@/lib/axios';
 import { getData } from '@/shared';
-import type { ApiResponseWrapper } from '@/shared';
+import type { ApiResponseWrapper, PaginatedApiResponse } from '@/shared';
+import { normalizePaginated } from '@/shared';
 
 
 export interface InstructorProfile {
@@ -58,6 +59,22 @@ export interface StudentEnrollment {
 }
 
 
+
+export interface InstructorCourseQueryParams {
+    pageNumber?: number;
+    pageSize?: number;
+    search?: string;
+    status?: string;
+    sortBy?: string;
+}
+
+export interface StudentEnrollmentQueryParams {
+    pageNumber?: number;
+    pageSize?: number;
+    search?: string;
+    sortBy?: string;
+}
+
 export const profileApi = {
     getInstructorProfile: async (instructorId: string): Promise<InstructorProfile> => {
         const res = await api.get(`/profiles/instructors/${instructorId}`) as ApiResponseWrapper<InstructorProfile>;
@@ -66,10 +83,17 @@ export const profileApi = {
         return data;
     },
 
-    getInstructorCourses: async (instructorId: string, status?: string): Promise<InstructorCourse[]> => {
-        const params = status ? { status } : {};
-        const res = await api.get(`/profiles/instructors/${instructorId}/courses`, { params }) as ApiResponseWrapper<InstructorCourse[]>;
-        return getData(res) ?? [];
+    getInstructorCourses: async (instructorId: string, params?: InstructorCourseQueryParams): Promise<PaginatedApiResponse<InstructorCourse[]>> => {
+        const cleanParams = params ? {
+            pageNumber: params.pageNumber ?? 1,
+            pageSize: params.pageSize ?? 10,
+            search: params.search?.trim() || undefined,
+            status: params.status || undefined,
+            sortBy: params.sortBy || undefined,
+        } : undefined;
+
+        const res = await api.get(`/profiles/instructors/${instructorId}/courses`, { params: cleanParams }) as ApiResponseWrapper<InstructorCourse[]>;
+        return normalizePaginated(res);
     },
 
     getStudentProfile: async (studentId: string): Promise<StudentProfile> => {
@@ -79,8 +103,15 @@ export const profileApi = {
         return data;
     },
 
-    getStudentEnrollments: async (studentId: string): Promise<StudentEnrollment[]> => {
-        const res = await api.get(`/profiles/students/${studentId}/enrollments`) as ApiResponseWrapper<StudentEnrollment[]>;
-        return getData(res) ?? [];
+    getStudentEnrollments: async (studentId: string, params?: StudentEnrollmentQueryParams): Promise<PaginatedApiResponse<StudentEnrollment[]>> => {
+        const cleanParams = params ? {
+            pageNumber: params.pageNumber ?? 1,
+            pageSize: params.pageSize ?? 10,
+            search: params.search?.trim() || undefined,
+            sortBy: params.sortBy || undefined,
+        } : undefined;
+
+        const res = await api.get(`/profiles/students/${studentId}/enrollments`, { params: cleanParams }) as ApiResponseWrapper<StudentEnrollment[]>;
+        return normalizePaginated(res);
     },
 };
