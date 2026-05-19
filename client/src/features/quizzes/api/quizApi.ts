@@ -10,7 +10,11 @@ import type {
     CreateQuizPayload,
     UpdateQuizPayload,
     CreateQuestionPayload,
+    UpdateQuestionPayload,
     CreateOptionPayload,
+    UpdateOptionPayload,
+    QuestionResponseDto,
+    OptionResponseDto,
     QuizAttemptSummaryDto,
     QuizAttemptResultDto,
     SubmitAnswerPayload,
@@ -53,6 +57,13 @@ export const quizApi = {
         await api.post(`/quizzes/${quizId}/questions`, data);
     },
 
+    updateQuestion: async (quizId: string, questionId: string, data: UpdateQuestionPayload): Promise<QuestionResponseDto> => {
+        const res = await api.put(`/quizzes/${quizId}/questions/${questionId}`, data) as ApiResponseWrapper<QuestionResponseDto>;
+        const d = getData(res);
+        if (!d) throw new Error('Failed to update question');
+        return d;
+    },
+
     deleteQuestion: async (quizId: string, questionId: string): Promise<void> => {
         await api.delete(`/quizzes/${quizId}/questions/${questionId}`);
     },
@@ -60,6 +71,13 @@ export const quizApi = {
 
     addOption: async (quizId: string, questionId: string, data: CreateOptionPayload): Promise<void> => {
         await api.post(`/quizzes/${quizId}/questions/${questionId}/options`, data);
+    },
+
+    updateOption: async (quizId: string, questionId: string, optionId: string, data: UpdateOptionPayload): Promise<OptionResponseDto> => {
+        const res = await api.put(`/quizzes/${quizId}/questions/${questionId}/options/${optionId}`, data) as ApiResponseWrapper<OptionResponseDto>;
+        const d = getData(res);
+        if (!d) throw new Error('Failed to update option');
+        return d;
     },
 
     deleteOption: async (quizId: string, questionId: string, optionId: string): Promise<void> => {

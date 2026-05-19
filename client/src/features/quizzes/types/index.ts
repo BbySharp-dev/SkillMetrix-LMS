@@ -100,6 +100,18 @@ export interface CreateOptionPayload {
     orderIndex: number;
 }
 
+export interface UpdateQuestionPayload {
+    content?: string;
+    point?: number;
+    orderIndex?: number;
+}
+
+export interface UpdateOptionPayload {
+    content?: string;
+    isCorrect?: boolean;
+    orderIndex?: number;
+}
+
 
 export interface QuizAttemptSummaryDto {
     id: string;

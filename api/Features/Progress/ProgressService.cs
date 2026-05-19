@@ -1,8 +1,13 @@
+using SkillMetrix_LMS.API.Features.Certificates;
 using SkillMetrix_LMS.API.Features.Progress.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace SkillMetrix_LMS.API.Features.Progress;
 
-public class ProgressService(ApplicationDbContext context) : IProgressService
+public class ProgressService(
+    ApplicationDbContext context,
+    ICertificateService certificateService,
+    ILogger<ProgressService> logger) : IProgressService
 {
     public async Task<Result<LessonProgressDto>> UpdateLessonProgressAsync(Guid lessonId, Guid userId, UpdateProgressDto dto)
     {
@@ -58,6 +63,11 @@ public class ProgressService(ApplicationDbContext context) : IProgressService
         }
 
         await context.SaveChangesAsync();
+
+        if (progress.IsCompleted)
+        {
+            await TryIssueCertificateAsync(courseId, userId);
+        }
 
         return new LessonProgressDto
         {
@@ -124,5 +134,34 @@ public class ProgressService(ApplicationDbContext context) : IProgressService
             CompletedLessons = completedLessons,
             CompletionPercent = completionPercent
         };
+    }
+
+    private async Task TryIssueCertificateAsync(Guid courseId, Guid userId)
+    {
+        try
+        {
+            var totalLessons = await context.Chapters
+                .Where(ch => ch.CourseId == courseId && !ch.IsDeleted)
+                .SelectMany(ch => ch.Lessons.Where(l => !l.IsDeleted))
+                .CountAsync();
+
+            if (totalLessons == 0) return;
+
+            var completedLessons = await context.UserLessonProgresses
+                .CountAsync(p =>
+                    p.UserId == userId &&
+                    p.IsCompleted &&
+                    !p.Lesson.IsDeleted &&
+                    p.Lesson.Chapter.CourseId == courseId);
+
+            if (completedLessons >= totalLessons)
+            {
+                await certificateService.IssueCertificateAsync(userId, courseId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to issue certificate for course {CourseId} user {UserId}", courseId, userId);
+        }
     }
 }

@@ -10,9 +10,13 @@ public class S3UploadService(IAmazonS3 s3Client, IConfiguration configuration) :
         return await UploadAsync(file, folder);
     }
 
-    public async Task<Result<string>> UploadVideoAsync(IFormFile file, string folder)
+    public async Task<Result<(string Url, double DurationSeconds)>> UploadVideoAsync(IFormFile file, string folder)
     {
-        return await UploadAsync(file, folder);
+        // S3 doesn't return video duration from upload — set to 0 and require manual update
+        var urlResult = await UploadAsync(file, folder);
+        if (!urlResult.IsSuccess)
+            return Result<(string, double)>.Failure(urlResult.ErrorMessage!, urlResult.ErrorType);
+        return (urlResult.Value!, 0);
     }
 
     private async Task<Result<string>> UploadAsync(IFormFile? file, string folder)
