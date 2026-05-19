@@ -10,6 +10,7 @@ public interface ICourseService
     Task<Result<CourseResponseDto>> CreateCourseAsync(CreateCourseDto dto);
     Task<Result<CourseResponseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto, Guid actorId);
     Task<Result> DeleteCourseAsync(Guid id, Guid actorId);
+    Task<Result> RestoreCourseAsync(Guid id, Guid actorId);
     Task<Result> SubmitCourseAsync(Guid id, Guid actorId);
     Task<Result> ApproveCourseAsync(Guid id, Guid actorId);
     Task<Result> RejectCourseAsync(Guid id, Guid actorId, string reason);

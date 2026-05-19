@@ -96,10 +96,23 @@ export const useCourseMutations = () => {
     },
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => courseApi.restoreCourse(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.all });
+      toast.success("Đã khôi phục khóa học");
+    },
+    onError: (err: unknown) => {
+      const error = err as ApiError;
+      toast.error(error.message ?? "Khôi phục thất bại.");
+    },
+  });
+
   return {
     createCourse: createMutation,
     updateCourse: updateMutation,
     deleteCourse: deleteMutation,
     submitCourse: submitMutation,
+    restoreCourse: restoreMutation,
   };
 };
