@@ -91,6 +91,13 @@ public class DataSeederService(
         context.QuizQuestions.RemoveRange(context.QuizQuestions);
         context.Quizzes.RemoveRange(context.Quizzes);
         context.CourseReviews.RemoveRange(context.CourseReviews);
+        context.Certificates.RemoveRange(context.Certificates);
+
+        context.LessonDocuments.RemoveRange(context.LessonDocuments);
+        context.LessonNotes.RemoveRange(context.LessonNotes);
+        context.LessonAnswers.RemoveRange(context.LessonAnswers);
+        context.LessonQuestions.RemoveRange(context.LessonQuestions);
+
         context.Lessons.RemoveRange(context.Lessons);
         context.Chapters.RemoveRange(context.Chapters);
         context.Courses.RemoveRange(context.Courses);
