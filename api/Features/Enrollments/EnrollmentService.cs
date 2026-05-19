@@ -82,10 +82,25 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
             .Include(e => e.Course)
             .ThenInclude(c => c.Instructor)
             .Where(e => e.UserId == userId)
-            .OrderByDescending(e => e.EnrolledAt)
             .AsNoTracking();
 
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var keyword = query.Search.Trim();
+            baseQuery = baseQuery.Where(e =>
+                e.Course.Title.Contains(keyword) ||
+                e.Course.Instructor.FullName.Contains(keyword));
+        }
+
         var totalCount = await baseQuery.CountAsync();
+
+        baseQuery = query.SortBy?.ToLower() switch
+        {
+            "title" => baseQuery.OrderBy(e => e.Course.Title),
+            "price" => baseQuery.OrderByDescending(e => e.PricePaid),
+            "oldest" => baseQuery.OrderBy(e => e.EnrolledAt),
+            _ => baseQuery.OrderByDescending(e => e.EnrolledAt)
+        };
 
         var enrollments = await baseQuery
             .Skip((query.PageNumber - 1) * query.PageSize)
@@ -121,6 +136,7 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
 
         return new PagedResponse<List<EnrollmentResponseDto>>(dto, query.PageNumber, query.PageSize, totalCount);
     }
+
 
 
     public async Task<Result<bool>> CheckEnrollmentAsync(Guid userId, Guid courseId)
