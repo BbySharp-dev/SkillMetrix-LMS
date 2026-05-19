@@ -181,6 +181,26 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
+    /// Khôi phục khóa học đã xóa mềm.
+    /// </summary>
+    [Authorize(Policy = "RequireInstructorOrAdmin")]
+    [HttpPost("{id}/restore")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RestoreCourse(Guid id)
+    {
+        var actorId = GetCurrentUserId();
+        if (actorId == null)
+            return Unauthorized(new ApiResponse<object>("Invalid token"));
+
+        var result = await courseService.RestoreCourseAsync(id, actorId.Value);
+        if (!result.IsSuccess) return HandleError(result);
+
+        return Ok(new ApiResponse<object?>(null, "Course restored successfully"));
+    }
+
+    /// <summary>
     /// Lấy danh sách khóa học của instructor hiện tại.
     /// Tự động inject InstructorId từ token.
     /// </summary>
