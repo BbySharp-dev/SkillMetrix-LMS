@@ -5,6 +5,8 @@ namespace SkillMetrix_LMS.API.Features.Quizzes.DTOs;
 public record QuizResponseDto(
     Guid Id,
     Guid CourseId,
+    Guid? ChapterId,
+    Guid? LessonId,
     string Title,
     string? Description,
     decimal PassingScore,
@@ -18,6 +20,8 @@ public record QuizResponseDto(
 public record QuizDetailResponseDto(
     Guid Id,
     Guid CourseId,
+    Guid? ChapterId,
+    Guid? LessonId,
     string Title,
     string? Description,
     decimal PassingScore,
@@ -31,6 +35,8 @@ public record QuizDetailResponseDto(
 public record QuizForTakingDto(
     Guid Id,
     Guid CourseId,
+    Guid? ChapterId,
+    Guid? LessonId,
     string Title,
     string? Description,
     decimal PassingScore,
@@ -78,6 +84,8 @@ public record OptionForTakingDto(
 
 public record CreateQuizDto(
     Guid CourseId,
+    Guid? ChapterId,
+    Guid? LessonId,
     string Title,
     string? Description,
     decimal PassingScore,
@@ -92,7 +100,9 @@ public record UpdateQuizDto(
     decimal? PassingScore,
     int? TimeLimitMinutes,
     int? MaxAttempts,
-    bool? IsFinalQuiz
+    bool? IsFinalQuiz,
+    Guid? ChapterId,
+    Guid? LessonId
 );
 
 public record CreateQuestionDto(

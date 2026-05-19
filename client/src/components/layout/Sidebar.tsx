@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     LayoutDashboard,
@@ -9,9 +9,10 @@ import {
     Settings,
     ChevronRight,
     Library,
-    ClipboardList,
+    PlusCircle,
     type LucideIcon,
 } from 'lucide-react';
+import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 
 type NavItemConfig = {
     label: string;
@@ -36,38 +37,52 @@ const USER_NAV_SECTIONS: NavSectionConfig[] = [
     },
 ];
 
-const INSTRUCTOR_NAV_SECTIONS: NavSectionConfig[] = [
-    {
-        title: 'Quản lý',
-        items: [
-            { label: 'Tổng quan', to: '/instructor', icon: LayoutDashboard, end: true },
-            { label: 'Khóa học', to: '/instructor/courses', icon: BookOpen },
-            { label: 'Quiz', to: '/instructor/courses', icon: ClipboardList },
-        ],
-    },
-    {
-        title: 'Học viên',
-        items: [
-            { label: 'Khóa học của tôi', to: '/instructor/my-enrollments', icon: GraduationCap },
-            { label: 'Lịch sử thanh toán', to: '/instructor/my-transactions', icon: CreditCard },
-        ],
-    },
-];
-
 const ADMIN_NAV_SECTIONS: NavSectionConfig[] = [
     {
         title: 'Quản trị',
         items: [
             { label: 'Tổng quan', to: '/admin', icon: LayoutDashboard, end: true },
-            { label: 'Người dùng', to: '/admin/users', icon: ShieldCheck },
-            { label: 'Quản lý khóa học', to: '/admin/courses', icon: Library },
-            { label: 'Duyệt khóa học', to: '/admin/approvals', icon: BookOpen },
+            { label: 'Người dùng', to: '/admin/users', icon: ShieldCheck, end: true },
+            { label: 'Quản lý khóa học', to: '/admin/courses', icon: Library, end: true },
+            { label: 'Duyệt khóa học', to: '/admin/approvals', icon: BookOpen, end: true },
+        ],
+    },
+    {
+        title: 'Quản lý khóa học',
+        items: [
+            { label: 'Khóa học của tôi', to: '/admin/my-courses', icon: BookOpen, end: true },
+            { label: 'Tạo khóa học', to: '/admin/courses/new', icon: PlusCircle, end: true },
+        ],
+    },
+    {
+        title: 'Cá nhân',
+        items: [
+            { label: 'Khóa học đã ghi danh', to: '/admin/my-enrollments', icon: GraduationCap },
+            { label: 'Lịch sử thanh toán', to: '/admin/my-transactions', icon: CreditCard },
         ],
     },
     {
         title: 'Hệ thống',
         items: [
             { label: 'Cài đặt', to: '/admin/settings', icon: Settings },
+        ],
+    },
+];
+
+const INSTRUCTOR_NAV_SECTIONS: NavSectionConfig[] = [
+    {
+        title: 'Quản lý',
+        items: [
+            { label: 'Tổng quan', to: '/instructor', icon: LayoutDashboard, end: true },
+            { label: 'Khóa học', to: '/instructor/courses', icon: BookOpen },
+            { label: 'Tạo khóa học', to: '/instructor/courses/new', icon: PlusCircle },
+        ],
+    },
+    {
+        title: 'Cá nhân',
+        items: [
+            { label: 'Khóa học đã ghi danh', to: '/instructor/my-enrollments', icon: GraduationCap },
+            { label: 'Lịch sử thanh toán', to: '/instructor/my-transactions', icon: CreditCard },
         ],
     },
 ];
@@ -108,16 +123,15 @@ function NavItem({ to, icon: Icon, children, end }: NavItemProps) {
 }
 
 export default function Sidebar() {
-    const location = useLocation();
+    const userRole = useAuthStore((s) => s.user?.role);
 
+    const isAdmin = userRole === 'Admin';
+    const isInstructor = userRole === 'Instructor';
 
-    const isAdmin = location.pathname.startsWith('/admin');
-    const isInstructor = location.pathname.startsWith('/instructor');
-
-    const activeNavSections = isAdmin 
-        ? ADMIN_NAV_SECTIONS 
-        : isInstructor 
-            ? INSTRUCTOR_NAV_SECTIONS 
+    const activeNavSections = isAdmin
+        ? ADMIN_NAV_SECTIONS
+        : isInstructor
+            ? INSTRUCTOR_NAV_SECTIONS
             : USER_NAV_SECTIONS;
 
     return (

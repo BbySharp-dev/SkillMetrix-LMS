@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { AlertCircle, RotateCcw } from 'lucide-react';
+import { useVideoPlayerContext } from '../context/useVideoPlayerContext';
 
 interface VideoPlayerProps {
     lessonId: string;
@@ -14,11 +15,22 @@ export default function VideoPlayer({
     onPersistProgress,
 }: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const { currentTimeRef, seekToRef } = useVideoPlayerContext();
     const currentSecondRef = useRef<number>(initialSecond);
     const lastSentSecondRef = useRef<number>(-1);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Expose seek function via context
+    useEffect(() => {
+        seekToRef.current = (time: number) => {
+            if (videoRef.current) {
+                videoRef.current.currentTime = time;
+                videoRef.current.play();
+            }
+        };
+    }, [seekToRef]);
 
     const flushProgress = useCallback(async (force = false) => {
         const sec = Math.floor(currentSecondRef.current);
@@ -84,7 +96,11 @@ export default function VideoPlayer({
                 onLoadStart={() => setIsLoading(true)}
                 onCanPlay={() => setIsLoading(false)}
                 onTimeUpdate={() => {
-                    if (videoRef.current) currentSecondRef.current = videoRef.current.currentTime;
+                    if (videoRef.current) {
+                        const t = videoRef.current.currentTime;
+                        currentSecondRef.current = t;
+                        currentTimeRef.current = t;
+                    }
                 }}
                 onLoadedMetadata={() => {
                     if (videoRef.current) {

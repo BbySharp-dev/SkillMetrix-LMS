@@ -43,12 +43,12 @@ const UsersPage = Loadable(lazy(() => import('@/features/admin/pages/UsersPage')
 const ApprovalsPage = Loadable(lazy(() => import('@/features/admin/pages/ApprovalsPage')));
 const AdminCoursesPage = Loadable(lazy(() => import('@/features/admin/pages/AdminCoursesPage')));
 const SettingsPage = Loadable(lazy(() => import('@/features/admin/pages/SettingsPage')));
-const ForbiddenPage = Loadable(lazy(() => import('@/features/home/pages/ForbiddenPage')));
 const NotFoundPage = Loadable(lazy(() => import('@/features/home/pages/NotFoundPage')));
 const LearningPage = Loadable(lazy(() => import('@/features/learning/pages/LearningPage')));
 const InstructorDashboardPage = Loadable(lazy(() => import('@/features/dashboard/pages/InstructorDashboardPage')));
 const InstructorProfilePage = Loadable(lazy(() => import('@/features/profile/pages/InstructorProfilePage').then(module => ({ default: module.InstructorProfilePage }))));
 const StudentProfilePage = Loadable(lazy(() => import('@/features/profile/pages/StudentProfilePage').then(module => ({ default: module.StudentProfilePage }))));
+const CertificatesPage = Loadable(lazy(() => import('@/features/certificates/pages/CertificatesPage')));
 
 export const appRouter = createBrowserRouter([
   {
@@ -65,7 +65,7 @@ export const appRouter = createBrowserRouter([
       { path: 'quiz/:quizId', element: <QuizTakingPage /> },
       { path: 'profile/instructor/:instructorId', element: <InstructorProfilePage /> },
       { path: 'profile/student/:studentId', element: <StudentProfilePage /> },
-      { path: '403', element: <ForbiddenPage /> },
+
     ],
   },
 
@@ -82,26 +82,7 @@ export const appRouter = createBrowserRouter([
             children: [
               { index: true, element: <DashboardHomePage /> },
               { path: 'my-enrollments', element: <EnrollmentsPage /> },
-              { path: 'my-transactions', element: <TransactionsPage /> },
-            ],
-          },
-        ],
-      },
-
-
-      {
-        element: <RoleRoute allowedRoles={['Instructor', 'Admin']} />,
-        children: [
-          {
-            path: 'instructor',
-            element: <DashboardLayout />,
-            children: [
-              { index: true, element: <InstructorDashboardPage /> },
-              { path: 'courses', element: <InstructorCoursesPage /> },
-              { path: 'courses/:id', element: <CourseEditorPage /> },
-              { path: 'quiz/:courseId', element: <QuizListPage /> },
-              { path: 'quiz/:quizId/edit', element: <QuizEditPage /> },
-              { path: 'my-enrollments', element: <EnrollmentsPage /> },
+              { path: 'my-certificates', element: <CertificatesPage /> },
               { path: 'my-transactions', element: <TransactionsPage /> },
             ],
           },
@@ -120,7 +101,34 @@ export const appRouter = createBrowserRouter([
               { path: 'users', element: <UsersPage /> },
               { path: 'approvals', element: <ApprovalsPage /> },
               { path: 'courses', element: <AdminCoursesPage /> },
+              { path: 'my-courses', element: <InstructorCoursesPage /> },
+              { path: 'courses/new', element: <CourseEditorPage /> },
+              { path: 'my-courses/:id', element: <CourseEditorPage /> },
+              { path: 'quiz/:courseId', element: <QuizListPage /> },
+              { path: 'quiz/:quizId/edit', element: <QuizEditPage /> },
+              { path: 'my-enrollments', element: <EnrollmentsPage /> },
+              { path: 'my-transactions', element: <TransactionsPage /> },
               { path: 'settings', element: <SettingsPage /> },
+            ],
+          },
+        ],
+      },
+
+      {
+        element: <RoleRoute allowedRoles={['Instructor']} />,
+        children: [
+          {
+            path: 'instructor',
+            element: <DashboardLayout />,
+            children: [
+              { index: true, element: <InstructorDashboardPage /> },
+              { path: 'courses', element: <InstructorCoursesPage /> },
+              { path: 'courses/new', element: <CourseEditorPage /> },
+              { path: 'courses/:id', element: <CourseEditorPage /> },
+              { path: 'quiz/:courseId', element: <QuizListPage /> },
+              { path: 'quiz/:quizId/edit', element: <QuizEditPage /> },
+              { path: 'my-enrollments', element: <EnrollmentsPage /> },
+              { path: 'my-transactions', element: <TransactionsPage /> },
             ],
           },
         ],

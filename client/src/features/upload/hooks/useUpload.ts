@@ -12,5 +12,16 @@ export const useUpload = () => {
         },
     });
 
-    return { uploadImage: uploadImageMutation };
+    const uploadDocumentMutation = useMutation({
+        mutationFn: (file: File) => uploadApi.uploadDocument(file),
+        onError: (err: unknown) => {
+            const error = err as ApiError;
+            toast.error(error.message ?? 'Upload tài liệu thất bại');
+        },
+    });
+
+    return {
+        uploadImage: uploadImageMutation,
+        uploadDocument: uploadDocumentMutation,
+    };
 };

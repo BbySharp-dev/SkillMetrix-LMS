@@ -49,4 +49,60 @@ public class UploadController(IFileUploadService uploadService) : BaseApiControl
 
         return Ok(new ApiResponse<string>(result.Value!, "Image uploaded"));
     }
+
+    /// <summary>
+    /// Upload tài liệu (PDF, DOCX, ZIP, ...) lên cloud storage.
+    /// </summary>
+    [Authorize(Policy = "RequireInstructorOrAdmin")]
+    [HttpPost("document")]
+    [RequestSizeLimit(50_000_000)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ApiResponse<DocumentUploadResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadDocument(IFormFile? file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new ApiResponse<object>(null!, "No file uploaded."));
+        }
+
+        var allowedExtensions = new[]
+        {
+            ".pdf", ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt",
+            ".zip", ".rar", ".7z",
+            ".txt", ".csv",
+            ".mp3", ".mp4", ".wav",
+        };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+        {
+            return BadRequest(new ApiResponse<object>(null!,
+                $"Invalid file format. Allowed: {string.Join(", ", allowedExtensions)}"));
+        }
+
+        var result = await uploadService.UploadImageAsync(file, "skillmetrix/documents");
+        if (!result.IsSuccess)
+        {
+            return HandleError(result);
+        }
+
+        return Ok(new ApiResponse<DocumentUploadResult>(
+            new DocumentUploadResult
+            {
+                Url = result.Value!,
+                FileName = file.FileName,
+                FileType = extension.TrimStart('.'),
+                FileSizeBytes = file.Length,
+            },
+            "Document uploaded"));
+    }
+}
+
+public class DocumentUploadResult
+{
+    public string Url { get; set; } = string.Empty;
+    public string FileName { get; set; } = string.Empty;
+    public string FileType { get; set; } = string.Empty;
+    public long FileSizeBytes { get; set; }
 }

@@ -15,18 +15,18 @@ export function SortableItem({ id, children }: SortableItemProps) {
         setNodeRef,
         transform,
         transition,
-        isDragging
+        isDragging,
     } = useSortable({ id });
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1,
-        zIndex: isDragging ? 10 : 1,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 9999 : 1,
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div ref={setNodeRef} style={style} {...attributes}>
             {children({ listeners })}
         </div>
     );
