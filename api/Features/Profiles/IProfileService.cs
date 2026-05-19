@@ -12,7 +12,7 @@ public interface IProfileService
     /// <summary>
     /// Lấy danh sách khóa học của giảng viên.
     /// </summary>
-    Task<Result<List<InstructorCourseDto>>> GetInstructorCoursesAsync(Guid instructorId, string? status = null);
+    Task<Result<PagedResponse<List<InstructorCourseDto>>>> GetInstructorCoursesAsync(Guid instructorId, InstructorCourseQueryDto query);
 
     /// <summary>
     /// Lấy thông tin profile của học viên.
@@ -22,5 +22,5 @@ public interface IProfileService
     /// <summary>
     /// Lấy danh sách khóa học đã đăng ký của học viên.
     /// </summary>
-    Task<Result<List<StudentEnrollmentDto>>> GetStudentEnrollmentsAsync(Guid studentId);
+    Task<Result<PagedResponse<List<StudentEnrollmentDto>>>> GetStudentEnrollmentsAsync(Guid studentId, StudentEnrollmentQueryDto query);
 }

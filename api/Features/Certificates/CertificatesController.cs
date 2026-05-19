@@ -11,15 +11,17 @@ namespace SkillMetrix_LMS.API.Features.Certificates;
 public class CertificatesController(ICertificateService certificateService) : BaseApiController
 {
     [HttpGet("me")]
-    public async Task<IActionResult> GetMyCertificates()
+    [ProducesResponseType(typeof(PagedResponse<List<CertificateDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyCertificates([FromQuery] CertificateQueryDto query)
     {
         var userId = GetCurrentUserId();
         if (!userId.HasValue) return Unauthorized();
 
-        var result = await certificateService.GetUserCertificatesAsync(userId.Value);
+        var result = await certificateService.GetUserCertificatesAsync(userId.Value, query);
         if (!result.IsSuccess) return HandleError(result);
-        return Ok(new ApiResponse<List<CertificateDto>>(result.Value!));
+        return Ok(result.Value);
     }
+
 
     [HttpGet("{certificateId:guid}")]
     public async Task<IActionResult> GetCertificateById(Guid certificateId)
