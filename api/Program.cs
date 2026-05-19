@@ -81,6 +81,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireInstructorOrAdmin", policy =>
         policy.RequireRole("Instructor", "Admin"))
+    .AddPolicy("RequireAdminOrModerator", policy =>
+        policy.RequireRole("Admin", "Moderator"))
     .AddPolicy("RequireAdmin", policy =>
         policy.RequireRole("Admin"));
 
@@ -150,6 +152,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     c.SchemaFilter<RequestDtoExampleSchemaFilter>();
+
+    c.CustomSchemaIds(type => type.FullName);
 
     c.OrderActionsBy(apiDesc => OpenApiOrdering.ActionSortKey(apiDesc));
     c.DocumentFilter<TagOrderDocumentFilter>();
