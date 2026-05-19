@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios';
+import api from '@/lib/axios';
 import type { LessonQuestionDto } from '@/features/courses/types';
 
 const QA_URL = '/lessons';
