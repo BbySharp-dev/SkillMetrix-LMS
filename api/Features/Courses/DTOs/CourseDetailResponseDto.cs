@@ -10,6 +10,8 @@ public class CourseDetailResponseDto
     public decimal Price { get; set; }
     public string? Thumbnail { get; set; }
     public string InstructorName { get; set; } = string.Empty;
+    public int ChapterCount { get; set; }
+    public int EnrollmentCount { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
