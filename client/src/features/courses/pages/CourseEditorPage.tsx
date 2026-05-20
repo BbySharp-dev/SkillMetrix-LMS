@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
     ChevronLeft, 
     Save, 
@@ -43,9 +43,11 @@ const STATUS_LABELS: Record<CourseStatus, string> = {
 
 export default function CourseEditorPage() {
     const { id } = useParams<{ id: string }>();
-    const isNew = id === 'new';
-    
-    const { data: course, isLoading } = useCourseDetail(isNew ? undefined : id);
+    const location = useLocation();
+    const isNew = !id || location.pathname.endsWith('/new');
+    const courseId = isNew ? undefined : id;
+
+    const { data: course, isLoading } = useCourseDetail(courseId);
 
     if (isLoading && !isNew) {
         return (
@@ -60,7 +62,7 @@ export default function CourseEditorPage() {
             key={course?.id || 'new-course'} 
             initialData={course}
             isNew={isNew} 
-            courseId={id} 
+            courseId={courseId} 
         />
     );
 }
@@ -76,7 +78,6 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
     const user = useAuthStore((s) => s.user);
     
     const [activeTab, setActiveTab] = useState('info');
-    
 
     const [formData, setFormData] = useState({
         title: initialData?.title || '',
@@ -106,10 +107,13 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
                 onSuccess: (newCourse) => {
                     if (newCourse?.id) {
                         toast.success('Đã tạo khóa học thành công');
-                        navigate(`/instructor/courses/${newCourse.id}`, { replace: true });
+                        navigate('/admin/my-courses', { replace: true });
                     } else {
-                        toast.error('Lỗi dữ liệu: Không nhận được ID từ server.');
+                        toast.error('Lỗi: Không nhận được ID từ server.');
                     }
+                },
+                onError: () => {
+                    toast.error('Tạo khóa học thất bại.');
                 }
             });
         } else if (courseId) {
