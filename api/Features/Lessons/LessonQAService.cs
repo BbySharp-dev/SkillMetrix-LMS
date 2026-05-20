@@ -85,6 +85,13 @@ public class LessonQAService(ApplicationDbContext context) : ILessonQAService
 
         if (answer == null) return false;
 
+        var question = await context.LessonQuestions
+            .FirstOrDefaultAsync(q => q.Id == answer.QuestionId);
+        if (question != null)
+        {
+            question.AnswerCount = Math.Max(0, question.AnswerCount - 1);
+        }
+
         context.LessonAnswers.Remove(answer);
         await context.SaveChangesAsync();
         return true;

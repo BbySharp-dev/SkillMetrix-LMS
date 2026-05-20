@@ -15,6 +15,7 @@ import {
     useLessonNotes,
     useCreateLessonNote,
     useDeleteLessonNote,
+    useUpdateLessonNote,
 } from '../hooks/useLessonNotes';
 import {
     useLessonQuestions,
@@ -24,6 +25,8 @@ import {
     useDeleteAnswer,
 } from '../hooks/useLessonQA';
 import { useUpload } from '@/features/upload/hooks/useUpload';
+import NotesTabContent from '../components/NotesTabContent';
+import QATabContent from '../components/QATabContent';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { VideoPlayerProvider } from '../context/VideoPlayerContext';
 import { useVideoPlayerContext } from '../context/useVideoPlayerContext';
