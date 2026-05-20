@@ -95,7 +95,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <response code="400">Thông tin cung cấp không hợp lệ.</response>
     /// <response code="404">Không tìm thấy giảng viên được chỉ định.</response>
     [HttpPost]
-    [ProducesResponseType(typeof(ApiResponse<CourseResponseDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<CourseDetailResponseDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateCourse(CreateCourseDto dto)
@@ -112,7 +112,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         return CreatedAtAction(
             nameof(GetCourse),
             new { id = result.Value!.Id },
-            new ApiResponse<CourseResponseDto>(result.Value, "Course created successfully")
+            new ApiResponse<CourseDetailResponseDto>(result.Value, "Course created successfully")
         );
     }
 

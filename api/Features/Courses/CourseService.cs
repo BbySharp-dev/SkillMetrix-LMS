@@ -165,6 +165,8 @@ public class CourseService(ApplicationDbContext context) : ICourseService
             Price = course.Price,
             Thumbnail = course.Thumbnail,
             InstructorName = course.Instructor?.FullName ?? "Unknown",
+            ChapterCount = chapters.Count,
+            EnrollmentCount = await context.Enrollments.CountAsync(e => e.CourseId == id),
             Status = course.Status.ToString(),
             CreatedAt = course.CreatedAt,
             Rating = course.Rating ?? 0,
@@ -200,10 +202,10 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         };
     }
 
-    public async Task<Result<CourseResponseDto>> CreateCourseAsync(CreateCourseDto dto)
+    public async Task<Result<CourseDetailResponseDto>> CreateCourseAsync(CreateCourseDto dto)
     {
         var instructor = await context.Users.FirstOrDefaultAsync(u => u.Id == dto.InstructorId);
-        if (instructor == null) return Result<CourseResponseDto>.NotFound("Instructor not found");
+        if (instructor == null) return Result<CourseDetailResponseDto>.NotFound("Instructor not found");
 
         var course = new Course
         {
@@ -220,7 +222,7 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         context.Courses.Add(course);
         await context.SaveChangesAsync();
 
-        return new CourseResponseDto
+        return new CourseDetailResponseDto
         {
             Id = course.Id,
             Title = course.Title,
@@ -228,8 +230,11 @@ public class CourseService(ApplicationDbContext context) : ICourseService
             Price = course.Price,
             Thumbnail = course.Thumbnail,
             InstructorName = instructor.FullName,
+            ChapterCount = 0,
+            EnrollmentCount = 0,
             Status = course.Status.ToString(),
-            CreatedAt = course.CreatedAt
+            CreatedAt = course.CreatedAt,
+            Rating = 0
         };
     }
 
