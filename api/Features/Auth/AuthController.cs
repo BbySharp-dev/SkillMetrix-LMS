@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using SkillMetrix_LMS.API.Features.Auth.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Auth;
@@ -104,5 +105,34 @@ public class AuthController(IAuthService authService) : BaseApiController
         }
 
         return Ok(new ApiResponse<object>(null!, "Logout successful"));
+    }
+
+    /// <summary>
+    /// Gửi yêu cầu đặt lại mật khẩu. Token sẽ được gửi qua email (hoặc trả về trong response ở môi trường dev).
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        var result = await authService.ForgotPasswordAsync(dto.Email);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        // Token được trả về để dev test; khi tích hợp email, chỉ cần trả message
+        return Ok(new ApiResponse<object>(new { resetToken = result.Value }, "Hướng dẫn đặt lại mật khẩu đã được gửi đến email."));
+    }
+
+    /// <summary>
+    /// Đặt lại mật khẩu bằng token nhận được từ forgot-password.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        var result = await authService.ResetPasswordAsync(dto);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<object>(null!, "Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới."));
     }
 }

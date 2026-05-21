@@ -12,4 +12,8 @@ public interface IAuthService
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenDto dto);
 
     Task<Result> LogoutAsync(Guid userId, string refreshToken);
+
+    Task<Result<string>> ForgotPasswordAsync(string email);
+
+    Task<Result> ResetPasswordAsync(ResetPasswordDto dto);
 }
