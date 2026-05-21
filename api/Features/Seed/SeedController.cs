@@ -33,6 +33,19 @@ public class SeedController(DataSeederService dataSeederService) : BaseApiContro
     }
 
     /// <summary>
+    /// seed dữ liệu với số lượng tùy chỉnh cho từng model (dùng để test hiệu năng).
+    /// </summary>
+    [HttpPost("custom")]
+    public async Task<IActionResult> SeedCustom([FromBody] SeedOptionsDto options)
+    {
+        var result = await dataSeederService.ResetAndSeedCustomAsync(options);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<SeedSummaryDto>(result.Value!, "Custom seed completed."));
+    }
+
+    /// <summary>
     /// xóa toàn bộ dữ liệu.
     /// </summary>
     [HttpDelete("reset")]

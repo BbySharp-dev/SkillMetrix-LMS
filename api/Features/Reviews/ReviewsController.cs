@@ -2,10 +2,16 @@ using SkillMetrix_LMS.API.Features.Reviews.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Reviews;
 
+/// <summary>
+/// Quản lý đánh giá khóa học: xem, tạo, cập nhật, xóa review.
+/// </summary>
 [Route("api/reviews")]
 [ApiController]
 public class ReviewsController(IReviewService reviewService) : BaseApiController
 {
+    /// <summary>
+    /// Lấy danh sách đánh giá của một khóa học (có phân trang).
+    /// </summary>
     [HttpGet("courses/{courseId:guid}")]
     [ProducesResponseType(typeof(PagedResponse<List<ReviewDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourseReviews(Guid courseId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -18,6 +24,9 @@ public class ReviewsController(IReviewService reviewService) : BaseApiController
     }
 
 
+    /// <summary>
+    /// Lấy thống kê đánh giá của một khóa học (trung bình sao, tổng số review).
+    /// </summary>
     [HttpGet("courses/{courseId:guid}/stats")]
     public async Task<IActionResult> GetCourseReviewStats(Guid courseId)
     {
@@ -28,6 +37,9 @@ public class ReviewsController(IReviewService reviewService) : BaseApiController
         return Ok(new ApiResponse<CourseReviewStatsDto>(result.Value!, "Lấy thống kê đánh giá thành công."));
     }
 
+    /// <summary>
+    /// Lấy đánh giá của người dùng hiện tại cho một khóa học.
+    /// </summary>
     [HttpGet("courses/{courseId:guid}/my-review")]
     [Authorize]
     public async Task<IActionResult> GetUserReviewForCourse(Guid courseId)
@@ -41,6 +53,9 @@ public class ReviewsController(IReviewService reviewService) : BaseApiController
         return Ok(new ApiResponse<ReviewDto?>(result.Value, "Lấy đánh giá của bạn thành công."));
     }
 
+    /// <summary>
+    /// Tạo đánh giá cho một khóa học (Student đã ghi danh).
+    /// </summary>
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
@@ -56,6 +71,9 @@ public class ReviewsController(IReviewService reviewService) : BaseApiController
         return Ok(new ApiResponse<ReviewDto>(result.Value!, "Tạo đánh giá thành công."));
     }
 
+    /// <summary>
+    /// Cập nhật đánh giá của người dùng hiện tại.
+    /// </summary>
     [HttpPut("{reviewId:guid}")]
     [Authorize]
     public async Task<IActionResult> UpdateReview(Guid reviewId, [FromBody] UpdateReviewDto dto)
@@ -71,6 +89,9 @@ public class ReviewsController(IReviewService reviewService) : BaseApiController
         return Ok(new ApiResponse<ReviewDto>(result.Value!, "Cập nhật đánh giá thành công."));
     }
 
+    /// <summary>
+    /// Xóa đánh giá của người dùng hiện tại.
+    /// </summary>
     [HttpDelete("{reviewId:guid}")]
     [Authorize]
     public async Task<IActionResult> DeleteReview(Guid reviewId)

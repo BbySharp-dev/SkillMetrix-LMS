@@ -1,0 +1,1 @@
+"DefaultConnection": "Server=15.134.255.45,1433;Database=SkillMetrixDB;User Id=sa;Password=SkillMetrix@2026!;Encrypt=false;TrustServerCertificate=true"
