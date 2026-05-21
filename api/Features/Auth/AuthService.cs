@@ -210,4 +210,38 @@ public class AuthService(
 
         return tokenString;
     }
+
+    public async Task<Result<string>> ForgotPasswordAsync(string email)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+            // Không tiết lộ email không tồn tại để tránh enumeration attack
+            return Result<string>.Success(null!);
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+        // TODO: Gửi email chứa token đặt lại mật khẩu
+        // Ví dụ: await emailService.SendPasswordResetEmailAsync(user.Email, token);
+        // Hiện tại trả về token để dev test (xóa dòng này khi tích hợp email)
+        logger.LogInformation("Password reset token for {Email}: {Token}", email, token);
+
+        return Result<string>.Success(token);
+    }
+
+    public async Task<Result> ResetPasswordAsync(ResetPasswordDto dto)
+    {
+        var user = await userManager.FindByEmailAsync(dto.Email);
+        if (user == null)
+            return Result.Failure("Token không hợp lệ hoặc đã hết hạn.");
+
+        var result = await userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(errors);
+        }
+
+        logger.LogInformation("Password reset successfully for {Email}", dto.Email);
+        return Result.Success();
+    }
 }

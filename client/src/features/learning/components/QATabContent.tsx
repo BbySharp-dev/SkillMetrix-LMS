@@ -46,7 +46,6 @@ function Avatar({ name, url }: { name: string; url?: string | null }) {
 
 function AnswerItem({
     answer,
-    lessonId,
     onDelete,
 }: {
     answer: LessonAnswerDto;
@@ -54,7 +53,6 @@ function AnswerItem({
     onDelete: (answerId: string) => void;
 }) {
     const userId = useAuthStore((s) => s.user?.id);
-    const deleteAnswer = useDeleteAnswer();
 
     return (
         <div className="flex gap-3 pl-4 border-l-2 border-gray-100">
@@ -95,6 +93,7 @@ function QuestionItem({
 
     const userId = useAuthStore((s) => s.user?.id);
     const createAnswer = useCreateAnswer();
+    const deleteAnswer = useDeleteAnswer();
     const deleteQuestion = useDeleteQuestion();
 
     const handleSubmitAnswer = async () => {

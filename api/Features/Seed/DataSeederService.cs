@@ -40,6 +40,33 @@ public class DataSeederService(
     /// <summary>
     /// seed chỉ users với các role (không có course, chapter, lesson...).
     /// </summary>
+    public async Task<Result<SeedSummaryDto>> ResetAndSeedCustomAsync(SeedOptionsDto options)
+    {
+        if (!environment.IsDevelopment())
+            return Result<SeedSummaryDto>.Forbidden("Seed API is allowed only in Development mode.");
+
+        await ResetAllDataInternalAsync();
+        await EnsureRolesAsync();
+
+        var users = await SeedUsersCustomAsync(options);
+        var summary = await SeedLearningDataCustomAsync(users, options);
+
+        summary.DefaultPassword = DefaultPassword;
+        summary.Credentials = users
+            .OrderBy(x => x.Role)
+            .ThenBy(x => x.Email)
+            .Select(x => new SeedCredentialDto
+            {
+                Role = x.Role.ToString(),
+                Email = x.Email!,
+                FullName = x.FullName,
+                Password = DefaultPassword
+            })
+            .ToList();
+
+        return summary;
+    }
+
     public async Task<Result<SeedSummaryDto>> SeedUsersOnlyAsync()
     {
         if (!environment.IsDevelopment())
@@ -162,6 +189,42 @@ public class DataSeederService(
         {
             users.Add(CreateUser($"student{i}@skillmetrix.dev", $"Student {i:00}", UserRole.Student));
         }
+
+        foreach (var user in users)
+        {
+            var createResult = await userManager.CreateAsync(user, DefaultPassword);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Create user '{user.Email}' failed: {errors}");
+            }
+
+            var addRoleResult = await userManager.AddToRoleAsync(user, user.Role.ToString());
+            if (!addRoleResult.Succeeded)
+            {
+                var errors = string.Join(", ", addRoleResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Assign role for '{user.Email}' failed: {errors}");
+            }
+        }
+
+        return users;
+    }
+
+    private async Task<List<User>> SeedUsersCustomAsync(SeedOptionsDto options)
+    {
+        var users = new List<User>();
+
+        for (var i = 0; i < options.AdminCount; i++)
+            users.Add(CreateUser($"admin{i + 1}@skillmetrix.dev", $"Admin {i + 1}", UserRole.Admin));
+
+        for (var i = 0; i < options.ModeratorCount; i++)
+            users.Add(CreateUser($"moderator{i + 1}@skillmetrix.dev", $"Moderator {i + 1}", UserRole.Moderator));
+
+        for (var i = 0; i < options.InstructorCount; i++)
+            users.Add(CreateUser($"instructor{i + 1}@skillmetrix.dev", $"Instructor {i + 1}", UserRole.Instructor));
+
+        for (var i = 0; i < options.StudentCount; i++)
+            users.Add(CreateUser($"student{i + 1}@skillmetrix.dev", $"Student {i + 1:D3}", UserRole.Student));
 
         foreach (var user in users)
         {
@@ -505,6 +568,297 @@ public class DataSeederService(
         };
     }
 
+    private async Task<SeedSummaryDto> SeedLearningDataCustomAsync(List<User> users, SeedOptionsDto options)
+    {
+        var rng = new Random(options.Seed ?? Environment.TickCount);
+        var now = DateTime.UtcNow;
+
+        var instructors = users.Where(x => x.Role == UserRole.Instructor).ToList();
+        var students = users.Where(x => x.Role == UserRole.Student).ToList();
+
+        var courses = new List<Course>();
+        var chapters = new List<Chapter>();
+        var lessons = new List<Lesson>();
+        var enrollments = new List<Enrollment>();
+        var transactions = new List<Transaction>();
+        var progresses = new List<UserLessonProgress>();
+        var lessonsByCourse = new Dictionary<Guid, List<Lesson>>();
+
+        foreach (var (instructor, instructorIndex) in instructors.Select((value, index) => (value, index)))
+        {
+            var publishedSlot = 0;
+
+            for (var courseSlot = 0; courseSlot < options.CoursesPerInstructor; courseSlot++)
+            {
+                var status = courseSlot == publishedSlot ? CourseStatus.Published : CourseStatus.Draft;
+                var createdAt = now.AddDays(-30 + instructorIndex * 3 + courseSlot);
+
+                var course = new Course
+                {
+                    Id = Guid.NewGuid(),
+                    Title = $"{instructor.FullName} Course {courseSlot + 1}",
+                    Description = $"Course {courseSlot + 1} by {instructor.FullName}",
+                    InstructorId = instructor.Id,
+                    Status = status,
+                    Price = 199000 + rng.Next(0, 500001),
+                    Thumbnail = $"https://picsum.photos/seed/{instructorIndex}-{courseSlot}/640/360",
+                    CreatedAt = createdAt,
+                    PublishedAt = status == CourseStatus.Published ? createdAt.AddDays(1) : null,
+                    UpdatedAt = createdAt.AddHours(1),
+                    IsDeleted = false
+                };
+
+                courses.Add(course);
+
+                var lessonsForCourse = new List<Lesson>();
+
+                for (var chapterIndex = 1; chapterIndex <= options.ChaptersPerCourse; chapterIndex++)
+                {
+                    var chapterCreatedAt = createdAt.AddHours(chapterIndex);
+
+                    var chapter = new Chapter
+                    {
+                        Id = Guid.NewGuid(),
+                        CourseId = course.Id,
+                        Title = $"Chapter {chapterIndex}",
+                        Description = $"Chapter {chapterIndex}",
+                        OrderIndex = chapterIndex,
+                        CreatedAt = chapterCreatedAt,
+                        UpdatedAt = chapterCreatedAt
+                    };
+
+                    chapters.Add(chapter);
+
+                    for (var lessonIndex = 1; lessonIndex <= options.LessonsPerChapter; lessonIndex++)
+                    {
+                        var duration = 300 + rng.Next(0, 1201);
+                        var lessonCreatedAt = chapterCreatedAt.AddMinutes(lessonIndex * 2);
+
+                        var lesson = new Lesson
+                        {
+                            Id = Guid.NewGuid(),
+                            ChapterId = chapter.Id,
+                            Title = $"Lesson {chapterIndex}.{lessonIndex}",
+                            Description = $"Lesson {chapterIndex}.{lessonIndex}",
+                            VideoUrl = $"https://videos.skillmetrix.dev/{course.Id}/{chapter.Id}/{lessonIndex}",
+                            DurationSeconds = duration,
+                            IsFreePreview = chapterIndex == 1 && lessonIndex <= 2,
+                            OrderIndex = lessonIndex,
+                            CreatedAt = lessonCreatedAt,
+                            UpdatedAt = lessonCreatedAt
+                        };
+
+                        lessons.Add(lesson);
+                        lessonsForCourse.Add(lesson);
+                    }
+                }
+
+                var totalMinutes = (int)Math.Ceiling(lessonsForCourse.Sum(x => x.DurationSeconds) / 60.0);
+                course.DurationMinutes = totalMinutes;
+                lessonsByCourse[course.Id] = lessonsForCourse;
+            }
+        }
+
+        context.Courses.AddRange(courses);
+        context.Chapters.AddRange(chapters);
+        context.Lessons.AddRange(lessons);
+        await context.SaveChangesAsync();
+
+        // ─── Quizzes ─────────────────────────────────────────────────────────
+        var quizzes = new List<Quiz>();
+        var quizQuestions = new List<QuizQuestion>();
+        var quizOptions = new List<QuizOption>();
+        var quizAttempts = new List<QuizAttempt>();
+        var quizAttemptAnswers = new List<QuizAttemptAnswer>();
+
+        foreach (var course in courses.Where(c => c.Status == CourseStatus.Published))
+        {
+            for (var qi = 0; qi < options.QuizzesPerCourse; qi++)
+            {
+                var quizId = Guid.NewGuid();
+                var quiz = new Quiz
+                {
+                    Id = quizId,
+                    CourseId = course.Id,
+                    Title = qi == options.QuizzesPerCourse - 1 ? $"Final Exam - {course.Title}" : $"Quiz {qi + 1}",
+                    Description = $"Assessment for {course.Title}",
+                    PassingScore = 70,
+                    TimeLimitMinutes = qi == options.QuizzesPerCourse - 1 ? 30 : 15,
+                    MaxAttempts = 3,
+                    IsFinalQuiz = qi == options.QuizzesPerCourse - 1,
+                    CreatedAt = course.CreatedAt.AddHours(4),
+                    IsDeleted = false
+                };
+                quizzes.Add(quiz);
+
+                for (var qi2 = 0; qi2 < options.QuestionsPerQuiz; qi2++)
+                {
+                    var questionId = Guid.NewGuid();
+                    var question = new QuizQuestion
+                    {
+                        Id = questionId,
+                        QuizId = quizId,
+                        Content = $"Question {qi2 + 1}: Sample question for {course.Title}?",
+                        Point = 1,
+                        OrderIndex = qi2 + 1
+                    };
+                    quizQuestions.Add(question);
+
+                    var correctIndex = rng.Next(4);
+                    for (var oi = 0; oi < 4; oi++)
+                    {
+                        quizOptions.Add(new QuizOption
+                        {
+                            Id = Guid.NewGuid(),
+                            QuestionId = questionId,
+                            Content = oi == correctIndex ? $"Correct answer for Q{qi2 + 1}" : $"Incorrect option {oi} for Q{qi2 + 1}",
+                            IsCorrect = oi == correctIndex,
+                            OrderIndex = oi + 1
+                        });
+                    }
+                }
+            }
+        }
+
+        context.Quizzes.AddRange(quizzes);
+        context.QuizQuestions.AddRange(quizQuestions);
+        context.QuizOptions.AddRange(quizOptions);
+        await context.SaveChangesAsync();
+
+        // ─── Quiz Attempts ───────────────────────────────────────────────────
+        foreach (var student in students.Take(Math.Min(3, students.Count)))
+        {
+            foreach (var enrollment in enrollments.Where(e => e.UserId == student.Id).Take(1))
+            {
+                var courseQuizzes = quizzes.Where(q => q.CourseId == enrollment.CourseId).ToList();
+                foreach (var quiz in courseQuizzes.Take(1))
+                {
+                    var attemptId = Guid.NewGuid();
+                    var attemptScore = rng.Next(40, 101);
+                    var attempt = new QuizAttempt
+                    {
+                        Id = attemptId,
+                        QuizId = quiz.Id,
+                        UserId = student.Id,
+                        Score = attemptScore,
+                        IsPassed = attemptScore >= quiz.PassingScore,
+                        StartedAt = now.AddDays(-rng.Next(1, 8)),
+                        SubmittedAt = now.AddDays(-rng.Next(1, 8))
+                    };
+                    quizAttempts.Add(attempt);
+
+                    foreach (var q in quizQuestions.Where(q => q.QuizId == quiz.Id).Take(2))
+                    {
+                        var opts = quizOptions.Where(o => o.QuestionId == q.Id).ToList();
+                        var selected = rng.Next(100) > 20 ? opts.First(o => o.IsCorrect) : opts[rng.Next(opts.Count)];
+                        quizAttemptAnswers.Add(new QuizAttemptAnswer
+                        {
+                            Id = Guid.NewGuid(),
+                            AttemptId = attemptId,
+                            QuestionId = q.Id,
+                            SelectedOptionId = selected.Id,
+                            IsCorrect = selected.IsCorrect
+                        });
+                    }
+                }
+            }
+        }
+
+        context.QuizAttempts.AddRange(quizAttempts);
+        context.QuizAttemptAnswers.AddRange(quizAttemptAnswers);
+        await context.SaveChangesAsync();
+
+        // ─── Enrollments, Transactions, Progress ─────────────────────────────
+        var publishedCourses = courses.Where(c => c.Status == CourseStatus.Published).ToList();
+        if (publishedCourses.Count == 0)
+            publishedCourses = courses.ToList();
+
+        foreach (var (student, studentIndex) in students.Select((value, index) => (value, index)))
+        {
+            var takeCount = Math.Min(options.EnrollmentsPerStudent, publishedCourses.Count);
+            var selectedCourses = publishedCourses
+                .Skip(studentIndex % Math.Max(1, publishedCourses.Count))
+                .Take(takeCount)
+                .ToList();
+
+            foreach (var course in selectedCourses)
+            {
+                var enrolledAt = now.AddDays(-rng.Next(5, 31));
+
+                var enrollment = new Enrollment
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = student.Id,
+                    CourseId = course.Id,
+                    PricePaid = course.Price,
+                    EnrolledAt = enrolledAt
+                };
+                enrollments.Add(enrollment);
+
+                transactions.Add(new Transaction
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = student.Id,
+                    EnrollmentId = enrollment.Id,
+                    CourseId = course.Id,
+                    Amount = course.Price,
+                    Type = TransactionType.Purchase,
+                    Status = TransactionStatus.Completed,
+                    Description = $"Purchase {course.Title}",
+                    CreatedAt = enrolledAt
+                });
+
+                var courseLessons = lessonsByCourse[course.Id].OrderBy(x => x.OrderIndex).ToList();
+                var progressCount = (int)Math.Floor(courseLessons.Count * options.ProgressPerEnrollmentPercent / 100.0);
+
+                for (var i = 0; i < Math.Min(progressCount, courseLessons.Count); i++)
+                {
+                    var lesson = courseLessons[i];
+                    var isCompleted = rng.Next(100) > 30;
+                    var watchedSecond = isCompleted
+                        ? lesson.DurationSeconds
+                        : rng.Next(30, lesson.DurationSeconds);
+
+                    var lastUpdatedAt = enrolledAt.AddDays(i);
+
+                    progresses.Add(new UserLessonProgress
+                    {
+                        UserId = student.Id,
+                        LessonId = lesson.Id,
+                        IsCompleted = isCompleted,
+                        LastWatchedSecond = watchedSecond,
+                        LastUpdatedAt = lastUpdatedAt,
+                        CompletedAt = isCompleted ? lastUpdatedAt : null
+                    });
+                }
+            }
+        }
+
+        context.Enrollments.AddRange(enrollments);
+        context.Transactions.AddRange(transactions);
+        context.UserLessonProgresses.AddRange(progresses);
+        await context.SaveChangesAsync();
+
+        return new SeedSummaryDto
+        {
+            Message = "Custom seed created successfully.",
+            Counts = new SeedCountDto
+            {
+                Users = users.Count,
+                Courses = courses.Count,
+                PublishedCourses = courses.Count(c => c.Status == CourseStatus.Published),
+                Chapters = chapters.Count,
+                Lessons = lessons.Count,
+                Enrollments = enrollments.Count,
+                Transactions = transactions.Count,
+                LessonProgressRecords = progresses.Count,
+                Quizzes = quizzes.Count,
+                QuizQuestions = quizQuestions.Count,
+                QuizAttempts = quizAttempts.Count
+            }
+        };
+    }
+
     private static User CreateUser(string email, string fullName, UserRole role)
     {
         return new User
@@ -550,4 +904,20 @@ public class SeedCredentialDto
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = DataSeederService.DefaultPassword;
+}
+
+public class SeedOptionsDto
+{
+    public int AdminCount { get; set; } = 1;
+    public int ModeratorCount { get; set; } = 2;
+    public int InstructorCount { get; set; } = 6;
+    public int StudentCount { get; set; } = 18;
+    public int CoursesPerInstructor { get; set; } = 3;
+    public int ChaptersPerCourse { get; set; } = 3;
+    public int LessonsPerChapter { get; set; } = 4;
+    public int QuizzesPerCourse { get; set; } = 2;
+    public int QuestionsPerQuiz { get; set; } = 4;
+    public int EnrollmentsPerStudent { get; set; } = 3;
+    public int ProgressPerEnrollmentPercent { get; set; } = 60;
+    public int? Seed { get; set; }
 }
