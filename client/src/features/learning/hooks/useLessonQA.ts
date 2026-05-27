@@ -65,6 +65,7 @@ export function useCreateAnswer() {
     }) => lessonQAApi.createAnswer(lessonId, questionId, { content }),
     onSuccess: (_, { lessonId }) => {
       qc.invalidateQueries({ queryKey: ['lesson-questions', lessonId] });
+      toast.success('Câu trả lời đã được gửi.');
     },
     onError: () => {
       toast.error('Gửi câu trả lời thất bại.');

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircleQuestion, Clock, Trash2, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import {
     useLessonQuestions,
@@ -49,13 +49,12 @@ function AnswerItem({
     onDelete,
 }: {
     answer: LessonAnswerDto;
-    lessonId: string;
     onDelete: (answerId: string) => void;
 }) {
     const userId = useAuthStore((s) => s.user?.id);
 
     return (
-        <div className="flex gap-3 pl-4 border-l-2 border-gray-100">
+        <div className="flex gap-3 pl-4 border-l-2 border-gray-100 group">
             <Avatar name={answer.userFullName} url={answer.userAvatarUrl} />
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -167,7 +166,7 @@ function QuestionItem({
                             value={answerContent}
                             onChange={(e) => setAnswerContent(e.target.value)}
                             placeholder="Viết câu trả lời của bạn..."
-                            className="min-h-[60px] text-sm resize-none"
+                            className="min-h-15 text-sm resize-none"
                             autoFocus
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -205,7 +204,6 @@ function QuestionItem({
                         <AnswerItem
                             key={answer.id}
                             answer={answer}
-                            lessonId={lessonId}
                             onDelete={(answerId) => deleteAnswer.mutate({ lessonId, answerId })}
                         />
                     ))}
@@ -217,9 +215,23 @@ function QuestionItem({
 
 export default function QATabContent({ lessonId }: QATabContentProps) {
     const [questionContent, setQuestionContent] = useState('');
+    const listRef = useRef<HTMLDivElement>(null);
     const { data: questions = [], isLoading } = useLessonQuestions(lessonId);
     const createQuestion = useCreateQuestion();
     const { currentTimeRef } = useVideoPlayerContext();
+    const [currentTimestamp, setCurrentTimestamp] = useState('00:00');
+
+    useEffect(() => {
+        const update = () => {
+            const s = Math.floor(currentTimeRef.current);
+            const mm = Math.floor(s / 60).toString().padStart(2, '0');
+            const ss = (s % 60).toString().padStart(2, '0');
+            setCurrentTimestamp(`${mm}:${ss}`);
+        };
+        update();
+        const interval = setInterval(update, 500);
+        return () => clearInterval(interval);
+    }, [currentTimeRef]);
 
     const handleSubmit = async () => {
         if (!questionContent.trim()) return;
@@ -229,13 +241,7 @@ export default function QATabContent({ lessonId }: QATabContentProps) {
             videoTimestampSeconds: Math.floor(currentTimeRef.current),
         });
         setQuestionContent('');
-    };
-
-    const currentTimestamp = () => {
-        const s = Math.floor(currentTimeRef.current);
-        const mm = Math.floor(s / 60).toString().padStart(2, '0');
-        const ss = (s % 60).toString().padStart(2, '0');
-        return `${mm}:${ss}`;
+        listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     return (
@@ -248,7 +254,7 @@ export default function QATabContent({ lessonId }: QATabContentProps) {
                         Đặt câu hỏi tại
                         <Badge variant="outline" className="font-mono text-[10px] text-indigo-600 border-indigo-200 bg-white">
                             <Clock className="size-3 mr-0.5" />
-                            {currentTimestamp()}
+                            {currentTimestamp}
                         </Badge>
                     </span>
                 </div>
@@ -256,7 +262,7 @@ export default function QATabContent({ lessonId }: QATabContentProps) {
                     value={questionContent}
                     onChange={(e) => setQuestionContent(e.target.value)}
                     placeholder="Bạn có thắc mắc gì về bài học này? Hỏi ngay để được giảng viên hoặc học viên khác hỗ trợ..."
-                    className="min-h-[80px] text-sm resize-none bg-white"
+                    className="min-h-20 text-sm resize-none bg-white"
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                             e.preventDefault();
@@ -289,7 +295,7 @@ export default function QATabContent({ lessonId }: QATabContentProps) {
                     <p className="text-xs mt-1">Hãy là người đầu tiên đặt câu hỏi!</p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div ref={listRef} className="space-y-3">
                     {questions.map((q) => (
                         <QuestionItem key={q.id} question={q} lessonId={lessonId} />
                     ))}
