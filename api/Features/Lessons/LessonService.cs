@@ -57,12 +57,18 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         var orderIndex = await context.Lessons
             .Where(ls => ls.ChapterId == chapterId && !ls.IsDeleted).CountAsync() + 1;
 
+        if (!string.IsNullOrEmpty(dto.VideoUrl) && !IsValidYoutubeUrl(dto.VideoUrl))
+        {
+            return Result<LessonResponseDto>.ValidationError("Đường dẫn video phải là liên kết YouTube hợp lệ.");
+        }
+
         var lesson = new Lesson
         {
             Id = Guid.NewGuid(),
             ChapterId = chapterId,
             Title = dto.Title,
             Description = dto.Description,
+            VideoUrl = dto.VideoUrl,
             DurationSeconds = dto.DurationSeconds,
             IsFreePreview = dto.IsFreePreview,
             OrderIndex = orderIndex,
@@ -134,6 +140,15 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         if (dto.IsFreePreview.HasValue)
         {
             lesson.IsFreePreview = dto.IsFreePreview.Value;
+        }
+
+        if (dto.VideoUrl != null)
+        {
+            if (dto.VideoUrl != string.Empty && !IsValidYoutubeUrl(dto.VideoUrl))
+            {
+                return Result<LessonResponseDto>.ValidationError("Đường dẫn video phải là liên kết YouTube hợp lệ.");
+            }
+            lesson.VideoUrl = dto.VideoUrl == string.Empty ? null : dto.VideoUrl;
         }
 
         lesson.UpdatedAt = DateTime.UtcNow;
@@ -260,5 +275,12 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         await context.SaveChangesAsync();
 
         return Result.Success();
+    }
+
+    private static bool IsValidYoutubeUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        return url.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) || 
+               url.Contains("youtu.be", StringComparison.OrdinalIgnoreCase);
     }
 }

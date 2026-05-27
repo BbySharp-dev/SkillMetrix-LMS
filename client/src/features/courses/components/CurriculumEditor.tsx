@@ -127,7 +127,7 @@ export default function CurriculumEditor({ courseId: propCourseId }: CurriculumE
         setIsChapterModalOpen(false);
     };
 
-    const handleSaveLesson = (data: { title: string; isFreePreview: boolean }) => {
+    const handleSaveLesson = (data: { title: string; isFreePreview: boolean; videoUrl?: string | null; durationSeconds?: number }) => {
         if (!courseId) return;
         if (editingLesson) {
             updateLesson.mutate({ id: editingLesson.id, data });

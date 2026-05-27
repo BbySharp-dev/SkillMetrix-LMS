@@ -6,4 +6,5 @@ public class UpdateLessonDto
     public string? Description { get; set; }
     public int? DurationSeconds { get; set; }
     public bool? IsFreePreview { get; set; }
+    public string? VideoUrl { get; set; }
 }
