@@ -16,14 +16,20 @@ export const lessonApi = {
         return getData(res) ?? [];
     },
 
-    createLesson: async (chapterId: string, data: { title: string }): Promise<LessonResponseDto> => {
+    createLesson: async (
+        chapterId: string,
+        data: { title: string; description?: string; durationSeconds?: number; isFreePreview?: boolean; videoUrl?: string | null }
+    ): Promise<LessonResponseDto> => {
         const res = await api.post(`/chapters/${chapterId}/lessons`, data) as ApiResponseWrapper<LessonResponseDto>;
         const d = getData(res);
         if (!d) throw new Error('Failed to create lesson');
         return d;
     },
 
-    updateLesson: async (id: string, data: { title: string, isFreePreview: boolean }): Promise<LessonResponseDto> => {
+    updateLesson: async (
+        id: string,
+        data: { title?: string; description?: string; durationSeconds?: number; isFreePreview?: boolean; videoUrl?: string | null }
+    ): Promise<LessonResponseDto> => {
         const res = await api.put(`/lessons/${id}`, data) as ApiResponseWrapper<LessonResponseDto>;
         const d = getData(res);
         if (!d) throw new Error('Failed to update lesson');
