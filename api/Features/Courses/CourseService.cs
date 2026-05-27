@@ -256,11 +256,11 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         return await GetCourseByIdAsync(id);
     }
 
-    public async Task<Result> DeleteCourseAsync(Guid id, Guid actorId)
+    public async Task<Result> DeleteCourseAsync(Guid id, Guid actorId, bool isAdmin = false)
     {
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (course == null) return Result.Failure("Course not found");
-        if (course.InstructorId != actorId)
+        if (!isAdmin && course.InstructorId != actorId)
             return Result.Failure("You can only delete your own courses", ErrorType.Forbidden);
 
         course.IsDeleted = true;
@@ -270,11 +270,11 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         return Result.Success();
     }
 
-    public async Task<Result> RestoreCourseAsync(Guid id, Guid actorId)
+    public async Task<Result> RestoreCourseAsync(Guid id, Guid actorId, bool isAdmin = false)
     {
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id && c.IsDeleted);
         if (course == null) return Result.Failure("Course not found or not deleted");
-        if (course.InstructorId != actorId)
+        if (!isAdmin && course.InstructorId != actorId)
             return Result.Failure("You can only restore your own courses", ErrorType.Forbidden);
 
         course.IsDeleted = false;
