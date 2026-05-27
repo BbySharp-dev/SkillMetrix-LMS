@@ -61,7 +61,7 @@ export const useLessonMutations = (courseId: string) => {
     const queryClient = useQueryClient();
 
     const createMutation = useMutation({
-        mutationFn: ({ chapterId, data }: { chapterId: string, data: { title: string } }) => 
+        mutationFn: ({ chapterId, data }: { chapterId: string, data: { title: string; description?: string; durationSeconds?: number; isFreePreview?: boolean; videoUrl?: string | null } }) => 
             lessonApi.createLesson(chapterId, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
@@ -70,7 +70,7 @@ export const useLessonMutations = (courseId: string) => {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string, data: { title: string, isFreePreview: boolean } }) => 
+        mutationFn: ({ id, data }: { id: string, data: { title?: string; description?: string; durationSeconds?: number; isFreePreview?: boolean; videoUrl?: string | null } }) => 
             lessonApi.updateLesson(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });

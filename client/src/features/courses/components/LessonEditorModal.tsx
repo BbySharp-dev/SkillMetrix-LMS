@@ -20,8 +20,8 @@ import {
 interface LessonEditorModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSave: (data: { title: string; isFreePreview: boolean }) => void;
-    initialData?: { id?: string; title?: string; isFreePreview?: boolean; videoUrl?: string | null } | null;
+    onSave: (data: { title: string; isFreePreview: boolean; videoUrl?: string | null; durationSeconds?: number }) => void;
+    initialData?: { id?: string; title?: string; isFreePreview?: boolean; videoUrl?: string | null; durationSeconds?: number } | null;
     onUploadVideo?: (lessonId: string, file: File) => Promise<void>;
     isUploading?: boolean;
 }
@@ -43,11 +43,28 @@ export default function LessonEditorModal({
     const [uploadProgress, setUploadProgress] = useState(0);
     const uploadDone = !!(initialData?.videoUrl);
 
+    // YouTube state
+    const initialIsYoutube = !!(initialData?.videoUrl && (initialData.videoUrl.includes('youtube.com') || initialData.videoUrl.includes('youtu.be')));
+    const [videoSource, setVideoSource] = useState<'file' | 'youtube'>(initialIsYoutube ? 'youtube' : 'file');
+    const [youtubeUrl, setYoutubeUrl] = useState(initialIsYoutube ? (initialData?.videoUrl ?? '') : '');
+    const initialDuration = initialData?.durationSeconds ?? 0;
+    const [durationMinutes, setDurationMinutes] = useState(Math.floor(initialDuration / 60));
+    const [durationSecondsVal, setDurationSecondsVal] = useState(initialDuration % 60);
+
     useLayoutEffect(() => {
         if (open && !wasOpenRef.current) {
             setTitle(initialData?.title ?? '');
             setIsFreePreview(initialData?.isFreePreview ?? false);
             setUploadProgress(0);
+            
+            const isYt = !!(initialData?.videoUrl && (initialData.videoUrl.includes('youtube.com') || initialData.videoUrl.includes('youtu.be')));
+            setVideoSource(isYt ? 'youtube' : 'file');
+            setYoutubeUrl(isYt ? (initialData?.videoUrl ?? '') : '');
+            
+            const dur = initialData?.durationSeconds ?? 0;
+            setDurationMinutes(Math.floor(dur / 60));
+            setDurationSecondsVal(dur % 60);
+            
             setTimeout(() => titleRef.current?.focus(), 100);
         }
         wasOpenRef.current = open;
@@ -107,8 +124,51 @@ export default function LessonEditorModal({
         if (file) await handleFile(file);
     };
 
+    const getYoutubeId = (url: string): string | null => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2].length === 11) {
+            return match[2];
+        }
+        const shortsRegExp = /youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/;
+        const shortsMatch = url.match(shortsRegExp);
+        if (shortsMatch && shortsMatch[1]) {
+            return shortsMatch[1];
+        }
+        return null;
+    };
+
     const handleSave = () => {
-        onSave({ title: title.trim() || 'Bài học mới', isFreePreview });
+        const totalDuration = Number(durationMinutes) * 60 + Number(durationSecondsVal);
+        
+        if (videoSource === 'youtube') {
+            if (youtubeUrl.trim() !== '') {
+                const ytId = getYoutubeId(youtubeUrl);
+                if (!ytId) {
+                    alert('Đường dẫn YouTube không hợp lệ. Vui lòng kiểm tra lại.');
+                    return;
+                }
+                onSave({
+                    title: title.trim() || 'Bài học mới',
+                    isFreePreview,
+                    videoUrl: youtubeUrl.trim(),
+                    durationSeconds: totalDuration,
+                });
+            } else {
+                onSave({
+                    title: title.trim() || 'Bài học mới',
+                    isFreePreview,
+                    videoUrl: '',
+                    durationSeconds: totalDuration,
+                });
+            }
+        } else {
+            onSave({
+                title: title.trim() || 'Bài học mới',
+                isFreePreview,
+            });
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -156,106 +216,202 @@ export default function LessonEditorModal({
                             />
                         </div>
 
-                        {/* Video upload area */}
+                        {/* Video upload or link area */}
                         {initialData?.id ? (
-                            <div className="space-y-2">
-                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest">
-                                    Video bài giảng
-                                </label>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">
+                                        Nguồn Video bài giảng
+                                    </label>
+                                    <div className="flex bg-gray-100 p-0.5 rounded-lg text-xs font-black">
+                                        <button
+                                            type="button"
+                                            onClick={() => setVideoSource('file')}
+                                            className={`px-3 py-1.5 rounded-md transition-all ${
+                                                videoSource === 'file'
+                                                    ? 'bg-white text-indigo-600 shadow-xs'
+                                                    : 'text-gray-400 hover:text-gray-600'
+                                            }`}
+                                        >
+                                            Tải tệp lên
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setVideoSource('youtube')}
+                                            className={`px-3 py-1.5 rounded-md transition-all ${
+                                                videoSource === 'youtube'
+                                                    ? 'bg-white text-indigo-600 shadow-xs'
+                                                    : 'text-gray-400 hover:text-gray-600'
+                                            }`}
+                                        >
+                                            Liên kết YouTube
+                                        </button>
+                                    </div>
+                                </div>
 
-                                {initialData.videoUrl || uploadDone ? (
-                                    /* Has video — show video player */
-                                    <div className="relative rounded-xl overflow-hidden border-2 border-gray-100 bg-black aspect-video group">
-                                        <video
-                                            src={initialData.videoUrl!}
-                                            className="w-full h-full object-contain"
-                                            controls
-                                        />
-                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                disabled={isUploading}
-                                                className="rounded-xl font-black gap-2 shadow-lg"
+                                {videoSource === 'file' ? (
+                                    <div className="space-y-2">
+                                        {initialData.videoUrl && !initialIsYoutube || uploadDone ? (
+                                            /* Has video file — show video player */
+                                            <div className="relative rounded-xl overflow-hidden border-2 border-gray-100 bg-black aspect-video group">
+                                                <video
+                                                    src={initialData.videoUrl!}
+                                                    className="w-full h-full object-contain"
+                                                    controls
+                                                />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        disabled={isUploading}
+                                                        className="rounded-xl font-black gap-2 shadow-lg"
+                                                    >
+                                                        <Upload className="size-3.5" />
+                                                        Thay đổi video
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* No video yet — drag & drop upload zone */
+                                            <div
+                                                onDragOver={(e) => {
+                                                    e.preventDefault();
+                                                    setIsDragOver(true);
+                                                }}
+                                                onDragLeave={() => setIsDragOver(false)}
+                                                onDrop={handleDrop}
+                                                onClick={() => !isUploading && fileInputRef.current?.click()}
+                                                className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-200 overflow-hidden ${
+                                                    isDragOver
+                                                        ? 'border-indigo-400 bg-indigo-50 scale-[1.01]'
+                                                        : isUploading
+                                                        ? 'border-indigo-300 bg-indigo-50/50'
+                                                        : 'border-gray-200 bg-gray-50 hover:border-indigo-300 hover:bg-indigo-50/30'
+                                                }`}
                                             >
-                                                <Upload className="size-3.5" />
-                                                Thay đổi video
-                                            </Button>
-                                        </div>
+                                                {/* Progress overlay */}
+                                                {isUploading && (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10">
+                                                        <Loader2 className="size-10 text-indigo-600 animate-spin mb-3" />
+                                                        <p className="text-sm font-black text-indigo-600 mb-3">
+                                                            Đang tải video lên...
+                                                        </p>
+                                                        {/* Progress bar */}
+                                                        <div className="w-48 h-2 bg-indigo-100 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-linear-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
+                                                                style={{ width: `${uploadProgress}%` }}
+                                                            />
+                                                        </div>
+                                                        <p className="text-xs font-bold text-gray-400 mt-2">
+                                                            {Math.round(uploadProgress)}%
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Drop overlay */}
+                                                {isDragOver && !isUploading && (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-50/90 z-10">
+                                                        <Upload className="size-10 text-indigo-500 mb-2" />
+                                                        <p className="text-sm font-black text-indigo-600">Thả file vào đây</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Default content */}
+                                                {!isUploading && (
+                                                    <>
+                                                        <div
+                                                            className={`size-12 rounded-2xl flex items-center justify-center mb-3 transition-colors ${
+                                                                isDragOver ? 'bg-indigo-100' : 'bg-indigo-50'
+                                                            }`}
+                                                        >
+                                                            <Upload className={`size-6 ${isDragOver ? 'text-indigo-600' : 'text-indigo-400'}`} />
+                                                        </div>
+                                                        <p className="text-sm font-black text-gray-700">Tải video lên</p>
+                                                        <p className="text-[11px] text-gray-400 font-medium mt-1">
+                                                            Kéo thả file hoặc nhấn để chọn · MP4, MOV, AVI · Tối đa 500MB
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            className="hidden"
+                                            accept="video/*"
+                                            onChange={handleFileChange}
+                                        />
                                     </div>
                                 ) : (
-                                    /* No video yet — drag & drop upload zone */
-                                    <div
-                                        onDragOver={(e) => {
-                                            e.preventDefault();
-                                            setIsDragOver(true);
-                                        }}
-                                        onDragLeave={() => setIsDragOver(false)}
-                                        onDrop={handleDrop}
-                                        onClick={() => !isUploading && fileInputRef.current?.click()}
-                                        className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-200 overflow-hidden ${
-                                            isDragOver
-                                                ? 'border-indigo-400 bg-indigo-50 scale-[1.01]'
-                                                : isUploading
-                                                ? 'border-indigo-300 bg-indigo-50/50'
-                                                : 'border-gray-200 bg-gray-50 hover:border-indigo-300 hover:bg-indigo-50/30'
-                                        }`}
-                                    >
-                                        {/* Progress overlay */}
-                                        {isUploading && (
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10">
-                                                <Loader2 className="size-10 text-indigo-600 animate-spin mb-3" />
-                                                <p className="text-sm font-black text-indigo-600 mb-3">
-                                                    Đang tải video lên...
-                                                </p>
-                                                {/* Progress bar */}
-                                                <div className="w-48 h-2 bg-indigo-100 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-linear-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
-                                                        style={{ width: `${uploadProgress}%` }}
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">
+                                                Đường dẫn video YouTube
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={youtubeUrl}
+                                                onChange={(e) => setYoutubeUrl(e.target.value)}
+                                                placeholder="VD: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                                                className="w-full px-5 py-3.5 bg-gray-50 border-2 border-transparent rounded-xl font-bold text-gray-900 focus:bg-white focus:border-indigo-400 outline-none transition-all placeholder:text-gray-300 text-sm"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">
+                                                Thời lượng bài học
+                                            </label>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={durationMinutes}
+                                                        onChange={(e) => setYoutubeUrl(y => {
+                                                            setDurationMinutes(Math.max(0, parseInt(e.target.value) || 0));
+                                                            return y;
+                                                        })}
+                                                        className="w-20 px-3 py-2 bg-gray-50 border-2 border-transparent rounded-xl font-bold text-gray-900 focus:bg-white focus:border-indigo-400 outline-none transition-all text-center"
+                                                    />
+                                                    <span className="text-sm text-gray-500 font-bold">phút</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="59"
+                                                        value={durationSecondsVal}
+                                                        onChange={(e) => setYoutubeUrl(y => {
+                                                            setDurationSecondsVal(Math.min(59, Math.max(0, parseInt(e.target.value) || 0)));
+                                                            return y;
+                                                        })}
+                                                        className="w-20 px-3 py-2 bg-gray-50 border-2 border-transparent rounded-xl font-bold text-gray-900 focus:bg-white focus:border-indigo-400 outline-none transition-all text-center"
+                                                    />
+                                                    <span className="text-sm text-gray-500 font-bold">giây</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Youtube Preview */}
+                                        {getYoutubeId(youtubeUrl) && (
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">
+                                                    Xem trước Video YouTube
+                                                </label>
+                                                <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-gray-100 bg-black">
+                                                    <iframe
+                                                        src={`https://www.youtube.com/embed/${getYoutubeId(youtubeUrl)}`}
+                                                        className="w-full h-full"
+                                                        allowFullScreen
                                                     />
                                                 </div>
-                                                <p className="text-xs font-bold text-gray-400 mt-2">
-                                                    {Math.round(uploadProgress)}%
-                                                </p>
                                             </div>
-                                        )}
-
-                                        {/* Drop overlay */}
-                                        {isDragOver && !isUploading && (
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-50/90 z-10">
-                                                <Upload className="size-10 text-indigo-500 mb-2" />
-                                                <p className="text-sm font-black text-indigo-600">Thả file vào đây</p>
-                                            </div>
-                                        )}
-
-                                        {/* Default content */}
-                                        {!isUploading && (
-                                            <>
-                                                <div
-                                                    className={`size-12 rounded-2xl flex items-center justify-center mb-3 transition-colors ${
-                                                        isDragOver ? 'bg-indigo-100' : 'bg-indigo-50'
-                                                    }`}
-                                                >
-                                                    <Upload className={`size-6 ${isDragOver ? 'text-indigo-600' : 'text-indigo-400'}`} />
-                                                </div>
-                                                <p className="text-sm font-black text-gray-700">Tải video lên</p>
-                                                <p className="text-[11px] text-gray-400 font-medium mt-1">
-                                                    Kéo thả file hoặc nhấn để chọn · MP4, MOV, AVI · Tối đa 500MB
-                                                </p>
-                                            </>
                                         )}
                                     </div>
                                 )}
-
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    accept="video/*"
-                                    onChange={handleFileChange}
-                                />
                             </div>
                         ) : (
                             /* No lesson ID yet — prompt to create first */
