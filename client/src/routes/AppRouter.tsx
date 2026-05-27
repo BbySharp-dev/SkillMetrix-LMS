@@ -37,6 +37,9 @@ const InstructorCoursesPage = Loadable(lazy(() => import('@/features/courses/pag
 const CourseEditorPage = Loadable(lazy(() => import('@/features/courses/pages/CourseEditorPage')));
 const LoginPage = Loadable(lazy(() => import('@/features/auth/pages/LoginPage')));
 const RegisterPage = Loadable(lazy(() => import('@/features/auth/pages/RegisterPage')));
+const ForgotPasswordPage = Loadable(lazy(() => import('@/features/auth/pages/ForgotPasswordPage')));
+const ResetPasswordPage = Loadable(lazy(() => import('@/features/auth/pages/ResetPasswordPage')));
+const VerifyEmailPage = Loadable(lazy(() => import('@/features/auth/pages/VerifyEmailPage')));
 const EnrollmentsPage = Loadable(lazy(() => import('@/features/enrollments/pages/EnrollmentsPage')));
 const TransactionsPage = Loadable(lazy(() => import('@/features/transactions/pages/TransactionsPage')));
 const UsersPage = Loadable(lazy(() => import('@/features/admin/pages/UsersPage')));
@@ -59,6 +62,9 @@ export const appRouter = createBrowserRouter([
       { path: 'home', element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'verify-email', element: <VerifyEmailPage /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'courses/:id', element: <CourseDetailPage /> },
       { path: 'learning/:courseId', element: <LearningPage /> },

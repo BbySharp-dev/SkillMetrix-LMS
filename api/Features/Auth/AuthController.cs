@@ -135,4 +135,32 @@ public class AuthController(IAuthService authService) : BaseApiController
 
         return Ok(new ApiResponse<object>(null!, "Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới."));
     }
+
+    /// <summary>
+    /// Xác thực email của tài khoản.
+    /// </summary>
+    [HttpPost("confirm-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto dto)
+    {
+        var result = await authService.ConfirmEmailAsync(dto.UserId, dto.Token);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<object>(null!, "Xác thực email thành công! Bạn có thể đăng nhập ngay."));
+    }
+
+    /// <summary>
+    /// Gửi lại email xác thực.
+    /// </summary>
+    [HttpPost("resend-verification")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationDto dto)
+    {
+        var result = await authService.ResendVerificationEmailAsync(dto.Email);
+        if (!result.IsSuccess)
+            return HandleError(result);
+
+        return Ok(new ApiResponse<object>(null!, "Email xác thực đã được gửi lại."));
+    }
 }

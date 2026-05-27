@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { authApi, type ApiError } from '@/features/auth/api/authApi';
-import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { registerSchema, type RegisterFormValues } from '../schemas';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui';
@@ -16,7 +15,6 @@ import { Input } from '@/components/ui';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
-    const setAuth = useAuthStore((s) => s.setAuth);
 
     const form = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
@@ -25,9 +23,9 @@ export default function RegisterPage() {
 
     const registerMutation = useMutation({
         mutationFn: authApi.register,
-        onSuccess: (result) => {
-            setAuth(result.accessToken, result.refreshToken, result.user);
-            navigate('/dashboard', { replace: true });
+        onSuccess: () => {
+            toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.');
+            navigate('/login', { replace: true });
         },
         onError: (err: unknown) => {
             const error = err as ApiError;
