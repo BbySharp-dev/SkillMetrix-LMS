@@ -170,7 +170,8 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         if (actorId == null)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await courseService.DeleteCourseAsync(id, actorId.Value);
+        var isAdmin = GetCurrentUserRole() == "Admin";
+        var result = await courseService.DeleteCourseAsync(id, actorId.Value, isAdmin);
 
         if (!result.IsSuccess)
         {
@@ -194,7 +195,8 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         if (actorId == null)
             return Unauthorized(new ApiResponse<object>("Invalid token"));
 
-        var result = await courseService.RestoreCourseAsync(id, actorId.Value);
+        var isAdmin = GetCurrentUserRole() == "Admin";
+        var result = await courseService.RestoreCourseAsync(id, actorId.Value, isAdmin);
         if (!result.IsSuccess) return HandleError(result);
 
         return Ok(new ApiResponse<object?>(null, "Course restored successfully"));
