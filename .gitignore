@@ -56,3 +56,4 @@ api/appsettings.Development.json
 **/*.crt
 .vercel
 .env*.local
+text.txt
