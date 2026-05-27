@@ -1,25 +1,24 @@
 import api from '@/lib/axios';
+import { getData } from '@/shared';
+import type { ApiResponseWrapper } from '@/shared';
 import type { LessonDocumentDto } from '@/features/courses/types';
 
 const LESSON_DOCS_URL = '/lessons';
 
 export const lessonApi = {
   getDocuments: async (lessonId: string): Promise<LessonDocumentDto[]> => {
-    const { data } = await api.get<{ data: LessonDocumentDto[] }>(
-      `${LESSON_DOCS_URL}/${lessonId}/documents`
-    );
-    return data.data ?? [];
+    const res = await api.get(`${LESSON_DOCS_URL}/${lessonId}/documents`) as ApiResponseWrapper<LessonDocumentDto[]>;
+    return getData(res) ?? [];
   },
 
   createDocument: async (
     lessonId: string,
     payload: Omit<LessonDocumentDto, 'id' | 'lessonId' | 'createdAt' | 'fileTypeLabel' | 'formattedSize'>
   ): Promise<LessonDocumentDto> => {
-    const { data } = await api.post<{ data: LessonDocumentDto }>(
-      `${LESSON_DOCS_URL}/${lessonId}/documents`,
-      payload
-    );
-    return data.data;
+    const res = await api.post(`${LESSON_DOCS_URL}/${lessonId}/documents`, payload) as ApiResponseWrapper<LessonDocumentDto>;
+    const data = getData(res);
+    if (!data) throw new Error('Failed to create document');
+    return data;
   },
 
   deleteDocument: async (lessonId: string, docId: string): Promise<void> => {

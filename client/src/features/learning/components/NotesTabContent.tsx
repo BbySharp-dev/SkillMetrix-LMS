@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { StickyNote, Clock, Trash2, Edit3, Check, X } from 'lucide-react';
 import { useLessonNotes, useCreateLessonNote, useUpdateLessonNote, useDeleteLessonNote } from '../hooks/useLessonNotes';
 import { useVideoPlayerContext } from '../context/useVideoPlayerContext';
@@ -56,7 +56,7 @@ function NoteItem({
                             <Textarea
                                 value={editValue}
                                 onChange={(e) => setEditValue(e.target.value)}
-                                className="min-h-[60px] text-sm"
+                                className="min-h-15 text-sm"
                                 autoFocus
                             />
                             <div className="flex gap-2">
@@ -95,6 +95,7 @@ function NoteItem({
 export default function NotesTabContent({ lessonId }: NotesTabContentProps) {
     const [newNote, setNewNote] = useState('');
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
 
     const { data: notes = [], isLoading } = useLessonNotes(lessonId);
     const createNote = useCreateLessonNote();
@@ -111,6 +112,7 @@ export default function NotesTabContent({ lessonId }: NotesTabContentProps) {
         });
         setNewNote('');
         inputRef.current?.focus();
+        listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     const handleUpdate = (noteId: string, content: string) => {
@@ -121,12 +123,19 @@ export default function NotesTabContent({ lessonId }: NotesTabContentProps) {
         deleteNote.mutate({ lessonId, noteId });
     };
 
-    const currentTimestamp = () => {
-        const s = Math.floor(currentTimeRef.current);
-        const mm = Math.floor(s / 60).toString().padStart(2, '0');
-        const ss = (s % 60).toString().padStart(2, '0');
-        return `${mm}:${ss}`;
-    };
+    const [currentTimestamp, setCurrentTimestamp] = useState('00:00');
+
+    useEffect(() => {
+        const update = () => {
+            const s = Math.floor(currentTimeRef.current);
+            const mm = Math.floor(s / 60).toString().padStart(2, '0');
+            const ss = (s % 60).toString().padStart(2, '0');
+            setCurrentTimestamp(`${mm}:${ss}`);
+        };
+        update();
+        const interval = setInterval(update, 500);
+        return () => clearInterval(interval);
+    }, [currentTimeRef]);
 
     const handleSeek = (seconds: number) => {
         seekToRef.current?.(seconds);
@@ -142,7 +151,7 @@ export default function NotesTabContent({ lessonId }: NotesTabContentProps) {
                         Ghi chú tại
                         <Badge variant="outline" className="font-mono text-[10px] text-indigo-600 border-indigo-200 bg-white">
                             <Clock className="size-3 mr-0.5" />
-                            {currentTimestamp()}
+                            {currentTimestamp}
                         </Badge>
                     </span>
                 </div>
@@ -151,7 +160,7 @@ export default function NotesTabContent({ lessonId }: NotesTabContentProps) {
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     placeholder="Viết ghi chú của bạn tại thời điểm này..."
-                    className="min-h-[80px] text-sm resize-none bg-white"
+                    className="min-h-20 text-sm resize-none bg-white"
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                             e.preventDefault();
@@ -184,7 +193,7 @@ export default function NotesTabContent({ lessonId }: NotesTabContentProps) {
                     <p className="text-xs mt-1">Nhấn <kbd className="px-1 py-0.5 bg-gray-100 rounded text-gray-500">Ctrl+Enter</kbd> để lưu nhanh.</p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div ref={listRef} className="space-y-3">
                     {notes.map((note) => (
                         <NoteItem
                             key={note.id}

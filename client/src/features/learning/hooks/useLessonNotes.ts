@@ -47,12 +47,28 @@ export function useUpdateLessonNote() {
       noteId: string;
       content: string;
     }) => lessonNotesApi.update(lessonId, noteId, { content }),
-    onSuccess: (_, { lessonId }) => {
-      qc.invalidateQueries({ queryKey: ['lesson-notes', lessonId] });
-      toast.success('Đã cập nhật ghi chú.');
+    onMutate: async ({ lessonId, noteId, content }) => {
+      await qc.cancelQueries({ queryKey: ['lesson-notes', lessonId] });
+      const prev = qc.getQueryData<import('@/features/courses/types').LessonNoteDto[]>(
+        ['lesson-notes', lessonId]
+      );
+      qc.setQueryData<import('@/features/courses/types').LessonNoteDto[]>(
+        ['lesson-notes', lessonId],
+        (old) => old?.map((n) => n.id === noteId ? { ...n, content } : n)
+      );
+      return { prev };
     },
-    onError: () => {
+    onError: (_, { lessonId }, ctx) => {
+      if (ctx?.prev) {
+        qc.setQueryData(['lesson-notes', lessonId], ctx.prev);
+      }
       toast.error('Cập nhật thất bại.');
+    },
+    onSettled: (_, __, { lessonId }) => {
+      qc.invalidateQueries({ queryKey: ['lesson-notes', lessonId] });
+    },
+    onSuccess: () => {
+      toast.success('Đã cập nhật ghi chú.');
     },
   });
 }
@@ -63,12 +79,28 @@ export function useDeleteLessonNote() {
   return useMutation({
     mutationFn: ({ lessonId, noteId }: { lessonId: string; noteId: string }) =>
       lessonNotesApi.delete(lessonId, noteId),
-    onSuccess: (_, { lessonId }) => {
-      qc.invalidateQueries({ queryKey: ['lesson-notes', lessonId] });
-      toast.success('Đã xóa ghi chú.');
+    onMutate: async ({ lessonId, noteId }) => {
+      await qc.cancelQueries({ queryKey: ['lesson-notes', lessonId] });
+      const prev = qc.getQueryData<import('@/features/courses/types').LessonNoteDto[]>(
+        ['lesson-notes', lessonId]
+      );
+      qc.setQueryData<import('@/features/courses/types').LessonNoteDto[]>(
+        ['lesson-notes', lessonId],
+        (old) => old?.filter((n) => n.id !== noteId)
+      );
+      return { prev };
     },
-    onError: () => {
+    onError: (_, { lessonId }, ctx) => {
+      if (ctx?.prev) {
+        qc.setQueryData(['lesson-notes', lessonId], ctx.prev);
+      }
       toast.error('Xóa thất bại.');
+    },
+    onSettled: (_, __, { lessonId }) => {
+      qc.invalidateQueries({ queryKey: ['lesson-notes', lessonId] });
+    },
+    onSuccess: () => {
+      toast.success('Đã xóa ghi chú.');
     },
   });
 }
