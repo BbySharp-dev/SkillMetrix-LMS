@@ -10,11 +10,8 @@ public class DataSeederService(
 {
     public const string DefaultPassword = "Password@123";
 
-    public async Task<Result<SeedSummaryDto>> ResetAndSeedStrictAsync()
+    public async Task<SeedSummaryDto> ResetAndSeedStrictInternalAsync()
     {
-        if (!environment.IsDevelopment())
-            return Result<SeedSummaryDto>.Forbidden("Seed API is allowed only in Development mode.");
-
         await ResetAllDataInternalAsync();
         await EnsureRolesAsync();
 
@@ -35,6 +32,14 @@ public class DataSeederService(
             .ToList();
 
         return summary;
+    }
+
+    public async Task<Result<SeedSummaryDto>> ResetAndSeedStrictAsync()
+    {
+        if (!environment.IsDevelopment())
+            return Result<SeedSummaryDto>.Forbidden("Seed API is allowed only in Development mode.");
+
+        return await ResetAndSeedStrictInternalAsync();
     }
 
     /// <summary>
