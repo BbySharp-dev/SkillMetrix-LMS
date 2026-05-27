@@ -1,7 +1,7 @@
 import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { LogIn } from 'lucide-react';
+import { LogIn, Shield, BookOpen, GraduationCap } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -19,6 +19,18 @@ export default function LoginPage() {
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const setAuth = useAuthStore((s) => s.setAuth);
+
+    const handleQuickLogin = (role: 'admin' | 'instructor' | 'student') => {
+        let email = '';
+        if (role === 'admin') email = 'admin@skillmetrix.dev';
+        else if (role === 'instructor') email = 'instructor1@skillmetrix.dev';
+        else email = 'student1@skillmetrix.dev';
+
+        loginMutation.mutate({
+            email,
+            password: 'Password@123',
+        });
+    };
 
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
@@ -99,7 +111,6 @@ export default function LoginPage() {
                                             <FormLabel>Mật khẩu</FormLabel>
                                             <Link
                                                 to="/forgot-password"
-                                                title="Chức năng đang phát triển"
                                                 className="text-xs text-indigo-600 hover:underline"
                                             >
                                                 Quên mật khẩu?
@@ -131,7 +142,51 @@ export default function LoginPage() {
                 </CardContent>
 
                 <CardFooter className="flex flex-col space-y-4">
-                    <div className="text-center text-sm text-gray-500">
+                    <div className="relative w-full my-2">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-gray-100" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-white/80 backdrop-blur-md px-2 text-gray-400 font-bold tracking-wider">
+                                Đăng nhập nhanh Demo
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 w-full">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleQuickLogin('admin')}
+                            disabled={isSubmitting}
+                            className="flex flex-col items-center justify-center h-20 border-rose-100 hover:border-rose-400 hover:bg-rose-50/50 transition-all group rounded-xl"
+                        >
+                            <Shield className="size-5 text-rose-500 group-hover:scale-110 transition-transform mb-1" />
+                            <span className="text-[10px] font-black text-rose-700">Admin</span>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleQuickLogin('instructor')}
+                            disabled={isSubmitting}
+                            className="flex flex-col items-center justify-center h-20 border-indigo-100 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group rounded-xl"
+                        >
+                            <BookOpen className="size-5 text-indigo-500 group-hover:scale-110 transition-transform mb-1" />
+                            <span className="text-[10px] font-black text-indigo-700">Giảng viên</span>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleQuickLogin('student')}
+                            disabled={isSubmitting}
+                            className="flex flex-col items-center justify-center h-20 border-emerald-100 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group rounded-xl"
+                        >
+                            <GraduationCap className="size-5 text-emerald-500 group-hover:scale-110 transition-transform mb-1" />
+                            <span className="text-[10px] font-black text-emerald-700">Học viên</span>
+                        </Button>
+                    </div>
+
+                    <div className="text-center text-sm text-gray-500 pt-2">
                         Chưa có tài khoản?{' '}
                         <Link to="/register" className="text-indigo-600 font-bold hover:underline">
                             Đăng ký ngay
