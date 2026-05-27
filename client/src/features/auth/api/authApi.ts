@@ -37,4 +37,20 @@ export const authApi = {
     logout: async (refreshToken: string): Promise<void> => {
         await api.post('/auth/logout', { refreshToken });
     },
+    forgotPassword: async (email: string): Promise<void> => {
+        const res = await api.post('/auth/forgot-password', { email });
+        assertSuccess(res);
+    },
+    resetPassword: async (payload: { email: string; token: string; newPassword: string }): Promise<void> => {
+        const res = await api.post('/auth/reset-password', payload);
+        assertSuccess(res);
+    },
+    verifyEmail: async (userId: string, token: string): Promise<void> => {
+        const res = await api.post('/auth/confirm-email', { userId, token });
+        assertSuccess(res);
+    },
+    resendVerification: async (email: string): Promise<void> => {
+        const res = await api.post('/auth/resend-verification', { email });
+        assertSuccess(res);
+    },
 };

@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using SkillMetrix_LMS.API.Features.Auth.DTOs;
+using SkillMetrix_LMS.API.Infrastructure.Email;
 
 namespace SkillMetrix_LMS.API.Features.Auth;
 
@@ -12,7 +13,8 @@ public class AuthService(
     UserManager<User> userManager,
     ApplicationDbContext context,
     IConfiguration configuration,
-    ILogger<AuthService> logger)
+    ILogger<AuthService> logger,
+    IEmailService emailService)
     : IAuthService
 {
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto)
@@ -49,6 +51,11 @@ public class AuthService(
 
         // 4. Tạo cặp AccessToken + RefreshToken
         var authResponse = await GenerateAuthResponseAsync(user);
+
+        // 5. Gửi email xác thực
+        var confirmToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirmLink = $"{configuration["App:ClientUrl"] ?? "http://localhost:5173"}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(confirmToken)}";
+        await emailService.SendEmailConfirmationEmailAsync(user.Email!, confirmLink);
 
         return authResponse;
     }
@@ -220,11 +227,11 @@ public class AuthService(
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-        // TODO: Gửi email chứa token đặt lại mật khẩu
-        // Ví dụ: await emailService.SendPasswordResetEmailAsync(user.Email, token);
-        // Hiện tại trả về token để dev test (xóa dòng này khi tích hợp email)
-        logger.LogInformation("Password reset token for {Email}: {Token}", email, token);
+        var clientUrl = configuration["App:ClientUrl"] ?? "http://localhost:5173";
+        var resetLink = $"{clientUrl}/reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+        await emailService.SendPasswordResetEmailAsync(email, resetLink);
 
+        logger.LogInformation("Password reset email sent to {Email}", email);
         return Result<string>.Success(token);
     }
 
@@ -232,16 +239,54 @@ public class AuthService(
     {
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user == null)
-            return Result.Failure("Token không hợp lệ hoặc đã hết hạn.");
+            return Result.Failure("Token không hợp lệ hoặc đã hết hạn.", ErrorType.ValidationError);
 
         var result = await userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            return Result.Failure(errors);
+            return Result.Failure(errors, ErrorType.ValidationError);
         }
 
         logger.LogInformation("Password reset successfully for {Email}", dto.Email);
+        return Result.Success();
+    }
+
+    public async Task<Result> ConfirmEmailAsync(string userId, string token)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null)
+            return Result.Failure("Người dùng không tồn tại.", ErrorType.NotFound);
+
+        if (user.EmailConfirmed)
+            return Result.Failure("Email đã được xác thực trước đó.", ErrorType.BusinessRule);
+
+        var result = await userManager.ConfirmEmailAsync(user, token);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(errors, ErrorType.ValidationError);
+        }
+
+        logger.LogInformation("Email confirmed for user {UserId}", userId);
+        return Result.Success();
+    }
+
+    public async Task<Result> ResendVerificationEmailAsync(string email)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+            // Không tiết lộ email không tồn tại để tránh enumeration attack
+            return Result.Success();
+
+        if (user.EmailConfirmed)
+            return Result.Failure("Email đã được xác thực trước đó.", ErrorType.BusinessRule);
+
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirmLink = $"{configuration["App:ClientUrl"] ?? "http://localhost:5173"}/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+        await emailService.SendEmailConfirmationEmailAsync(email, confirmLink);
+
+        logger.LogInformation("Verification email resent to {Email}", email);
         return Result.Success();
     }
 }
