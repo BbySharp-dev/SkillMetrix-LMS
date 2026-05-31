@@ -17,7 +17,7 @@ test.describe('Auth flows', () => {
     await page.fill('input[type="password"]', TEST_USERS.instructor.password);
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/instructor/);
-    await expect(page.locator('text=Tổng quan').or(page.locator('text=Quản lý'))).toBeVisible();
+    await expect(page.locator('text=Tổng quan').first()).toBeVisible();
   });
 
   test('Admin login → redirect to /admin', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Auth flows', () => {
     await page.fill('input[type="password"]', TEST_USERS.admin.password);
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/admin/);
-    await expect(page.locator('text=Tổng quan').or(page.locator('text=Quản trị'))).toBeVisible();
+    await expect(page.locator('text=Tổng quan').first()).toBeVisible();
   });
 
   test('Moderator login → redirect to /admin', async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('Auth flows', () => {
     await page.fill('input[type="email"]', TEST_USERS.student.email);
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
-    await expect(page.locator('text=Sai email hoặc mật khẩu, thử lại').or(page.locator('[role="alert"]'))).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Invalid email or password').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('Unauthenticated access to /dashboard → redirect to /login', async ({ page }) => {

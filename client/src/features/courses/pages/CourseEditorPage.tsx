@@ -107,7 +107,7 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
                 onSuccess: (newCourse) => {
                     if (newCourse?.id) {
                         toast.success('Đã tạo khóa học thành công');
-                        navigate('/admin/my-courses', { replace: true });
+                        navigate(user?.role === 'Instructor' ? '/instructor/courses' : '/admin/my-courses', { replace: true });
                     } else {
                         toast.error('Lỗi: Không nhận được ID từ server.');
                     }
