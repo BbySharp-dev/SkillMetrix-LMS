@@ -136,136 +136,140 @@ export default function InstructorCoursesPage() {
 
             {/* Courses Table */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-gray-50/50">
-                        <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-100 font-black text-[10px] uppercase tracking-widest text-gray-400 py-6 pl-8">Khóa học</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Giá bán</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Trạng thái</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Học viên</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Cập nhật</TableHead>
-                            <TableHead className="w-25 text-right pr-8"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell colSpan={6} className="py-8 pl-8">
-                                        <div className="flex gap-4">
-                                            <Skeleton className="w-20 h-12 rounded-lg" />
-                                            <div className="space-y-2 flex-1">
-                                                <Skeleton className="h-4 w-3/4" />
-                                                <Skeleton className="h-3 w-1/4" />
+                <div className="overflow-x-auto w-full">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow className="hover:bg-transparent">
+                                <TableHead className="w-100 font-black text-[10px] uppercase tracking-widest text-gray-400 py-6 pl-8">Khóa học</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Giá bán</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Trạng thái</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Học viên</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-400">Cập nhật</TableHead>
+                                <TableHead className="w-25 text-right pr-8"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={6} className="py-8 pl-8">
+                                            <div className="flex gap-4">
+                                                <Skeleton className="w-20 h-12 rounded-lg" />
+                                                <div className="space-y-2 flex-1">
+                                                    <Skeleton className="h-4 w-3/4" />
+                                                    <Skeleton className="h-3 w-1/4" />
+                                                </div>
                                             </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : courses.map((course) => (
+                                <TableRow key={course.id} className={`group hover:bg-gray-50/50 transition-colors ${course.isDeleted ? 'opacity-50 bg-red-50/20' : ''}`}>
+                                    <TableCell className="py-6 pl-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-20 h-12 rounded-lg bg-gray-100 shrink-0 overflow-hidden border border-gray-100 flex items-center justify-center">
+                                                {course.thumbnail ? (
+                                                    <img 
+                                                        src={course.thumbnail} 
+                                                        alt={course.title ?? ''}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 opacity-20" />
+                                                )}
+                                            </div>
+                                            <Link 
+                                                to={course.isDeleted ? '#' : `/instructor/courses/${course.id}`}
+                                                className={`font-bold text-sm transition-colors line-clamp-2 ${course.isDeleted ? 'text-gray-400 line-through pointer-events-none' : 'text-gray-900 hover:text-indigo-600'}`}
+                                            >
+                                                {course.title}
+                                            </Link>
                                         </div>
                                     </TableCell>
-                                </TableRow>
-                            ))
-                        ) : courses.map((course) => (
-                            <TableRow key={course.id} className={`group hover:bg-gray-50/50 transition-colors ${course.isDeleted ? 'opacity-50 bg-red-50/20' : ''}`}>
-                                <TableCell className="py-6 pl-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-20 h-12 rounded-lg bg-gray-100 shrink-0 overflow-hidden border border-gray-100 flex items-center justify-center">
-                                            {course.thumbnail ? (
-                                                <img 
-                                                    src={course.thumbnail} 
-                                                    alt={course.title ?? ''}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 opacity-20" />
-                                            )}
-                                        </div>
-                                        <Link 
-                                            to={course.isDeleted ? '#' : `/instructor/courses/${course.id}`}
-                                            className={`font-bold text-sm transition-colors line-clamp-2 ${course.isDeleted ? 'text-gray-400 line-through pointer-events-none' : 'text-gray-900 hover:text-indigo-600'}`}
-                                        >
-                                            {course.title}
-                                        </Link>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="font-black text-sm text-gray-900">
-                                    {course.price.toLocaleString('vi-VN')}đ
-                                </TableCell>
-                                <TableCell>
-                                    <Badge className={`rounded-lg px-2.5 py-1 font-black text-[10px] uppercase tracking-wider border ${statusStyles[course.status as CourseStatus] ?? statusStyles['Draft']}`}>
-                                        {statusLabels[course.status as CourseStatus] ?? 'Bản nháp'}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="font-bold text-sm text-gray-500">
-                                    {course.enrollmentCount}
-                                </TableCell>
-                                <TableCell className="text-xs font-bold text-gray-400">
-                                    {new Date(course.createdAt).toLocaleDateString('vi-VN')}
-                                </TableCell>
-                                <TableCell className="text-right pr-8">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-white border border-transparent hover:border-gray-200">
-                                                <MoreHorizontal className="size-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 shadow-xl border-gray-100">
-                                            {!course.isDeleted ? (
-                                                <>
-                                                    <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
-                                                        <Link to={`/instructor/courses/${course.id}`}>
-                                                            <Edit2 className="size-4 mr-3 text-gray-400" />
-                                                            Chỉnh sửa
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    {course.status === 'Draft' && (
-                                                        <DropdownMenuItem 
-                                                            onClick={() => submitCourse.mutate(course.id)}
-                                                            className="rounded-lg py-2 font-bold text-sm cursor-pointer text-indigo-600 focus:bg-indigo-50"
-                                                        >
-                                                            <Plus className="size-4 mr-3" />
-                                                            Nộp duyệt
+                                    <TableCell className="font-black text-sm text-gray-900">
+                                        {course.price.toLocaleString('vi-VN')}đ
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge className={`rounded-lg px-2.5 py-1 font-black text-[10px] uppercase tracking-wider border ${statusStyles[course.status as CourseStatus] ?? statusStyles['Draft']}`}>
+                                            {statusLabels[course.status as CourseStatus] ?? 'Bản nháp'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="font-bold text-sm text-gray-500">
+                                        {course.enrollmentCount}
+                                    </TableCell>
+                                    <TableCell className="text-xs font-bold text-gray-400">
+                                        {new Date(course.createdAt).toLocaleDateString('vi-VN')}
+                                    </TableCell>
+                                    <TableCell className="text-right pr-8">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-white border border-transparent hover:border-gray-200">
+                                                    <MoreHorizontal className="size-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 shadow-xl border-gray-100">
+                                                {!course.isDeleted ? (
+                                                    <>
+                                                        <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
+                                                            <Link to={`/instructor/courses/${course.id}`}>
+                                                                <Edit2 className="size-4 mr-3 text-gray-400" />
+                                                                Chỉnh sửa
+                                                            </Link>
                                                         </DropdownMenuItem>
-                                                    )}
-                                                    <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
-                                                        <Link to={`/courses/${course.id}`}>
-                                                            <Eye className="size-4 mr-3 text-gray-400" />
-                                                            Xem trước
-                                                        </Link>
-                                                    </DropdownMenuItem>
+                                                        {course.status === 'Draft' && (
+                                                            <DropdownMenuItem 
+                                                                onClick={() => submitCourse.mutate(course.id)}
+                                                                className="rounded-lg py-2 font-bold text-sm cursor-pointer text-indigo-600 focus:bg-indigo-50"
+                                                            >
+                                                                <Plus className="size-4 mr-3" />
+                                                                Nộp duyệt
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        <DropdownMenuItem asChild className="rounded-lg py-2 font-bold text-sm cursor-pointer">
+                                                            <Link to={`/courses/${course.id}`}>
+                                                                <Eye className="size-4 mr-3 text-gray-400" />
+                                                                Xem trước
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem 
+                                                            onClick={() => setDeleteCourseId(course.id)}
+                                                            className="rounded-lg py-2 font-bold text-sm text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-600"
+                                                        >
+                                                            <Trash2 className="size-4 mr-3" />
+                                                            Xóa
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                ) : (
                                                     <DropdownMenuItem 
-                                                        onClick={() => setDeleteCourseId(course.id)}
-                                                        className="rounded-lg py-2 font-bold text-sm text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-600"
+                                                        onClick={() => setRestoreCourseId(course.id)}
+                                                        className="rounded-lg py-2 font-bold text-sm text-emerald-600 cursor-pointer focus:bg-emerald-50 focus:text-emerald-600"
                                                     >
-                                                        <Trash2 className="size-4 mr-3" />
-                                                        Xóa
+                                                        <RotateCcw className="size-4 mr-3" />
+                                                        Khôi phục
                                                     </DropdownMenuItem>
-                                                </>
-                                            ) : (
-                                                <DropdownMenuItem 
-                                                    onClick={() => setRestoreCourseId(course.id)}
-                                                    className="rounded-lg py-2 font-bold text-sm text-emerald-600 cursor-pointer focus:bg-emerald-50 focus:text-emerald-600"
-                                                >
-                                                    <RotateCcw className="size-4 mr-3" />
-                                                    Khôi phục
-                                                </DropdownMenuItem>
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                    {totalPages > 1 && (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
-                            <div className="text-sm font-bold text-gray-500">
-                                Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
-                            </div>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+                {totalRecords > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 bg-white">
+                        <div className="text-sm font-bold text-gray-500">
+                            Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
+                        </div>
+                        {totalPages > 1 && (
                             <Pagination
                                 pageNumber={page}
                                 totalPages={totalPages}
                                 onChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             />
-                        </div>
-                    )}
-                </Table>
+                        )}
+                    </div>
+                )}
             </div>
 
                 {/* Confirm Modals */}

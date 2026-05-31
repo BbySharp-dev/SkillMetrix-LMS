@@ -115,135 +115,139 @@ export default function ApprovalsPage() {
 
             {/* Table */}
             <Card className="border border-gray-200 shadow-sm overflow-hidden rounded-2xl">
-                <Table>
-                    <TableHeader className="bg-gray-50/50">
-                        <TableRow className="hover:bg-transparent border-gray-100">
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 py-5 pl-6 w-[35%]">Khóa học</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giảng viên</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Ngày nộp</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giá</TableHead>
-                            <TableHead className="text-right font-black text-[10px] uppercase tracking-widest text-gray-500 pr-6">Thao tác</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading
-                            ? Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i} className="border-gray-50">
-                                    <TableCell className="py-5 pl-6">
-                                        <div className="flex items-center gap-3">
-                                            <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
-                                            <Skeleton className="h-4 w-48 rounded" />
-                                        </div>
-                                    </TableCell>
-                                    <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-20 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-16 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-9 w-40 ml-auto rounded-xl" /></TableCell>
-                                </TableRow>
-                            ))
-                            : courses.length === 0 && !searchTerm ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-64 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-3 opacity-50">
-                                            <CheckCircle2 className="size-12 text-gray-300" />
-                                            <div className="space-y-1">
-                                                <p className="text-base font-black text-gray-900">Không có yêu cầu chờ duyệt</p>
-                                                <p className="text-sm font-medium text-gray-400">Tất cả khóa học đã được xử lý xong.</p>
+                <div className="overflow-x-auto w-full">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow className="hover:bg-transparent border-gray-100">
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 py-5 pl-6 w-[35%]">Khóa học</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giảng viên</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Ngày nộp</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giá</TableHead>
+                                <TableHead className="text-right font-black text-[10px] uppercase tracking-widest text-gray-500 pr-6">Thao tác</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading
+                                ? Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i} className="border-gray-50">
+                                        <TableCell className="py-5 pl-6">
+                                            <div className="flex items-center gap-3">
+                                                <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                                                <Skeleton className="h-4 w-48 rounded" />
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : courses.length === 0 && searchTerm ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-32 text-center text-sm font-medium text-gray-400">
-                                        Không tìm thấy khóa học phù hợp với "{searchTerm}"
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                courses.map((course) => {
-                                    const isApproving = approveCourse.isPending && approveCourse.variables === course.id;
-                                    const isRejecting = rejectCourse.isPending && rejectCourse.variables?.courseId === course.id;
-                                    const isProcessing = isApproving || isRejecting;
+                                        </TableCell>
+                                        <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-9 w-40 ml-auto rounded-xl" /></TableCell>
+                                    </TableRow>
+                                ))
+                                : courses.length === 0 && !searchTerm ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-64 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-3 opacity-50">
+                                                <CheckCircle2 className="size-12 text-gray-300" />
+                                                <div className="space-y-1">
+                                                    <p className="text-base font-black text-gray-900">Không có yêu cầu chờ duyệt</p>
+                                                    <p className="text-sm font-medium text-gray-400">Tất cả khóa học đã được xử lý xong.</p>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : courses.length === 0 && searchTerm ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-32 text-center text-sm font-medium text-gray-400">
+                                            Không tìm thấy khóa học phù hợp với "{searchTerm}"
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    courses.map((course) => {
+                                        const isApproving = approveCourse.isPending && approveCourse.variables === course.id;
+                                        const isRejecting = rejectCourse.isPending && rejectCourse.variables?.courseId === course.id;
+                                        const isProcessing = isApproving || isRejecting;
 
-                                    return (
-                                        <TableRow key={course.id} className="hover:bg-gray-50/40 border-gray-50 group transition-colors">
-                                            <TableCell className="py-5 pl-6">
-                                                <div className="flex items-center gap-3">
-                                                    {course.thumbnail ? (
-                                                        <img src={course.thumbnail} alt={course.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-100" />
-                                                    ) : (
-                                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-                                                            <Eye className="size-4 text-indigo-400" />
+                                        return (
+                                            <TableRow key={course.id} className="hover:bg-gray-50/40 border-gray-50 group transition-colors">
+                                                <TableCell className="py-5 pl-6">
+                                                    <div className="flex items-center gap-3">
+                                                        {course.thumbnail ? (
+                                                            <img src={course.thumbnail} alt={course.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-100" />
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                                                                <Eye className="size-4 text-indigo-400" />
+                                                            </div>
+                                                        )}
+                                                        <div className="min-w-0">
+                                                            <p className="font-black text-sm text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{course.title}</p>
+                                                            <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
+                                                                {course.description?.substring(0, 80)}{course.description && course.description.length > 80 ? '...' : ''}
+                                                            </p>
                                                         </div>
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <p className="font-black text-sm text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{course.title}</p>
-                                                        <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
-                                                            {course.description?.substring(0, 80)}{course.description && course.description.length > 80 ? '...' : ''}
-                                                        </p>
                                                     </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
-                                                    <User className="size-3.5 text-gray-400 shrink-0" />
-                                                    {course.instructorName}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="text-xs font-bold text-gray-400">{formatDate(course.createdAt)}</span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="font-black text-sm text-gray-900">
-                                                    {course.price <= 0 ? 'Miễn phí' : formatCurrency(course.price)}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="pr-6">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold px-3 border-gray-200 hover:bg-gray-50 text-gray-600" asChild>
-                                                        <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer">
-                                                            <Eye className="size-4 mr-1" />Xem
-                                                        </a>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        className="h-9 rounded-xl font-bold px-3 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-                                                        onClick={() => approveCourse.mutate(course.id)}
-                                                        disabled={isProcessing}
-                                                    >
-                                                        {isApproving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-                                                        <span className="ml-1">Duyệt</span>
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-9 rounded-xl font-bold px-3 border-red-200 text-red-600 hover:bg-red-50"
-                                                        onClick={() => setRejectingCourseId(course.id)}
-                                                        disabled={isProcessing}
-                                                    >
-                                                        {isRejecting ? <Loader2 className="size-4 animate-spin" /> : <XCircle className="size-4" />}
-                                                        <span className="ml-1">Từ chối</span>
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })
-                            )}
-                    </TableBody>
-                    {totalPages > 1 && (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
-                            <div className="text-sm font-bold text-gray-500">
-                                Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học chờ duyệt
-                            </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
+                                                        <User className="size-3.5 text-gray-400 shrink-0" />
+                                                        {course.instructorName}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="text-xs font-bold text-gray-400">{formatDate(course.createdAt)}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-black text-sm text-gray-900">
+                                                        {course.price <= 0 ? 'Miễn phí' : formatCurrency(course.price)}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="pr-6">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold px-3 border-gray-200 hover:bg-gray-50 text-gray-600" asChild>
+                                                            <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer">
+                                                                <Eye className="size-4 mr-1" />Xem
+                                                            </a>
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-9 rounded-xl font-bold px-3 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                                            onClick={() => approveCourse.mutate(course.id)}
+                                                            disabled={isProcessing}
+                                                        >
+                                                            {isApproving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+                                                            <span className="ml-1">Duyệt</span>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-9 rounded-xl font-bold px-3 border-red-200 text-red-600 hover:bg-red-50"
+                                                            onClick={() => setRejectingCourseId(course.id)}
+                                                            disabled={isProcessing}
+                                                        >
+                                                            {isRejecting ? <Loader2 className="size-4 animate-spin" /> : <XCircle className="size-4" />}
+                                                            <span className="ml-1">Từ chối</span>
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                )}
+                        </TableBody>
+                    </Table>
+                </div>
+                {totalRecords > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 bg-white">
+                        <div className="text-sm font-bold text-gray-500">
+                            Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học chờ duyệt
+                        </div>
+                        {totalPages > 1 && (
                             <Pagination
                                 pageNumber={page}
                                 totalPages={totalPages}
                                 onChange={setPage}
                             />
-                        </div>
-                    )}
-                </Table>
+                        )}
+                    </div>
+                )}
             </Card>
 
             {/* Reject Dialog */}

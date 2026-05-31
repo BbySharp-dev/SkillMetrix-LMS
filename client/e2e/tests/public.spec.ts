@@ -4,7 +4,7 @@ test.describe('Public pages', () => {
   test('Home page loads with course listings', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/SkillMetrix|Khóa học/);
-    await expect(page.locator('[class*="course"], [class*="Course"], article').first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('a[href^="/courses/"]').first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('Course search works', async ({ page }) => {
@@ -14,7 +14,7 @@ test.describe('Public pages', () => {
     await page.keyboard.press('Enter');
     await page.waitForLoadState('networkidle');
     // Should show results or empty state
-    const cards = page.locator('[class*="course"], [class*="Course"]');
+    const cards = page.locator('a[href^="/courses/"], h3:has-text("không tìm thấy"), h3:has-text("Chưa có")');
     await expect(cards.first()).toBeVisible({ timeout: 10_000 });
   });
 
@@ -58,11 +58,11 @@ test.describe('Public pages', () => {
       
       // Check curriculum
       await expect(
-        page.locator('text=Cấu trúc khóa học, text=Chương, text=Nội dung').first()
+        page.locator('text=Nội dung khóa học').first()
       ).toBeVisible({ timeout: 10_000 });
       
       // Check enroll button
-      const enrollBtn = page.locator('button:has-text("Đăng ký"), button:has-text("Mua khóa học"), button:has-text("Enroll")').first();
+      const enrollBtn = page.locator('button:has-text("Đăng ký"), button:has-text("Mua khóa học"), button:has-text("ĐĂNG KÝ NGAY"), button:has-text("VÀO HỌC NGAY"), button:has-text("Enroll")').first();
       await expect(enrollBtn).toBeVisible({ timeout: 5000 });
     }
   });
@@ -79,7 +79,7 @@ test.describe('Public pages', () => {
   test('Register page loads', async ({ page }) => {
     await page.goto('/register');
     await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
   });
 });

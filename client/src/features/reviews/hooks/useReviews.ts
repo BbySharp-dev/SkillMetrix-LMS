@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { reviewsApi, type CreateReviewDto, type UpdateReviewDto } from '../api/reviewsApi';
+import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 
 export function useCourseReviews(courseId: string, page = 1) {
     return useQuery({
@@ -19,10 +20,11 @@ export function useCourseReviewStats(courseId: string) {
 }
 
 export function useUserReview(courseId: string) {
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     return useQuery({
         queryKey: ['reviews', 'user', courseId] as const,
         queryFn: () => reviewsApi.getUserReview(courseId),
-        enabled: !!courseId,
+        enabled: !!courseId && isAuthenticated,
     });
 }
 

@@ -73,9 +73,9 @@ test.describe('Admin Features', () => {
   test('Course management shows status stats', async ({ page }) => {
     await page.goto('/admin/courses');
     await page.waitForLoadState('networkidle');
-    await expect(
-      page.locator('text=Đang hiển thị, text=Chờ duyệt, text=Bị từ từ').first()
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Đang hiển thị').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Chờ duyệt').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Bị từ chối').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('Navigate to approvals page', async ({ page }) => {
@@ -104,7 +104,8 @@ test.describe('Admin Features', () => {
     const studentPage = await ctx.newPage();
     await loginAs(studentPage, 'student');
     await studentPage.goto('/admin');
-    await expect(studentPage).toHaveURL(/login|forbidden/, { timeout: 5000 });
+    // RoleRoute redirects non-admin roles to the home page '/'
+    await expect(studentPage).toHaveURL(/\/$/);
     await ctx.close();
   });
 });
