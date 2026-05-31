@@ -157,139 +157,143 @@ export default function AdminCoursesPage() {
             )}
 
             <Card className="border border-gray-200 shadow-sm overflow-hidden rounded-2xl">
-                <Table>
-                    <TableHeader className="bg-gray-50/50">
-                        <TableRow className="hover:bg-transparent border-gray-100">
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 py-5 pl-6 w-[30%]">Khóa học</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giảng viên</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Trạng thái</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Học viên</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giá</TableHead>
-                            <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Đánh giá</TableHead>
-                            <TableHead className="text-right font-black text-[10px] uppercase tracking-widest text-gray-500 pr-6">Thao tác</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading
-                            ? Array.from({ length: 8 }).map((_, i) => (
-                                <TableRow key={i} className="border-gray-50">
-                                    <TableCell className="py-5 pl-6"><div className="flex items-center gap-3"><Skeleton className="w-12 h-12 rounded-xl shrink-0" /><Skeleton className="h-4 w-40 rounded" /></div></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-12 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-16 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-12 rounded" /></TableCell>
-                                    <TableCell><Skeleton className="h-9 w-32 ml-auto rounded-xl" /></TableCell>
-                                </TableRow>
-                            ))
-                            : courses.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="h-64 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-3 opacity-50">
-                                            <BookImage className="size-12 text-gray-300" />
-                                            <div className="space-y-1">
-                                                <p className="text-base font-black text-gray-900">Không có khóa học nào</p>
-                                                <p className="text-sm font-medium text-gray-400">Thử thay đổi bộ lọc để xem kết quả khác.</p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : courses.map(course => {
-                                const isApproving = approveCourse.isPending && approveCourse.variables === course.id;
-                                const isRejecting = rejectCourse.isPending && rejectCourse.variables?.courseId === course.id;
-                                const isProcessing = isApproving || isRejecting;
-                                return (
-                                    <TableRow key={course.id} className={`hover:bg-gray-50/40 border-gray-50 group transition-colors ${course.isDeleted ? 'opacity-50 bg-red-50/20' : ''}`}>
-                                        <TableCell className="py-5 pl-6">
-                                            <div className="flex items-center gap-3">
-                                                {course.thumbnail
-                                                    ? <img src={course.thumbnail} alt={course.title} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" />
-                                                    : <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0"><BookImage className="size-5 text-indigo-400" /></div>
-                                                }
-                                                <div className="min-w-0">
-                                                    <p className={`font-black text-sm truncate transition-colors ${course.isDeleted ? 'text-gray-400 line-through' : 'text-gray-900 group-hover:text-indigo-600'}`}>{course.title}</p>
-                                                    <p className="text-xs text-gray-400 font-medium mt-0.5">Cập nhật: {formatDate(course.updatedAt ?? course.createdAt)}</p>
+                <div className="overflow-x-auto w-full">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow className="hover:bg-transparent border-gray-100">
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 py-5 pl-6 w-[30%]">Khóa học</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giảng viên</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Trạng thái</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Học viên</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giá</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Đánh giá</TableHead>
+                                <TableHead className="text-right font-black text-[10px] uppercase tracking-widest text-gray-500 pr-6">Thao tác</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading
+                                ? Array.from({ length: 8 }).map((_, i) => (
+                                    <TableRow key={i} className="border-gray-50">
+                                        <TableCell className="py-5 pl-6"><div className="flex items-center gap-3"><Skeleton className="w-12 h-12 rounded-xl shrink-0" /><Skeleton className="h-4 w-40 rounded" /></div></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-12 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-12 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-9 w-32 ml-auto rounded-xl" /></TableCell>
+                                    </TableRow>
+                                ))
+                                : courses.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="h-64 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-3 opacity-50">
+                                                <BookImage className="size-12 text-gray-300" />
+                                                <div className="space-y-1">
+                                                    <p className="text-base font-black text-gray-900">Không có khóa học nào</p>
+                                                    <p className="text-sm font-medium text-gray-400">Thử thay đổi bộ lọc để xem kết quả khác.</p>
                                                 </div>
                                             </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
-                                                <User className="size-3.5 text-gray-400 shrink-0" />
-                                                {course.instructorName}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge className={`rounded-lg px-2.5 py-1 font-black text-[10px] uppercase tracking-wider border ${statusStyles[course.status] ?? statusStyles['Draft']}`}>
-                                                {statusLabels[course.status] ?? course.status}
-                                            </Badge>
-                                            {course.status === 'Rejected' && course.rejectionReason && (
-                                                <p className="text-xs text-red-400 font-medium mt-0.5 max-w-30 truncate" title={course.rejectionReason}>Lý do: {course.rejectionReason}</p>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-1 text-sm font-bold text-gray-600">
-                                                <Users className="size-3.5 text-gray-400" />
-                                                {course.enrollmentCount}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="font-black text-sm text-gray-900">
-                                                {course.price <= 0 ? 'Miễn phí' : formatCurrency(course.price)}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-1 text-sm font-bold text-gray-900">
-                                                <Star className="size-3.5 text-amber-400 fill-amber-400" />
-                                                {course.rating > 0 ? course.rating.toFixed(1) : '—'}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="pr-6">
-                                            {!course.isDeleted ? (
-                                                <div className="flex items-center justify-end gap-1.5">
-                                                    <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 hover:bg-gray-50 text-gray-500" asChild>
-                                                        <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer"><Eye className="size-3.5" /></a>
-                                                    </Button>
-                                                    {course.status === 'Pending' && (
-                                                        <>
-                                                            <Button size="sm" className="h-8 rounded-lg font-bold px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                                                onClick={() => approveCourse.mutate(course.id)} disabled={isProcessing} title="Duyệt">
-                                                                {isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
-                                                            </Button>
-                                                            <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-red-200 text-red-600 hover:bg-red-50"
-                                                                onClick={() => setRejectingCourseId(course.id)} disabled={isProcessing} title="Từ chối">
-                                                                {isRejecting ? <Loader2 className="size-3.5 animate-spin" /> : <XCircle className="size-3.5" />}
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 text-red-500 hover:bg-red-50"
-                                                        onClick={() => setDeleteCourseId(course.id)} disabled={isProcessing} title="Xóa mềm">
-                                                        <Trash2 className="size-3.5" />
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                                                    onClick={() => setRestoreCourseId(course.id)} title="Khôi phục">
-                                                    <RotateCcw className="size-3.5" />
-                                                </Button>
-                                            )}
                                         </TableCell>
                                     </TableRow>
-                                );
-                            })}
-                    </TableBody>
-                    {totalPages > 1 && (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100">
-                            <div className="text-sm font-bold text-gray-500">
-                                Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
-                            </div>
+                                ) : courses.map(course => {
+                                    const isApproving = approveCourse.isPending && approveCourse.variables === course.id;
+                                    const isRejecting = rejectCourse.isPending && rejectCourse.variables?.courseId === course.id;
+                                    const isProcessing = isApproving || isRejecting;
+                                    return (
+                                        <TableRow key={course.id} className={`hover:bg-gray-50/40 border-gray-50 group transition-colors ${course.isDeleted ? 'opacity-50 bg-red-50/20' : ''}`}>
+                                            <TableCell className="py-5 pl-6">
+                                                <div className="flex items-center gap-3">
+                                                    {course.thumbnail
+                                                        ? <img src={course.thumbnail} alt={course.title} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" />
+                                                        : <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0"><BookImage className="size-5 text-indigo-400" /></div>
+                                                    }
+                                                    <div className="min-w-0">
+                                                        <p className={`font-black text-sm truncate transition-colors ${course.isDeleted ? 'text-gray-400 line-through' : 'text-gray-900 group-hover:text-indigo-600'}`}>{course.title}</p>
+                                                        <p className="text-xs text-gray-400 font-medium mt-0.5">Cập nhật: {formatDate(course.updatedAt ?? course.createdAt)}</p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
+                                                    <User className="size-3.5 text-gray-400 shrink-0" />
+                                                    {course.instructorName}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge className={`rounded-lg px-2.5 py-1 font-black text-[10px] uppercase tracking-wider border ${statusStyles[course.status] ?? statusStyles['Draft']}`}>
+                                                    {statusLabels[course.status] ?? course.status}
+                                                </Badge>
+                                                {course.status === 'Rejected' && course.rejectionReason && (
+                                                    <p className="text-xs text-red-400 font-medium mt-0.5 max-w-30 truncate" title={course.rejectionReason}>Lý do: {course.rejectionReason}</p>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-1 text-sm font-bold text-gray-600">
+                                                    <Users className="size-3.5 text-gray-400" />
+                                                    {course.enrollmentCount}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="font-black text-sm text-gray-900">
+                                                    {course.price <= 0 ? 'Miễn phí' : formatCurrency(course.price)}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-1 text-sm font-bold text-gray-900">
+                                                    <Star className="size-3.5 text-amber-400 fill-amber-400" />
+                                                    {course.rating > 0 ? course.rating.toFixed(1) : '—'}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="pr-6">
+                                                {!course.isDeleted ? (
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 hover:bg-gray-50 text-gray-500" asChild>
+                                                            <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer"><Eye className="size-3.5" /></a>
+                                                        </Button>
+                                                        {course.status === 'Pending' && (
+                                                            <>
+                                                                <Button size="sm" className="h-8 rounded-lg font-bold px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                                                    onClick={() => approveCourse.mutate(course.id)} disabled={isProcessing} title="Duyệt">
+                                                                    {isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+                                                                </Button>
+                                                                <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-red-200 text-red-600 hover:bg-red-50"
+                                                                    onClick={() => setRejectingCourseId(course.id)} disabled={isProcessing} title="Từ chối">
+                                                                    {isRejecting ? <Loader2 className="size-3.5 animate-spin" /> : <XCircle className="size-3.5" />}
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-gray-200 text-red-500 hover:bg-red-50"
+                                                            onClick={() => setDeleteCourseId(course.id)} disabled={isProcessing} title="Xóa mềm">
+                                                            <Trash2 className="size-3.5" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold px-2.5 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                                        onClick={() => setRestoreCourseId(course.id)} title="Khôi phục">
+                                                        <RotateCcw className="size-3.5" />
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                        </TableBody>
+                    </Table>
+                </div>
+                {totalRecords > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 bg-white">
+                        <div className="text-sm font-bold text-gray-500">
+                            Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalRecords)} trong {totalRecords} khóa học
+                        </div>
+                        {totalPages > 1 && (
                             <Pagination
                                 pageNumber={page}
                                 totalPages={totalPages}
                                 onChange={setPage}
                             />
-                        </div>
-                    )}
-                </Table>
+                        )}
+                    </div>
+                )}
             </Card>
 
             <Dialog open={!!rejectingCourseId} onOpenChange={open => { if (!open) { setRejectingCourseId(null); setRejectReason(''); } }}>
