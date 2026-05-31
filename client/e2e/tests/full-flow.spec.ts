@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, logout } from '../helpers/auth-helper';
+import { loginAs } from '../helpers/auth-helper';
 
 test.describe('Full Student Flow E2E Test', () => {
   // Reset storage state for a clean session before each test run
