@@ -45,8 +45,18 @@ export default function LoginPage() {
             const returnUrl = searchParams.get('returnUrl');
             const stateFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
             
-
-            navigate(returnUrl ?? stateFrom ?? '/', { replace: true });
+            if (returnUrl || stateFrom) {
+                navigate(returnUrl ?? stateFrom!, { replace: true });
+            } else {
+                const role = result.user.role;
+                if (role === 'Admin' || role === 'Moderator') {
+                    navigate('/admin', { replace: true });
+                } else if (role === 'Instructor') {
+                    navigate('/instructor', { replace: true });
+                } else {
+                    navigate('/dashboard', { replace: true });
+                }
+            }
         },
         onError: (err: unknown) => {
             const error = err as ApiError;

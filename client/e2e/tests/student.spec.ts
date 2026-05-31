@@ -11,7 +11,7 @@ test.describe('Student Dashboard', () => {
   test('Dashboard overview loads', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(
-      page.locator('text=Tổng quan, text=Khóa học của tôi, text=Đã ghi danh').first()
+      page.locator('text=Bảng điều khiển').first()
     ).toBeVisible({ timeout: 10_000 });
   });
 
@@ -32,7 +32,7 @@ test.describe('Student Dashboard', () => {
     await page.goto('/dashboard/my-enrollments');
     await page.waitForLoadState('networkidle');
     // Should show course list or empty state
-    const content = page.locator('[class*="course"], [class*="Card"], table, [class*="enrollment"]');
+    const content = page.locator('[class*="course"], [class*="Card"], table, [class*="enrollment"], a:has-text("Khám phá"), button:has-text("Khám phá")');
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
 
