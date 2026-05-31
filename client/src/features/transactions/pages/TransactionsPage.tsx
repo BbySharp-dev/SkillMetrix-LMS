@@ -185,99 +185,103 @@ export default function TransactionsPage() {
             )}
 
             <Card className="overflow-hidden rounded-2xl shadow-xs border border-gray-100 bg-white">
-                <Table>
-                    <TableHeader className="bg-gray-50/50">
-                        <TableRow className="hover:bg-transparent border-b">
-                            <TableHead className="w-72 font-bold text-muted-foreground uppercase tracking-widest text-[10px] py-4 pl-6">Giao dịch</TableHead>
-                            <TableHead className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Mô tả</TableHead>
-                            <TableHead className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Trạng thái</TableHead>
-                            <TableHead className="text-right font-bold text-muted-foreground uppercase tracking-widest text-[10px] pr-6">Số tiền</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell className="pl-6"><Skeleton className="h-10 w-full rounded-lg" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-full rounded-lg" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                                    <TableCell className="pr-6"><Skeleton className="h-6 w-24 ml-auto rounded-lg" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : transactions.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={4} className="h-64 text-center">
-                                    <div className="flex flex-col items-center justify-center gap-4 opacity-40">
-                                        <CreditCard size={48} className="text-muted-foreground" />
-                                        <div className="space-y-1">
-                                            <p className="text-lg font-bold">Không tìm thấy giao dịch nào</p>
-                                            <p className="text-sm text-muted-foreground">Thử thay đổi từ khóa hoặc bộ lọc của bạn.</p>
-                                        </div>
-                                    </div>
-                                </TableCell>
+                <div className="overflow-x-auto w-full">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow className="hover:bg-transparent border-b">
+                                <TableHead className="w-72 font-bold text-muted-foreground uppercase tracking-widest text-[10px] py-4 pl-6">Giao dịch</TableHead>
+                                <TableHead className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Mô tả</TableHead>
+                                <TableHead className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Trạng thái</TableHead>
+                                <TableHead className="text-right font-bold text-muted-foreground uppercase tracking-widest text-[10px] pr-6">Số tiền</TableHead>
                             </TableRow>
-                        ) : (
-                            transactions.map((tx: TransactionDto) => {
-                                const typeInfo = TX_TYPES[tx.type] ?? { label: String(tx.type), iconColor: 'text-muted-foreground', iconBg: 'bg-muted' };
-                                const statusInfo = TX_STATUSES[tx.status] ?? { label: String(tx.status), variant: 'secondary' as const };
-
-                                return (
-                                    <TableRow key={tx.id} className="hover:bg-muted/10 transition-colors">
-                                        <TableCell className="py-4 pl-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${typeInfo.iconBg}`}>
-                                                    <span className={typeInfo.iconColor}>
-                                                        {tx.type === 1 || tx.type === 'Deposit' ? (
-                                                            <ArrowUpCircle size={16} />
-                                                        ) : tx.type === 2 || tx.type === 'Withdraw' ? (
-                                                            <ArrowDownCircle size={16} />
-                                                        ) : (
-                                                            <ShoppingBag size={16} />
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <p className="font-semibold text-sm text-gray-900">{typeInfo.label}</p>
-                                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                                        {formatDate(tx.createdAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="max-w-md">
-                                            <p className="text-sm font-medium text-muted-foreground line-clamp-1">
-                                                {tx.courseTitle ?? tx.description ?? '—'}
-                                            </p>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={statusInfo.variant} className="rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">
-                                                {statusInfo.label}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right pr-6">
-                                            <span className={`text-sm font-bold tabular-nums ${tx.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                {tx.amount >= 0 ? '+' : '-'}
-                                                {formatCurrency(Math.abs(tx.amount))}
-                                            </span>
-                                        </TableCell>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell className="pl-6"><Skeleton className="h-10 w-full rounded-lg" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-full rounded-lg" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                        <TableCell className="pr-6"><Skeleton className="h-6 w-24 ml-auto rounded-lg" /></TableCell>
                                     </TableRow>
-                                );
-                            })
-                        )}
-                    </TableBody>
-                </Table>
+                                ))
+                            ) : transactions.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-64 text-center">
+                                        <div className="flex flex-col items-center justify-center gap-4 opacity-40">
+                                            <CreditCard size={48} className="text-muted-foreground" />
+                                            <div className="space-y-1">
+                                                <p className="text-lg font-bold">Không tìm thấy giao dịch nào</p>
+                                                <p className="text-sm text-muted-foreground">Thử thay đổi từ khóa hoặc bộ lọc của bạn.</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                transactions.map((tx: TransactionDto) => {
+                                    const typeInfo = TX_TYPES[tx.type] ?? { label: String(tx.type), iconColor: 'text-muted-foreground', iconBg: 'bg-muted' };
+                                    const statusInfo = TX_STATUSES[tx.status] ?? { label: String(tx.status), variant: 'secondary' as const };
+
+                                    return (
+                                        <TableRow key={tx.id} className="hover:bg-muted/10 transition-colors">
+                                            <TableCell className="py-4 pl-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${typeInfo.iconBg}`}>
+                                                        <span className={typeInfo.iconColor}>
+                                                            {tx.type === 1 || tx.type === 'Deposit' ? (
+                                                                <ArrowUpCircle size={16} />
+                                                            ) : tx.type === 2 || tx.type === 'Withdraw' ? (
+                                                                <ArrowDownCircle size={16} />
+                                                            ) : (
+                                                                <ShoppingBag size={16} />
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <p className="font-semibold text-sm text-gray-900">{typeInfo.label}</p>
+                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                                            {formatDate(tx.createdAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="max-w-md">
+                                                <p className="text-sm font-medium text-muted-foreground line-clamp-1">
+                                                    {tx.courseTitle ?? tx.description ?? '—'}
+                                                </p>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={statusInfo.variant} className="rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                                                    {statusInfo.label}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right pr-6">
+                                                <span className={`text-sm font-bold tabular-nums ${tx.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                    {tx.amount >= 0 ? '+' : '-'}
+                                                    {formatCurrency(Math.abs(tx.amount))}
+                                                </span>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
 
                 {/* Pagination Controls */}
-                {!isLoading && totalPages > 1 && (
+                {!isLoading && totalRecords > 0 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 bg-gray-50/30">
                         <div className="text-xs font-bold text-gray-500">
                             Hiển thị {(page - 1) * 10 + 1}–{Math.min(page * 10, totalRecords)} trong tổng số {totalRecords} giao dịch
                         </div>
-                        <Pagination
-                            pageNumber={page}
-                            totalPages={totalPages}
-                            onChange={handlePageChange}
-                        />
+                        {totalPages > 1 && (
+                            <Pagination
+                                pageNumber={page}
+                                totalPages={totalPages}
+                                onChange={handlePageChange}
+                            />
+                        )}
                     </div>
                 )}
             </Card>
