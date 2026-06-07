@@ -39,8 +39,7 @@ public class Course
     public string? RejectionReason { get; set; }
 
     [Column(TypeName = "decimal(3,2)")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public decimal? Rating { get; private set; }
+    public decimal? Rating { get; set; }
 
     public int? DurationMinutes { get; set; }
     public bool IsDeleted { get; set; }
