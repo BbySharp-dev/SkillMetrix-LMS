@@ -179,20 +179,28 @@ public class DataSeederService(
     {
         var users = new List<User>
         {
-            CreateUser("admin@skillmetrix.dev", "System Admin", UserRole.Admin),
-            CreateUser("moderator1@skillmetrix.dev", "Moderator One", UserRole.Moderator),
-            CreateUser("moderator2@skillmetrix.dev", "Moderator Two", UserRole.Moderator),
-            CreateUser("instructor1@skillmetrix.dev", "Instructor One", UserRole.Instructor),
-            CreateUser("instructor2@skillmetrix.dev", "Instructor Two", UserRole.Instructor),
-            CreateUser("instructor3@skillmetrix.dev", "Instructor Three", UserRole.Instructor),
-            CreateUser("instructor4@skillmetrix.dev", "Instructor Four", UserRole.Instructor),
-            CreateUser("instructor5@skillmetrix.dev", "Instructor Five", UserRole.Instructor),
-            CreateUser("instructor6@skillmetrix.dev", "Instructor Six", UserRole.Instructor)
+            CreateUser("admin@skillmetrix.dev", "Nguyễn Minh Đức", UserRole.Admin),
+            CreateUser("moderator1@skillmetrix.dev", "Lê Văn Tùng", UserRole.Moderator),
+            CreateUser("moderator2@skillmetrix.dev", "Phạm Hải Đăng", UserRole.Moderator),
+            CreateUser("instructor1@skillmetrix.dev", "Lê Hoàng Long", UserRole.Instructor),
+            CreateUser("instructor2@skillmetrix.dev", "Phạm Minh Tuấn", UserRole.Instructor),
+            CreateUser("instructor3@skillmetrix.dev", "Trần Thị Hồng Hạnh", UserRole.Instructor),
+            CreateUser("instructor4@skillmetrix.dev", "Nguyễn Anh Tú", UserRole.Instructor),
+            CreateUser("instructor5@skillmetrix.dev", "Hoàng Văn Nam", UserRole.Instructor),
+            CreateUser("instructor6@skillmetrix.dev", "Đặng Minh Trí", UserRole.Instructor)
+        };
+
+        var studentNames = new[] {
+            "Nguyễn Thu Trang", "Đỗ Minh Quân", "Trần Việt Anh", "Phạm Thùy Linh", "Lê Tuấn Kiệt",
+            "Bùi Hồng Đăng", "Vũ Hoàng My", "Phan Gia Huy", "Đặng Khánh Vy", "Nguyễn Minh Triết",
+            "Hoàng Bảo Ngọc", "Lý Thanh Bình", "Tạ Minh Châu", "Ngô Tiến Đạt", "Dương Cát Tường",
+            "Mai Phương Thảo", "Trịnh Hữu Phước", "Phan Thanh Sơn"
         };
 
         for (var i = 1; i <= 18; i++)
         {
-            users.Add(CreateUser($"student{i}@skillmetrix.dev", $"Student {i:00}", UserRole.Student));
+            var name = i - 1 < studentNames.Length ? studentNames[i - 1] : $"Học viên {i:00}";
+            users.Add(CreateUser($"student{i}@skillmetrix.dev", name, UserRole.Student));
         }
 
         foreach (var user in users)
@@ -268,6 +276,65 @@ public class DataSeederService(
 
         var lessonsByCourse = new Dictionary<Guid, List<Lesson>>();
 
+        var realCoursesData = new[]
+        {
+            new {
+                Title = "Lập trình C# ASP.NET Core Web API cho người mới",
+                Desc = "Khóa học cung cấp kiến thức nền tảng về C# OOP và cách xây dựng ứng dụng Web API chuẩn RESTful sử dụng .NET 8.",
+                Thumb = "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=640&q=80",
+                Price = 299000,
+                Chapters = new[] { "Giới thiệu & Cài đặt môi trường", "Cú pháp C# căn bản", "Lập trình hướng đối tượng (OOP)", "Xây dựng Web API đầu tiên" },
+                Lessons = new[] { "Tổng quan về .NET và C#", "Cài đặt Visual Studio & .NET SDK", "Chương trình Hello World đầu tiên", "Biến, kiểu dữ liệu và toán tử" },
+                Videos = new[] { "https://www.youtube.com/watch?v=GhQdlIFylQ8", "https://www.youtube.com/watch?v=F399Z5jP2j0", "https://www.youtube.com/watch?v=GhQdlIFylQ8", "https://www.youtube.com/watch?v=F399Z5jP2j0" }
+            },
+            new {
+                Title = "Khóa học React.js & TypeScript chuyên sâu",
+                Desc = "Hướng dẫn xây dựng các ứng dụng Single Page Application (SPA) tối ưu hiệu năng, áp dụng React Hook, Zustand, React Query và Tailwind CSS.",
+                Thumb = "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=640&q=80",
+                Price = 399000,
+                Chapters = new[] { "Làm quen với React & Modern JS", "State Management & Side Effects", "Routing với React Router DOM", "Tích hợp TypeScript vào React" },
+                Lessons = new[] { "React.js là gì? Tại sao nên chọn React?", "Khởi tạo dự án React bằng Vite", "JSX & Component trong React", "Props và State trong Component" },
+                Videos = new[] { "https://www.youtube.com/watch?v=SqcY0GlETPk", "https://www.youtube.com/watch?v=Ke90Tje7VS0", "https://www.youtube.com/watch?v=SqcY0GlETPk", "https://www.youtube.com/watch?v=Ke90Tje7VS0" }
+            },
+            new {
+                Title = "Database Design & SQL Server cơ bản đến nâng cao",
+                Desc = "Làm chủ thiết kế cơ sở dữ liệu quan hệ, tối ưu câu lệnh truy vấn SQL, làm việc với Index, Trigger, Store Procedure và View.",
+                Thumb = "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=640&q=80",
+                Price = 199000,
+                Chapters = new[] { "Cơ sở dữ liệu quan hệ và SQL Server", "Các câu lệnh truy vấn SQL căn bản", "Liên kết bảng (JOIN) và Subquery", "Tối ưu hóa Performance với Index" },
+                Lessons = new[] { "Giới thiệu DBMS và SQL Server", "Cài đặt SSMS và LocalDB", "Tạo Database và Table đầu tiên", "Truy vấn dữ liệu với lệnh SELECT" },
+                Videos = new[] { "https://www.youtube.com/watch?v=HXV3zeQKqGY", "https://www.youtube.com/watch?v=7S_tz1z_5bA", "https://www.youtube.com/watch?v=HXV3zeQKqGY", "https://www.youtube.com/watch?v=7S_tz1z_5bA" }
+            },
+            new {
+                Title = "Triển khai CI/CD và Cloud DevOps với AWS",
+                Desc = "Học cách thiết lập pipeline CI/CD tự động build & deploy ứng dụng lên AWS EC2, ECS bằng GitHub Actions và Docker.",
+                Thumb = "https://images.unsplash.com/photo-1618401471353-b98aedd07871?w=640&q=80",
+                Price = 599000,
+                Chapters = new[] { "Tổng quan về DevOps và Cloud computing", "Container hóa với Docker", "Thiết lập GitHub Actions CI/CD", "Deploy ứng dụng lên AWS EC2" },
+                Lessons = new[] { "DevOps là gì? Vai trò của CI/CD", "Cơ bản về Container và Virtual Machine", "Cài đặt Docker Desktop và Dockerfile", "Build docker image và push lên Hub" },
+                Videos = new[] { "https://www.youtube.com/watch?v=R8_veKoTfUY", "https://www.youtube.com/watch?v=scEDHsr3APg", "https://www.youtube.com/watch?v=R8_veKoTfUY", "https://www.youtube.com/watch?v=scEDHsr3APg" }
+            },
+            new {
+                Title = "Thiết kế UI/UX hiện đại cho Web & Mobile",
+                Desc = "Quy trình thiết kế sản phẩm hoàn chỉnh: từ User Research, Wireframe, Prototype cho đến thiết kế giao diện chi tiết bằng Figma.",
+                Thumb = "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=640&q=80",
+                Price = 349000,
+                Chapters = new[] { "Nhập môn Thiết kế UI/UX", "Nghiên cứu người dùng & User Flow", "Tạo Wireframe và Lo-fi Prototype", "Thiết kế giao diện bằng Figma" },
+                Lessons = new[] { "UI và UX khác nhau như thế nào?", "Quy trình tư duy thiết kế Design Thinking", "Làm quen với giao diện Figma", "Tạo các Frame và Shapes căn bản" },
+                Videos = new[] { "https://www.youtube.com/watch?v=c9Wg6RyOxxo", "https://www.youtube.com/watch?v=FTFaQWZBqA8", "https://www.youtube.com/watch?v=c9Wg6RyOxxo", "https://www.youtube.com/watch?v=FTFaQWZBqA8" }
+            },
+            new {
+                Title = "Clean Architecture chuyên sâu trong .NET",
+                Desc = "Áp dụng cấu trúc Clean Architecture cho dự án Web API .NET Core thực tế, kết hợp CQRS (MediatR) và FluentValidation.",
+                Thumb = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=640&q=80",
+                Price = 499000,
+                Chapters = new[] { "Giới thiệu Clean Architecture", "Thiết kế Domain Layer", "Xây dựng Application Layer (CQRS)", "Tạo Presentation Layer (Web API)" },
+                Lessons = new[] { "Monolith vs Clean Architecture", "Định nghĩa Entities và Value Objects", "Repository Pattern & Unit of Work", "Cài đặt MediatR và Command Handler" },
+                Videos = new[] { "https://www.youtube.com/watch?v=yF9SwS7pP60", "https://www.youtube.com/watch?v=Wz5V97gJ2wU", "https://www.youtube.com/watch?v=yF9SwS7pP60", "https://www.youtube.com/watch?v=Wz5V97gJ2wU" }
+            }
+        };
+
+        var courseIndexGlobal = 0;
         foreach (var (instructor, instructorIndex) in instructors.Select((value, index) => (value, index)))
         {
             var statuses = new[] { CourseStatus.Published, CourseStatus.Pending, CourseStatus.Draft };
@@ -277,15 +344,42 @@ public class DataSeederService(
                 var status = statuses[courseSlot];
                 var createdAt = now.AddDays(-60 + instructorIndex * 5 + courseSlot * 2);
 
+                string title;
+                string description;
+                string thumbnail;
+                int price;
+                string[] customChapters = null;
+                string[] customLessons = null;
+                string[] customVideos = null;
+
+                if (courseIndexGlobal < realCoursesData.Length)
+                {
+                    var data = realCoursesData[courseIndexGlobal];
+                    title = data.Title;
+                    description = data.Desc;
+                    thumbnail = data.Thumb;
+                    price = data.Price;
+                    customChapters = data.Chapters;
+                    customLessons = data.Lessons;
+                    customVideos = data.Videos;
+                }
+                else
+                {
+                    title = $"{instructor.FullName} - Khóa học Lập trình chuyên sâu {courseSlot + 1}";
+                    description = $"Khóa học hướng dẫn thực hành xây dựng ứng dụng thực tế do giảng viên {instructor.FullName} giảng dạy.";
+                    thumbnail = $"https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=640&q=80";
+                    price = 199000 + instructorIndex * 25000 + courseSlot * 15000;
+                }
+
                 var course = new Course
                 {
                     Id = Guid.NewGuid(),
-                    Title = $"{instructor.FullName} Course {courseSlot + 1}",
-                    Description = $"Strict seed course {courseSlot + 1} by {instructor.FullName}",
+                    Title = title,
+                    Description = description,
                     InstructorId = instructor.Id,
                     Status = status,
-                    Price = 199000 + instructorIndex * 25000 + courseSlot * 15000,
-                    Thumbnail = $"https://picsum.photos/seed/{instructorIndex + 1}-{courseSlot + 1}/640/360",
+                    Price = price,
+                    Thumbnail = thumbnail,
                     CreatedAt = createdAt,
                     PublishedAt = status == CourseStatus.Published ? createdAt.AddDays(2) : null,
                     UpdatedAt = createdAt.AddDays(1),
@@ -294,19 +388,20 @@ public class DataSeederService(
 
                 courses.Add(course);
 
-                var chapterCount = 3 + (courseSlot % 2); // 3 or 4
+                var chapterCount = customChapters != null ? customChapters.Length : 3 + (courseSlot % 2); // 3 or 4
                 var lessonsForCourse = new List<Lesson>();
 
                 for (var chapterIndex = 1; chapterIndex <= chapterCount; chapterIndex++)
                 {
                     var chapterCreatedAt = createdAt.AddHours(chapterIndex);
+                    var chapterTitle = customChapters != null ? customChapters[chapterIndex - 1] : $"Chương {chapterIndex}: Nội dung cốt lõi {chapterIndex}";
 
                     var chapter = new Chapter
                     {
                         Id = Guid.NewGuid(),
                         CourseId = course.Id,
-                        Title = $"Chapter {chapterIndex}",
-                        Description = $"Chapter {chapterIndex} for {course.Title}",
+                        Title = chapterTitle,
+                        Description = $"{chapterTitle} thuộc {course.Title}",
                         OrderIndex = chapterIndex,
                         CreatedAt = chapterCreatedAt,
                         UpdatedAt = chapterCreatedAt
@@ -314,19 +409,56 @@ public class DataSeederService(
 
                     chapters.Add(chapter);
 
-                    var lessonCount = 4 + (chapterIndex % 2); // 4 or 5
+                    var lessonCount = customLessons != null ? customLessons.Length : 4 + (chapterIndex % 2); // 4 or 5
                     for (var lessonIndex = 1; lessonIndex <= lessonCount; lessonIndex++)
                     {
                         var duration = 420 + rng.Next(0, 901); // 7 - 22 phút
                         var lessonCreatedAt = chapterCreatedAt.AddMinutes(lessonIndex * 3);
 
+                        string lessonTitle;
+                        string videoUrl;
+
+                        if (customLessons != null && lessonIndex <= customLessons.Length)
+                        {
+                            lessonTitle = $"Bài {chapterIndex}.{lessonIndex}: {customLessons[lessonIndex - 1]} (Phần {chapterIndex})";
+                        }
+                        else
+                        {
+                            lessonTitle = $"Bài {chapterIndex}.{lessonIndex}: Lý thuyết và thực hành phần {lessonIndex}";
+                        }
+
+                        var youtubeVideos = new[]
+                        {
+                            "https://www.youtube.com/watch?v=Ke90Tje7VS0",
+                            "https://www.youtube.com/watch?v=c9Wg6RyOxxo",
+                            "https://www.youtube.com/watch?v=GhQdlIFylQ8",
+                            "https://www.youtube.com/watch?v=F399Z5jP2j0",
+                            "https://www.youtube.com/watch?v=yF9SwS7pP60",
+                            "https://www.youtube.com/watch?v=Wz5V97gJ2wU",
+                            "https://www.youtube.com/watch?v=SqcY0GlETPk",
+                            "https://www.youtube.com/watch?v=HXV3zeQKqGY",
+                            "https://www.youtube.com/watch?v=7S_tz1z_5bA",
+                            "https://www.youtube.com/watch?v=R8_veKoTfUY",
+                            "https://www.youtube.com/watch?v=scEDHsr3APg",
+                            "https://www.youtube.com/watch?v=FTFaQWZBqA8"
+                        };
+
+                        if (customVideos != null && lessonIndex - 1 < customVideos.Length)
+                        {
+                            videoUrl = customVideos[lessonIndex - 1];
+                        }
+                        else
+                        {
+                            videoUrl = youtubeVideos[rng.Next(youtubeVideos.Length)];
+                        }
+
                         var lesson = new Lesson
                         {
                             Id = Guid.NewGuid(),
                             ChapterId = chapter.Id,
-                            Title = $"Lesson {chapterIndex}.{lessonIndex}",
-                            Description = $"Lesson {chapterIndex}.{lessonIndex} in {course.Title}",
-                            VideoUrl = $"https://videos.skillmetrix.dev/{course.Id}/{chapter.Id}/{lessonIndex}",
+                            Title = lessonTitle,
+                            Description = $"Nội dung chi tiết của {lessonTitle} trong {course.Title}",
+                            VideoUrl = videoUrl,
                             DurationSeconds = duration,
                             IsFreePreview = chapterIndex == 1 && lessonIndex <= 2,
                             OrderIndex = lessonIndex,
@@ -342,6 +474,8 @@ public class DataSeederService(
                 var totalMinutes = (int)Math.Ceiling(lessonsForCourse.Sum(x => x.DurationSeconds) / 60.0);
                 course.DurationMinutes = totalMinutes;
                 lessonsByCourse[course.Id] = lessonsForCourse;
+
+                courseIndexGlobal++;
             }
         }
 
@@ -432,57 +566,7 @@ public class DataSeederService(
         context.QuizOptions.AddRange(quizOptions);
         await context.SaveChangesAsync();
 
-        // ─── Seed Quiz Attempts for some students ──────────────────────────────
-        foreach (var student in students.Take(6))
-        {
-            var enrolledCourses = enrollments
-                .Where(e => e.UserId == student.Id)
-                .Select(e => courses.First(c => c.Id == e.CourseId))
-                .ToList();
-
-            foreach (var course in enrolledCourses.Take(1))
-            {
-                var courseQuizzes = quizzes.Where(q => q.CourseId == course.Id && q.IsFinalQuiz).ToList();
-                foreach (var quiz in courseQuizzes)
-                {
-                    var attemptId = Guid.NewGuid();
-                    var quizQuestionsList = quizQuestions.Where(q => q.QuizId == quiz.Id).ToList();
-                    var attempt = new QuizAttempt
-                    {
-                        Id = attemptId,
-                        QuizId = quiz.Id,
-                        UserId = student.Id,
-                        Score = rng.Next(50, 101),
-                        IsPassed = rng.Next(100) > 30,
-                        StartedAt = DateTime.UtcNow.AddDays(-rng.Next(1, 10)),
-                        SubmittedAt = DateTime.UtcNow.AddDays(-rng.Next(1, 10))
-                    };
-                    attempt.Score = Math.Max(attempt.Score, quiz.PassingScore - 1); // ensure some pass/fail variety
-                    attempt.IsPassed = attempt.Score >= quiz.PassingScore;
-                    quizAttempts.Add(attempt);
-
-                    foreach (var question in quizQuestionsList.Take(2))
-                    {
-                        var options = quizOptions.Where(o => o.QuestionId == question.Id).ToList();
-                        var correctOption = options.First(o => o.IsCorrect);
-                        var selectedOption = rng.Next(100) > 20 ? correctOption : options[rng.Next(options.Count)];
-
-                        quizAttemptAnswers.Add(new QuizAttemptAnswer
-                        {
-                            Id = Guid.NewGuid(),
-                            AttemptId = attemptId,
-                            QuestionId = question.Id,
-                            SelectedOptionId = selectedOption.Id,
-                            IsCorrect = selectedOption.IsCorrect
-                        });
-                    }
-                }
-            }
-        }
-
-        context.QuizAttempts.AddRange(quizAttempts);
-        context.QuizAttemptAnswers.AddRange(quizAttemptAnswers);
-        await context.SaveChangesAsync();
+        // Quiz Attempts are seeded below after Enrollments are populated
 
         var publishedCourses = courses.Where(c => c.Status == CourseStatus.Published).OrderBy(c => c.CreatedAt).ToList();
 
@@ -551,6 +635,104 @@ public class DataSeederService(
         context.Enrollments.AddRange(enrollments);
         context.Transactions.AddRange(transactions);
         context.UserLessonProgresses.AddRange(progresses);
+        await context.SaveChangesAsync();
+
+        // ─── Seed Quiz Attempts for some students (now that Enrollments are populated) ───
+        foreach (var student in students.Take(6))
+        {
+            var enrolledCourses = enrollments
+                .Where(e => e.UserId == student.Id)
+                .Select(e => courses.First(c => c.Id == e.CourseId))
+                .ToList();
+
+            foreach (var course in enrolledCourses.Take(1))
+            {
+                var courseQuizzes = quizzes.Where(q => q.CourseId == course.Id && q.IsFinalQuiz).ToList();
+                foreach (var quiz in courseQuizzes)
+                {
+                    var attemptId = Guid.NewGuid();
+                    var quizQuestionsList = quizQuestions.Where(q => q.QuizId == quiz.Id).ToList();
+                    var attempt = new QuizAttempt
+                    {
+                        Id = attemptId,
+                        QuizId = quiz.Id,
+                        UserId = student.Id,
+                        Score = rng.Next(50, 101),
+                        IsPassed = rng.Next(100) > 30,
+                        StartedAt = DateTime.UtcNow.AddDays(-rng.Next(1, 10)),
+                        SubmittedAt = DateTime.UtcNow.AddDays(-rng.Next(1, 10))
+                    };
+                    attempt.Score = Math.Max(attempt.Score, quiz.PassingScore - 1);
+                    attempt.IsPassed = attempt.Score >= quiz.PassingScore;
+                    quizAttempts.Add(attempt);
+
+                    foreach (var question in quizQuestionsList.Take(2))
+                    {
+                        var options = quizOptions.Where(o => o.QuestionId == question.Id).ToList();
+                        var correctOption = options.First(o => o.IsCorrect);
+                        var selectedOption = rng.Next(100) > 20 ? correctOption : options[rng.Next(options.Count)];
+
+                        quizAttemptAnswers.Add(new QuizAttemptAnswer
+                        {
+                            Id = Guid.NewGuid(),
+                            AttemptId = attemptId,
+                            QuestionId = question.Id,
+                            SelectedOptionId = selectedOption.Id,
+                            IsCorrect = selectedOption.IsCorrect
+                        });
+                    }
+                }
+            }
+        }
+
+        context.QuizAttempts.AddRange(quizAttempts);
+        context.QuizAttemptAnswers.AddRange(quizAttemptAnswers);
+        await context.SaveChangesAsync();
+
+        // ─── Seed Course Reviews & Recalculate Course Ratings ────────────────────
+        var reviews = new List<CourseReview>();
+        var reviewComments = new[]
+        {
+            "Khóa học rất hay và chi tiết, giảng viên hỗ trợ nhiệt tình.",
+            "Nội dung chuẩn chỉnh, thực hành rất thực tế.",
+            "Rất đáng đồng tiền, kiến thức áp dụng được ngay vào công việc.",
+            "Bài giảng dễ hiểu, ví dụ sinh động.",
+            "Tài liệu phong phú, giải thích cặn kẽ từng dòng code.",
+            "Kiến thức nâng cao sâu sắc, phù hợp cho người muốn nâng trình.",
+            "Một khóa học tuyệt vời về chủ đề này, vote 5 sao!",
+            "Giảng viên giải thích rất dễ tiếp thu, tốc độ vừa phải.",
+            "Có nhiều case study thực tế rất hay.",
+            "Rất hài lòng với chất lượng bài học và sự hỗ trợ."
+        };
+
+        foreach (var course in courses.Where(c => c.Status == CourseStatus.Published))
+        {
+            var courseEnrollments = enrollments.Where(e => e.CourseId == course.Id).ToList();
+            var ratingsList = new List<int>();
+
+            foreach (var enrollment in courseEnrollments.Take(3))
+            {
+                var rating = rng.Next(4, 6); // 4 or 5 stars
+                ratingsList.Add(rating);
+
+                reviews.Add(new CourseReview
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = course.Id,
+                    UserId = enrollment.UserId,
+                    Rating = rating,
+                    Comment = reviewComments[rng.Next(reviewComments.Length)],
+                    CreatedAt = enrollment.EnrolledAt.AddDays(rng.Next(1, 5))
+                });
+            }
+
+            if (ratingsList.Any())
+            {
+                course.Rating = (decimal)ratingsList.Average();
+            }
+        }
+
+        context.CourseReviews.AddRange(reviews);
         await context.SaveChangesAsync();
 
         return new SeedSummaryDto
