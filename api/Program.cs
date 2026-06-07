@@ -87,6 +87,7 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdmin", policy =>
         policy.RequireRole("Admin"));
 
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -155,6 +156,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     c.SchemaFilter<RequestDtoExampleSchemaFilter>();
+    c.OperationFilter<ValidationResponseOperationFilter>();
 
     c.CustomSchemaIds(type => type.FullName);
 
