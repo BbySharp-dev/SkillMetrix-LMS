@@ -4,6 +4,7 @@ import type { LessonDto } from '../types';
 interface LessonItemProps {
     lesson: LessonDto;
     index: number;
+    onClick?: () => void;
 }
 
 const toTime = (seconds: number) => {
@@ -12,9 +13,12 @@ const toTime = (seconds: number) => {
     return `${mm}:${ss}`;
 };
 
-export default function LessonItem({ lesson, index }: LessonItemProps) {
+export default function LessonItem({ lesson, index, onClick }: LessonItemProps) {
     return (
-        <div className="flex items-center justify-between py-3.5 px-4 text-sm hover:bg-white hover:shadow-sm cursor-pointer rounded-xl transition-all duration-300 group border border-transparent hover:border-gray-100">
+        <div 
+            onClick={lesson.isFreePreview ? onClick : undefined}
+            className={`flex items-center justify-between py-3.5 px-4 text-sm rounded-xl transition-all duration-300 group border border-transparent hover:border-gray-100 ${lesson.isFreePreview ? 'cursor-pointer hover:bg-white hover:shadow-sm' : 'cursor-default'}`}
+        >
             <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-8 text-xs font-black text-gray-300 group-hover:text-indigo-400 transition-colors">
                     {index.toString().padStart(2, '0')}

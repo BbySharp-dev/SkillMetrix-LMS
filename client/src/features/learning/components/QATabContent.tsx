@@ -33,6 +33,9 @@ function Avatar({ name, url }: { name: string; url?: string | null }) {
                 src={url}
                 alt={name}
                 className="w-8 h-8 rounded-full object-cover shrink-0"
+                onError={(e) => {
+                    e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+                }}
             />
         );
     }

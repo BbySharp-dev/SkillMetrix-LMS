@@ -27,6 +27,9 @@ export default function HomePage() {
                         src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop" 
                         alt="Hero"
                         className="w-full h-full object-cover opacity-40"
+                        onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1920&q=80';
+                        }}
                     />
                     <div className="absolute inset-0 bg-linear-to-r from-black/80 to-transparent" />
                 </div>

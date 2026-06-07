@@ -173,6 +173,9 @@ export default function InstructorCoursesPage() {
                                                         src={course.thumbnail} 
                                                         alt={course.title ?? ''}
                                                         className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://placehold.co/640x360?text=SkillMetrix+LMS';
+                                                        }}
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 opacity-20" />

@@ -65,19 +65,25 @@ export default function VideoPlayer({
         }
     }, [onPersistProgress]);
 
+    // Keep flushProgress updated in a ref to avoid triggering useEffect re-runs
+    const flushProgressRef = useRef(flushProgress);
     useEffect(() => {
-        intervalRef.current = setInterval(() => { void flushProgress(false); }, 30_000);
-        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+        flushProgressRef.current = flushProgress;
     }, [flushProgress]);
 
     useEffect(() => {
-        const handleBeforeUnload = () => { void flushProgress(true); };
+        intervalRef.current = setInterval(() => { void flushProgressRef.current(false); }, 30_000);
+        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    }, []);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => { void flushProgressRef.current(true); };
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
-            void flushProgress(true);
+            void flushProgressRef.current(true);
         };
-    }, [flushProgress]);
+    }, []);
 
     // Handle HTML5 Video Player Seek exposure
     useEffect(() => {
@@ -90,6 +96,9 @@ export default function VideoPlayer({
             };
         }
     }, [isYoutube, seekToRef]);
+
+    // Store initialSecond in a ref so it is only used once on initialization
+    const initialSecondRef = useRef(initialSecond);
 
     // Handle YouTube Video Player
     useEffect(() => {
@@ -117,7 +126,7 @@ export default function VideoPlayer({
             ytPlayerRef.current = new win.YT.Player(youtubeContainerRef.current, {
                 videoId: videoId,
                 playerVars: {
-                    start: Math.floor(initialSecond),
+                    start: Math.floor(initialSecondRef.current),
                     autoplay: 0,
                     controls: 1,
                     rel: 0,
@@ -144,7 +153,7 @@ export default function VideoPlayer({
                                 clearInterval(progressInterval);
                                 progressInterval = null;
                             }
-                            void flushProgress(true);
+                            void flushProgressRef.current(true);
                         }
                     },
                     onError: () => {
@@ -186,7 +195,7 @@ export default function VideoPlayer({
                 }
             }
         };
-    }, [isYoutube, videoUrl, initialSecond, seekToRef, flushProgress, currentTimeRef]);
+    }, [isYoutube, videoUrl, seekToRef, currentTimeRef]);
 
     if (!videoUrl || videoUrl.trim() === '') {
         return (
