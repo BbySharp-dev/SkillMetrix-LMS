@@ -17,7 +17,7 @@ public class CertificatesController(ICertificateService certificateService) : Ba
     /// Lấy danh sách chứng chỉ của người dùng hiện tại.
     /// </summary>
     [HttpGet("me")]
-    [ProducesResponseType(typeof(PagedResponse<List<CertificateDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<CertificateDto>>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyCertificates([FromQuery] CertificateQueryDto query)
     {
         var userId = GetCurrentUserId();
@@ -25,7 +25,7 @@ public class CertificatesController(ICertificateService certificateService) : Ba
 
         var result = await certificateService.GetUserCertificatesAsync(userId.Value, query);
         if (!result.IsSuccess) return HandleError(result);
-        return Ok(result.Value);
+        return Ok(new ApiResponse<PagedResponse<List<CertificateDto>>>(result.Value!, "Certificates retrieved successfully"));
     }
 
 

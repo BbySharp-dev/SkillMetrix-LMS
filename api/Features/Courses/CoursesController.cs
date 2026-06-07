@@ -24,7 +24,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <returns>Danh sách khóa học có phân trang.</returns>
     /// <response code="200">Lấy danh sách khóa học thành công.</response>
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResponse<List<CourseResponseDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<CourseResponseDto>>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourses(
         [FromQuery] CourseQueryDto query,
         [FromQuery] int pageNumber = 1,
@@ -37,7 +37,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
             return HandleError(result);
         }
 
-        return Ok(result.Value);
+        return Ok(new ApiResponse<PagedResponse<List<CourseResponseDto>>>(result.Value!, "Courses retrieved successfully"));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// </summary>
     [Authorize(Policy = "RequireInstructorOrAdmin")]
     [HttpGet("instructor/mine")]
-    [ProducesResponseType(typeof(PagedResponse<List<CourseResponseDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<CourseResponseDto>>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyCourses(
         [FromQuery] CourseQueryDto query,
         [FromQuery] int pageNumber = 1,
@@ -228,7 +228,7 @@ public class CoursesController(ICourseService courseService, IChapterService cha
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(result.Value);
+        return Ok(new ApiResponse<PagedResponse<List<CourseResponseDto>>>(result.Value!, "Instructor courses retrieved successfully"));
     }
 
     /// <summary>

@@ -98,8 +98,7 @@ public class CourseService(ApplicationDbContext context) : ICourseService
             courseDtos,
             pageNumber,
             pageSize,
-            totalRecords,
-            "Courses retrieved successfully"
+            totalRecords
         );
     }
 
