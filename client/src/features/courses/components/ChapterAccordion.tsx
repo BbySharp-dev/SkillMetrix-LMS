@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BookText, Clock } from 'lucide-react';
-import type { ChapterWithLessonsDto } from '../types';
+import type { ChapterWithLessonsDto, LessonDto } from '../types';
 import LessonItem from './LessonItem';
 import {
     Accordion,
@@ -11,9 +11,10 @@ import {
 
 interface ChapterAccordionProps {
     chapters: ChapterWithLessonsDto[];
+    onLessonClick?: (lesson: LessonDto) => void;
 }
 
-export default function ChapterAccordion({ chapters }: ChapterAccordionProps) {
+export default function ChapterAccordion({ chapters, onLessonClick }: ChapterAccordionProps) {
     const sorted = useMemo(() => [...chapters].sort((a, b) => a.orderIndex - b.orderIndex), [chapters]);
 
     return (
@@ -53,7 +54,12 @@ export default function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                         <AccordionContent className="px-3 pb-3">
                             <div className="bg-gray-50/50 rounded-2xl p-2 space-y-1">
                                 {lessons.map((lesson, lIndex) => (
-                                    <LessonItem key={lesson.id} lesson={lesson} index={lIndex + 1} />
+                                    <LessonItem 
+                                        key={lesson.id} 
+                                        lesson={lesson} 
+                                        index={lIndex + 1} 
+                                        onClick={() => onLessonClick?.(lesson)}
+                                    />
                                 ))}
                             </div>
                         </AccordionContent>

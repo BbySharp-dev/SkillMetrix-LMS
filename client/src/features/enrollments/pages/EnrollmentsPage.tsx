@@ -12,9 +12,12 @@ function EnrollmentCard({ enrollment }: { enrollment: EnrollmentDto }) {
         <Card className="group overflow-hidden border border-gray-100 rounded-2xl hover:shadow-xl transition-all duration-500 bg-white">
             <Link to={`/learning/${enrollment.courseId}`} className="block relative aspect-video overflow-hidden">
                 <img
-                    src={enrollment.courseThumbnail || 'https://placehold.co/640x360?text=No+Thumbnail'}
+                    src={enrollment.courseThumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=640&q=80'}
                     alt={enrollment.courseTitle}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=640&q=80';
+                    }}
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition-transform">

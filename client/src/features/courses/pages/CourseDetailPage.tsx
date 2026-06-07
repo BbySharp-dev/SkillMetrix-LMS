@@ -12,6 +12,10 @@ import { Card, CardContent } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { Skeleton } from '@/components/ui';
 import { ConfirmModal } from '@/components/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import VideoPlayer from '@/features/learning/components/VideoPlayer';
+import { VideoPlayerProvider } from '@/features/learning/context/VideoPlayerContext';
+import type { LessonDto } from '../types';
 
 const fetchEnrollmentCheck = async (courseId: string) => {
     const response = await enrollmentApi.checkEnrollment(courseId);
@@ -29,6 +33,7 @@ export default function CourseDetailPage() {
 
     const [openEnrollModal, setOpenEnrollModal] = useState(false);
     const [optimisticEnrolledId, setOptimisticEnrolledId] = useState<string | null>(null);
+    const [previewLesson, setPreviewLesson] = useState<LessonDto | null>(null);
 
     const { data: serverEnrolled = false } = useQuery({
         queryKey: ['enrollment-check', id],
@@ -143,6 +148,9 @@ export default function CourseDetailPage() {
                                     src={course.thumbnail || 'https://placehold.co/640x360?text=No+Thumbnail'} 
                                     alt={course.title || 'Course thumbnail'} 
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://placehold.co/640x360?text=SkillMetrix+LMS';
+                                    }}
                                 />
                             </div>
 
@@ -213,7 +221,10 @@ export default function CourseDetailPage() {
                             </div>
                             
                             {curriculum ? (
-                                <ChapterAccordion chapters={curriculum} />
+                                <ChapterAccordion 
+                                    chapters={curriculum} 
+                                    onLessonClick={(lesson) => setPreviewLesson(lesson)} 
+                                />
                             ) : (
                                 <div className="p-10 border border-dashed border-gray-200 rounded-none text-center">
                                     <p className="font-bold text-gray-400">Đang tải nội dung học tập...</p>
@@ -264,6 +275,50 @@ export default function CourseDetailPage() {
                 onConfirm={handleEnrollConfirm}
                 onCancel={() => setOpenEnrollModal(false)}
             />
+
+            <Dialog open={previewLesson !== null} onOpenChange={(open) => { if (!open) setPreviewLesson(null); }}>
+                <DialogContent size="lg" className="bg-[#1c1d1f] text-white border-gray-800 p-0 overflow-hidden max-w-3xl">
+                    <DialogHeader className="p-4 border-b border-gray-800 flex flex-row items-center justify-between">
+                        <div>
+                            <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block mb-1">
+                                Học thử miễn phí
+                            </span>
+                            <DialogTitle className="text-lg font-black text-white">
+                                {previewLesson?.title}
+                            </DialogTitle>
+                        </div>
+                    </DialogHeader>
+                    
+                    <div className="bg-black aspect-video w-full">
+                        {previewLesson && (
+                            <VideoPlayerProvider>
+                                <VideoPlayer
+                                    lessonId={previewLesson.id}
+                                    videoUrl={previewLesson.videoUrl || ''}
+                                    initialSecond={0}
+                                    onPersistProgress={() => {}}
+                                />
+                            </VideoPlayerProvider>
+                        )}
+                    </div>
+                    
+                    <div className="p-4 bg-gray-900 flex justify-between items-center text-sm">
+                        <span className="text-gray-400 font-medium">Bạn đang xem thử bài học này miễn phí</span>
+                        {!isEnrolled && (
+                            <Button 
+                                onClick={() => {
+                                    setPreviewLesson(null);
+                                    handleEnrollClick();
+                                }}
+                                size="sm"
+                                className="bg-[#a435f0] hover:bg-[#8710d8] hover:text-white"
+                            >
+                                Đăng ký khóa học
+                            </Button>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

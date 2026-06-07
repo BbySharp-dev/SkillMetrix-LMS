@@ -286,6 +286,9 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
                                                         src={formData.thumbnail} 
                                                         alt="Course thumbnail" 
                                                         className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://placehold.co/640x360?text=SkillMetrix+LMS';
+                                                        }}
                                                     />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <Button 

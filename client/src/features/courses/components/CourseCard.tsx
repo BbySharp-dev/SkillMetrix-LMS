@@ -28,6 +28,9 @@ export default function CourseCard({ course }: CourseCardProps) {
                         src={course.thumbnail || 'https://placehold.co/640x360?text=No+Image'}
                         alt={title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://placehold.co/640x360?text=SkillMetrix+LMS';
+                        }}
                     />
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>

@@ -88,7 +88,14 @@ export function UsersTable({ users, isLoading, isError, searchTerm, onRoleChange
                                     <TableCell className="py-5 pl-6">
                                         <div className="flex items-center gap-3">
                                             {user.avatarUrl ? (
-                                                <img src={user.avatarUrl} alt={user.fullName} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-100" />
+                                                <img 
+                                                    src={user.avatarUrl} 
+                                                    alt={user.fullName} 
+                                                    className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-100" 
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`;
+                                                    }}
+                                                />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
                                                     <span className="text-sm font-black text-gray-500">{user.fullName.charAt(0).toUpperCase()}</span>

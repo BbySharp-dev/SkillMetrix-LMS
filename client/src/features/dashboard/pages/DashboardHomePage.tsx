@@ -140,7 +140,14 @@ function StudentSection({ enrollments }: { enrollments: Array<{
                                 <CardContent className="p-0">
                                     <div className="flex items-center gap-6 p-4">
                                         <div className="w-32 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border">
-                                            <img src={course.courseThumbnail || 'https://placehold.co/640x360?text=Course'} alt={course.courseTitle} className="w-full h-full object-cover" />
+                                            <img 
+                                                src={course.courseThumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=640&q=80'} 
+                                                alt={course.courseTitle} 
+                                                className="w-full h-full object-cover" 
+                                                onError={(e) => {
+                                                    e.currentTarget.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=640&q=80';
+                                                }}
+                                            />
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div className="flex items-center justify-between">

@@ -119,11 +119,12 @@ export default function ApprovalsPage() {
                     <Table>
                         <TableHeader className="bg-gray-50/50">
                             <TableRow className="hover:bg-transparent border-gray-100">
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 py-5 pl-6 w-[35%]">Khóa học</TableHead>
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giảng viên</TableHead>
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Ngày nộp</TableHead>
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500">Giá</TableHead>
-                                <TableHead className="text-right font-black text-[10px] uppercase tracking-widest text-gray-500 pr-6">Thao tác</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 py-5 pl-6 w-[30%]">Khóa học</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 w-[15%]">Giảng viên</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 w-[12%]">Trạng thái</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 w-[15%]">Ngày nộp</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase tracking-widest text-gray-500 w-[12%]">Giá</TableHead>
+                                <TableHead className="text-right font-black text-[10px] uppercase tracking-widest text-gray-500 pr-6 w-[16%]">Thao tác</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -132,11 +133,12 @@ export default function ApprovalsPage() {
                                     <TableRow key={i} className="border-gray-50">
                                         <TableCell className="py-5 pl-6">
                                             <div className="flex items-center gap-3">
-                                                <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                                                <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
                                                 <Skeleton className="h-4 w-48 rounded" />
                                             </div>
                                         </TableCell>
                                         <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-20 rounded" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-16 rounded" /></TableCell>
                                         <TableCell><Skeleton className="h-9 w-40 ml-auto rounded-xl" /></TableCell>
@@ -144,7 +146,7 @@ export default function ApprovalsPage() {
                                 ))
                                 : courses.length === 0 && !searchTerm ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-64 text-center">
+                                        <TableCell colSpan={6} className="h-64 text-center">
                                             <div className="flex flex-col items-center justify-center gap-3 opacity-50">
                                                 <CheckCircle2 className="size-12 text-gray-300" />
                                                 <div className="space-y-1">
@@ -156,7 +158,7 @@ export default function ApprovalsPage() {
                                     </TableRow>
                                 ) : courses.length === 0 && searchTerm ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-32 text-center text-sm font-medium text-gray-400">
+                                        <TableCell colSpan={6} className="h-32 text-center text-sm font-medium text-gray-400">
                                             Không tìm thấy khóa học phù hợp với "{searchTerm}"
                                         </TableCell>
                                     </TableRow>
@@ -171,17 +173,22 @@ export default function ApprovalsPage() {
                                                 <TableCell className="py-5 pl-6">
                                                     <div className="flex items-center gap-3">
                                                         {course.thumbnail ? (
-                                                            <img src={course.thumbnail} alt={course.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-100" />
+                                                             <img 
+                                                                 src={course.thumbnail} 
+                                                                 alt={course.title} 
+                                                                 className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" 
+                                                                 onError={(e) => {
+                                                                     (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=640&q=80';
+                                                                 }}
+                                                             />
                                                         ) : (
-                                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-                                                                <Eye className="size-4 text-indigo-400" />
-                                                            </div>
+                                                             <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                                                                 <Eye className="size-5 text-indigo-400" />
+                                                             </div>
                                                         )}
                                                         <div className="min-w-0">
                                                             <p className="font-black text-sm text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{course.title}</p>
-                                                            <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
-                                                                {course.description?.substring(0, 80)}{course.description && course.description.length > 80 ? '...' : ''}
-                                                            </p>
+                                                            <p className="text-xs text-gray-400 font-medium mt-0.5">Cập nhật: {formatDate(course.updatedAt ?? course.createdAt)}</p>
                                                         </div>
                                                     </div>
                                                 </TableCell>
@@ -190,6 +197,11 @@ export default function ApprovalsPage() {
                                                         <User className="size-3.5 text-gray-400 shrink-0" />
                                                         {course.instructorName}
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge className="rounded-lg px-2.5 py-1 font-black text-[10px] uppercase tracking-wider border bg-amber-50 text-amber-700 border-amber-200">
+                                                        Chờ duyệt
+                                                    </Badge>
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className="text-xs font-bold text-gray-400">{formatDate(course.createdAt)}</span>

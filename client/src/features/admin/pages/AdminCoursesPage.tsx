@@ -204,7 +204,14 @@ export default function AdminCoursesPage() {
                                             <TableCell className="py-5 pl-6">
                                                 <div className="flex items-center gap-3">
                                                     {course.thumbnail
-                                                        ? <img src={course.thumbnail} alt={course.title} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" />
+                                                         ? <img 
+                                                             src={course.thumbnail} 
+                                                             alt={course.title} 
+                                                             className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" 
+                                                             onError={(e) => {
+                                                                 (e.target as HTMLImageElement).src = 'https://placehold.co/640x360?text=SkillMetrix+LMS';
+                                                             }}
+                                                           />
                                                         : <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0"><BookImage className="size-5 text-indigo-400" /></div>
                                                     }
                                                     <div className="min-w-0">
