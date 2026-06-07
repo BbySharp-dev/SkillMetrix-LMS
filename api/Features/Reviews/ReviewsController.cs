@@ -13,14 +13,14 @@ public class ReviewsController(IReviewService reviewService) : BaseApiController
     /// Lấy danh sách đánh giá của một khóa học (có phân trang).
     /// </summary>
     [HttpGet("courses/{courseId:guid}")]
-    [ProducesResponseType(typeof(PagedResponse<List<ReviewDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<ReviewDto>>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourseReviews(Guid courseId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var result = await reviewService.GetCourseReviewsAsync(courseId, page, pageSize);
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(result.Value);
+        return Ok(new ApiResponse<PagedResponse<List<ReviewDto>>>(result.Value!, "Reviews retrieved successfully."));
     }
 
 

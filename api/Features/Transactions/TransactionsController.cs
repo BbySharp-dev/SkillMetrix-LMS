@@ -17,7 +17,7 @@ public class TransactionsController(ITransactionService transactionService) : Ba
     /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
     [Authorize]
     [HttpGet("me")]
-    [ProducesResponseType(typeof(PagedResponse<List<TransactionResponseDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<TransactionResponseDto>>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyTransactions([FromQuery] TransactionQueryDto query)
     {
         var userId = GetCurrentUserId();
@@ -28,6 +28,6 @@ public class TransactionsController(ITransactionService transactionService) : Ba
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(result.Value);
+        return Ok(new ApiResponse<PagedResponse<List<TransactionResponseDto>>>(result.Value!, "Transactions retrieved successfully."));
     }
 }

@@ -18,7 +18,7 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseA
     /// <response code="401">Token không hợp lệ hoặc chưa đăng nhập.</response>
     [Authorize]
     [HttpGet("me")]
-    [ProducesResponseType(typeof(PagedResponse<List<EnrollmentResponseDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<EnrollmentResponseDto>>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyEnrollments([FromQuery] EnrollmentQueryDto query)
     {
         var userId = GetCurrentUserId();
@@ -29,7 +29,7 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseA
         if (!result.IsSuccess)
             return HandleError(result);
 
-        return Ok(result.Value);
+        return Ok(new ApiResponse<PagedResponse<List<EnrollmentResponseDto>>>(result.Value!, "Enrollments retrieved successfully."));
     }
 
 
