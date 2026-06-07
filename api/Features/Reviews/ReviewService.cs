@@ -84,6 +84,8 @@ public class ReviewService(ApplicationDbContext context) : IReviewService
         context.CourseReviews.Add(review);
         await context.SaveChangesAsync();
 
+        await RecalculateCourseRatingAsync(dto.CourseId);
+
         var user = await context.Users.FindAsync(userId);
 
         return new ReviewDto
@@ -116,6 +118,8 @@ public class ReviewService(ApplicationDbContext context) : IReviewService
 
         await context.SaveChangesAsync();
 
+        await RecalculateCourseRatingAsync(review.CourseId);
+
         var user = await context.Users.FindAsync(userId);
 
         return new ReviewDto
@@ -142,7 +146,24 @@ public class ReviewService(ApplicationDbContext context) : IReviewService
         review.IsDeleted = true;
         await context.SaveChangesAsync();
 
+        await RecalculateCourseRatingAsync(review.CourseId);
+
         return Result.Success();
+    }
+
+    private async Task RecalculateCourseRatingAsync(Guid courseId)
+    {
+        var course = await context.Courses.FindAsync(courseId);
+        if (course != null)
+        {
+            var averageRating = await context.CourseReviews
+                .Where(r => r.CourseId == courseId && !r.IsDeleted)
+                .Select(r => (decimal?)r.Rating)
+                .AverageAsync();
+
+            course.Rating = averageRating;
+            await context.SaveChangesAsync();
+        }
     }
 
     public async Task<Result<ReviewDto?>> GetUserReviewForCourseAsync(Guid userId, Guid courseId)
