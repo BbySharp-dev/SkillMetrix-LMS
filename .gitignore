@@ -44,11 +44,11 @@ docker-compose.override.yml
 docs/
 docs/
 
-# Local backend secrets
-api/appsettings.Development.json
+# App settings (secrets managed via dotnet user-secrets / env vars)
+**/appsettings.json
+**/appsettings.*.json
 
 # Secrets and certs
-**/appsettings.*.json
 **/*secrets*.json
 **/*.pfx
 **/*.key
