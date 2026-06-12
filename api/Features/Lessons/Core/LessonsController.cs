@@ -165,6 +165,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     /// </remarks>
     /// <param name="id">Mã định danh (GUID) của Bài học cần gắn video.</param>
     /// <param name="file">File video upload qua form-data.</param>
+    /// <param name="durationSeconds">Thời lượng video tính bằng giây (đo ở client).</param>
     /// <returns>Thông tin bài học đã được cập nhật kèm Video URL.</returns>
     /// <response code="200">Upload video thành công, dữ liệu bài học đã được đồng bộ.</response>
     /// <response code="400">File tải lên bị rỗng hoặc không đúng định dạng cho phép.</response>
@@ -180,7 +181,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UploadLessonVideo(Guid id, IFormFile file)
+    public async Task<IActionResult> UploadLessonVideo(Guid id, IFormFile file, [FromQuery] double? durationSeconds)
     {
         if (file.Length == 0)
         {
@@ -201,7 +202,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             return Unauthorized(new ApiResponse<object>("Invalid token"));
         }
 
-        var result = await lessonService.UploadLessonVideoAsync(id, file, actorId.Value);
+        var result = await lessonService.UploadLessonVideoAsync(id, file, durationSeconds, actorId.Value);
 
         if (!result.IsSuccess) return HandleError(result);
 

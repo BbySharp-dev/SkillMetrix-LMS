@@ -166,7 +166,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
             CreatedAt = lesson.CreatedAt
         };
     }
-    public async Task<Result<LessonResponseDto>> UploadLessonVideoAsync(Guid lessonId, IFormFile? file, Guid actorId)
+    public async Task<Result<LessonResponseDto>> UploadLessonVideoAsync(Guid lessonId, IFormFile? file, double? durationSeconds, Guid actorId)
     {
         if (file == null || file.Length == 0)
         {
@@ -214,7 +214,11 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
         }
 
         lesson.VideoUrl = uploadResult.Value.Url;
-        if (uploadResult.Value.DurationSeconds > 0)
+        if (durationSeconds.HasValue && durationSeconds.Value > 0)
+        {
+            lesson.DurationSeconds = (int)durationSeconds.Value;
+        }
+        else if (uploadResult.Value.DurationSeconds > 0)
         {
             lesson.DurationSeconds = (int)uploadResult.Value.DurationSeconds;
         }

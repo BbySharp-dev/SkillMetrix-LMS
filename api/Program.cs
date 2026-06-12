@@ -97,7 +97,7 @@ builder.Services.AddControllers()
     });
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddScoped<IFileUploadService, CloudinaryUploadService>();
+builder.Services.AddHttpClient<IFileUploadService, SupabaseUploadService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddMapster();
