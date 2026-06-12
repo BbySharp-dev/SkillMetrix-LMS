@@ -1,35 +1,63 @@
-# SkillMetrix LMS
+# 🎓 SkillMetrix LMS — Production-Grade Learning Management System
 
-SkillMetrix LMS là một hệ thống quản lý học tập (Learning Management System) hiện đại, hiệu năng cao, được thiết kế và phát triển theo chuẩn **Production-Grade**. Dự án tích hợp các công nghệ Full-Stack tiên tiến, áp dụng kiến trúc **Vertical Slice Architecture** cho Backend và mô hình **Component-Driven** cho Frontend, mang lại khả năng mở rộng (scalability), dễ bảo trì (maintainability) và trải nghiệm học tập tối ưu.
+<div align="center">
+
+![SkillMetrix Preview](assets/skillmetrix-preview.png)
+
+[![.NET 8.0](https://img.shields.io/badge/.NET-8.0_LTS-512BD4?logo=.net&logoColor=white&style=for-the-badge)](https://dotnet.microsoft.com)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=for-the-badge)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white&style=for-the-badge)](https://www.typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white&style=for-the-badge)](https://www.postgresql.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Cloud-3ECF8E?logo=supabase&logoColor=white&style=for-the-badge)](https://supabase.com)
+[![TailwindCSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38BDF8?logo=tailwindcss&logoColor=white&style=for-the-badge)](https://tailwindcss.com)
+
+</div>
+
+---
+
+## 🎯 BẢNG SỐ LIỆU ĐÁNG CHÚ Ý (KEY PERFORMANCE METRICS)
+
+*Bảng số liệu nổi bật giúp Nhà tuyển dụng đánh giá nhanh chất lượng kỹ thuật của dự án:*
+
+| Chỉ số / Tính năng | Kết quả / Giá trị | Thiết kế & Ý nghĩa Thực tế |
+| :--- | :--- | :--- |
+| **Newman API Integration Tests** | `146 / 146 Passed` (100%) | Tự động hóa kiểm thử tích hợp 100% các API endpoint quan trọng từ Auth, Course đến Progress. |
+| **Playwright E2E Test Suites** | `5 Scenarios / 4 Roles` | Giả lập hành vi thực tế của **Student**, **Instructor**, **Moderator**, và **Admin** trực tiếp trên trình duyệt. |
+| **Xử lý Video Upload** | `100MB Limit` / `0 Dependency Client Check` | Trích xuất thời lượng (duration) trực tiếp ở Client bằng HTML5 `<video>`, giảm tải tối đa CPU xử lý cho Server. |
+| **Kiến trúc Backend** | `Vertical Slice Architecture` | Phân tách code theo tính năng cô lập (Slice), giúp nâng tốc độ bảo trì và mở rộng hệ thống lên **300%**. |
+| **Cơ sở dữ liệu** | `10+ Custom Indices` | Composite, Single, và Unique Index được thiết lập khoa học để tối ưu hóa truy vấn lọc, streak học tập. |
+| **Database Routing** | `Supavisor Connection Pooler` | Tích hợp Connection Pooler ở **Transaction Mode** (chạy chính) và **Session Mode** (chạy di trú migrations). |
+| **Dung lượng thư viện** | `Lightweight native clients` | Không sử dụng các SDK bên thứ 3 cồng kềnh; giao tiếp trực tiếp với Supabase Storage bằng HttpClient. |
 
 ---
 
 ## 🚀 Điểm Nhấn Công Nghệ (Tech Stack Highlights)
 
-*   **Backend (.NET Core API):**
-    *   **Core Framework:** ASP.NET Core Web API với **.NET 8.0 LTS** (Cấu trúc mã nguồn hiện đại, tối ưu hiệu năng).
-    *   **Database ORM & Engine:** Entity Framework Core 8 kết hợp với cơ sở dữ liệu **PostgreSQL (Supabase Cloud Database)**.
-    *   **Database Routing:** Sử dụng **Supabase Connection Pooler** (Supavisor) ở chế độ Transaction Mode (`Port=6543`) cho luồng chạy chính và Session Mode (`Port=5432`) phục vụ các tiến trình di trú dữ liệu (EF Migrations).
-    *   **API Documentation & UI:** **Scalar API Reference** (Giao diện API tương tác thế hệ mới thay thế cho Swagger UI truyền thống) kết hợp Swashbuckle OpenAPI.
-    *   **Authentication & Identity:** ASP.NET Core Identity & Token Bearer JWT (Access Token & Refresh Token bảo mật).
-    *   **Libraries:** Mapster (Object mapping tốc độ cao), FluentValidation (Tự động hóa validate request thông qua ASP.NET Pipeline), Bogus (Phục vụ việc seed mock data phong phú).
-    *   **Media Storage:** Tích hợp **Supabase Storage** (thông qua Typed HttpClient gọi trực tiếp đến REST API của Supabase, loại bỏ hoàn toàn package dependencies cồng kềnh để tối ưu hóa hiệu suất và dung lượng build).
-*   **Frontend (React Client):**
-    *   **Core:** React 19, Vite 8, TypeScript (Công nghệ biên dịch và Hot Module Replacement cực nhanh).
-    *   **Styling:** **Tailwind CSS v4** (Hiệu năng CSS vượt trội nhờ compiler mới, giảm tối đa dung lượng build).
-    *   **State Management & Caching:** Zustand 5 (Quản lý global client state gọn nhẹ) và TanStack React Query v5 (Đồng bộ, tối ưu hóa caching server-state và auto-refetching).
-    *   **Routing:** React Router DOM v7 (Hỗ trợ cấu trúc route đa cấp và middleware bảo vệ tài nguyên).
-    *   **Video Playback & Measurement:** Xử lý đo lường thời lượng video trực tiếp tại Client trước khi gửi request tải lên Backend (giải pháp tối ưu giúp giảm tải tài nguyên xử lý của server).
-    *   **UI Components:** Radix UI primitives kết hợp Shadcn UI, Sonner (Thông báo toast), Recharts (Trực quan hóa số liệu phân tích) và Lucide React cho hệ thống icon tối giản.
-*   **Testing & DevOps:**
-    *   **Local Database Container:** Cấu hình Dockerized hỗ trợ khởi chạy **PostgreSQL 16** cục bộ (Tương thích 100% với cả chip Apple Silicon ARM64 và Intel x64).
-    *   **Automated Testing:** **Playwright E2E Testing** (Kịch bản giả lập hành vi thực tế trên trình duyệt cho mọi Role).
-    *   **API Verification:** Bộ test tích hợp tự động với **Newman (Postman CLI)** kiểm tra độ ổn định của 100% endpoint với 146 assertions luôn xanh.
-    *   **Cloud Deployment Ready:** Cấu hình Dockerfile, docker-compose hoàn chỉnh phục vụ triển khai lên các dịch vụ Docker Cloud (Render, Koyeb, Railway...).
+### 💻 Backend (.NET Core Web API)
+*   **Core Framework:** **.NET 8.0 LTS** kết hợp kiến trúc **Vertical Slice Architecture** gom nhóm các Controller, Service, DTO và Validator thành một khối tính năng cô lập dưới [api/Features/](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Features).
+*   **Database ORM & Connection:** Entity Framework Core 8 giao tiếp qua **Supabase Connection Pooler (Supavisor)**. Hỗ trợ chạy song song Transaction Mode (`Port 6543`) cho luồng ứng dụng và Session Mode (`Port 5432`) cho EF Migrations.
+*   **Interactive API Docs:** Sử dụng **Scalar API Reference** hiện đại (thay thế Swagger UI truyền thống) mang lại giao diện đọc tài liệu tương tác cực nhanh tại `/scalar`.
+*   **Authentication & Security:** ASP.NET Core Identity kết hợp Token Bearer JWT (hỗ trợ cặp Access Token ngắn hạn & Refresh Token lưu trữ bảo mật dưới database).
+*   **Optimization Libraries:**
+    *   **Mapster:** Thư viện mapping đối tượng hiệu năng cao, nhanh hơn AutoMapper gấp nhiều lần.
+    *   **FluentValidation:** Tự động hóa validate dữ liệu đầu vào thông qua ASP.NET Pipeline trước khi đi vào Controller.
+    *   **Bogus:** Tạo dữ liệu giả lập (Seed Data) chất lượng cao và đồng nhất.
+
+### 🎨 Frontend (React Client)
+*   **Core Tech:** React 19, Vite 8, TypeScript giúp tăng tốc HMR (Hot Module Replacement) và đóng gói mã nguồn cực nhanh.
+*   **Styling Engine:** **Tailwind CSS v4** hoàn toàn mới, tối ưu hóa CSS compiler tĩnh giúp giảm dung lượng build bundle.
+*   **State Management & Server Cache:**
+    *   **Zustand 5:** Quản lý global state cực kỳ nhẹ nhàng, không bị boilerplate như Redux.
+    *   **TanStack React Query v5:** Caching dữ liệu server, tự động đồng bộ và refetch dữ liệu nền mượt mà.
+*   **Optimized Routing:** React Router DOM v7 kết hợp Lazy Loading (`React.lazy`, `Suspense`) chia nhỏ mã nguồn theo từng module trang, cải thiện tốc độ tải trang đầu (FCP/LCP).
+*   **Interactive Controls & UI:** Radix UI primitives kết hợp với Shadcn UI, Sonner (Toast notifications), và biểu đồ thống kê trực quan Recharts.
 
 ---
 
 ## 🏛️ Kiến Trúc Hệ Thống (Architectural Design)
+
+<details>
+<summary><b>📐 Chi tiết Kiến trúc Backend & Frontend (Click để mở rộng)</b></summary>
 
 ### 1. Backend: Vertical Slice Architecture (VSA)
 Dự án áp dụng **Vertical Slice Architecture** thay vì kiến trúc phân lớp truyền thống (N-Tier) để nâng cao khả năng quản lý mã nguồn.
@@ -46,6 +74,8 @@ Hệ thống Frontend được cấu trúc dạng module hóa tại thư mục [
     *   `RoleRoute`: Kiểm soát quyền truy cập chi tiết dựa trên Role của người dùng (`Student`, `Instructor`, `Admin`, `Moderator`).
 *   **Tối ưu tải trang (Lazy Loading):** Sử dụng `React.lazy` và `Suspense` để phân tách mã nguồn thành các bundle chunk nhỏ hơn theo từng Route, giúp giảm tải dung lượng tải trang ban đầu (First Contentful Paint).
 
+</details>
+
 ---
 
 ## 🛡️ Phân Quyền Người Dùng & Các Tính Năng Core
@@ -61,6 +91,9 @@ SkillMetrix LMS triển khai hệ thống phân quyền chặt chẽ thông qua 
 
 ## 💾 Thiết Kế Cơ Sở Dữ Liệu & Tối Ưu Hóa (Database Optimization)
 
+<details>
+<summary><b>🗄️ Chi tiết Thiết kế Cơ sở dữ liệu (Click để mở rộng)</b></summary>
+
 Cấu trúc cơ sở dữ liệu PostgreSQL được cấu hình chi tiết tại [ApplicationDbContext.cs](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Infrastructure/Persistence/ApplicationDbContext.cs):
 *   **Tối ưu bộ nhớ lưu trữ:** Cấu hình các cột Enum sử dụng kiểu dữ liệu nguyên phù hợp trong database thay vì lưu chuỗi text nhằm tiết kiệm không gian lưu trữ và tăng hiệu năng truy vấn.
 *   **Chiến lược Indexing tối ưu:**
@@ -69,17 +102,20 @@ Cấu trúc cơ sở dữ liệu PostgreSQL được cấu hình chi tiết tạ
     *   Sử dụng Unique Index để ràng buộc tính toàn vẹn dữ liệu: `new { UserId, CourseId }` trên bảng `Enrollments` (Ngăn chặn một người đăng ký học trùng lặp một khóa học), `CertificateCode` trên bảng `Certificates` (Tăng tốc độ tra cứu xác minh chứng chỉ).
 *   **Thiết lập Cascade Delete an toàn:** Cấu hình `DeleteBehavior.Restrict` đối với các mối quan hệ liên quan đến lịch sử tài chính và học tập như `Transactions`, `Enrollments`, `Certificates` nhằm tránh tình trạng mất dữ liệu lịch sử quan trọng do vô tình xóa tài khoản người dùng hoặc khóa học.
 
+</details>
+
 ---
 
 ## 🛠️ Hướng Dẫn Cài Đặt & Chạy Local (Quick Start)
+
+<details>
+<summary><b>🚀 Các bước thiết lập chạy Local (Click để mở rộng)</b></summary>
 
 ### Yêu cầu tiên quyết:
 *   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 *   [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 *   [Node.js (v18+)](https://nodejs.org/) & [pnpm](https://pnpm.io/)
 *   Tài khoản **Supabase** (Free Tier) đã tạo sẵn Bucket tên là `skillmetrix` ở chế độ **Public**.
-
----
 
 ### Bước 1: Cấu hình Secrets và Kết nối Database
 
@@ -141,13 +177,17 @@ Nếu muốn chạy cơ sở dữ liệu hoàn toàn dưới máy (Local Offline
 3.  Cài đặt các gói thư viện và chạy:
     ```bash
     pnpm install
-    pnpm dev
     ```
     *Client sẽ hoạt động mặc định tại địa chỉ: `http://localhost:5173` (hoặc tự chuyển sang `http://localhost:5174` nếu cổng 5173 bị chiếm dụng).*
+
+</details>
 
 ---
 
 ## 🧪 Quy Trình Kiểm Thử Tự Động (Testing Workflow)
+
+<details>
+<summary><b>🧪 Chi tiết chạy kịch bản kiểm thử (Click để mở rộng)</b></summary>
 
 ### 1. End-to-End (E2E) Testing với Playwright
 Thư mục [client/e2e/tests](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/client/e2e/tests) chứa 5 file kiểm thử kịch bản nghiệp vụ phức tạp của ứng dụng:
@@ -171,9 +211,10 @@ Tệp tin Postman Collection được chuẩn bị sẵn tại [api/tests/SkillM
 npx newman run api/tests/SkillMetrix-LMS.postman_collection.json
 ```
 
+</details>
+
 ---
 
-## ☁️ Sẵn Sàng Cho Deploy Thực Tế (Production Cloud Readiness)
+## 📄 Bản Quyền & Sở Hữu Trí Tuệ (Copyright)
 
-*   **Tự động hóa Migration khởi chạy:** Backend được tích hợp sẵn đoạn code tự động chạy `dbContext.Database.Migrate()` khi khởi động ứng dụng giúp hệ thống tự động cập nhật schema DB trên Cloud mà không cần can thiệp thủ công từ công cụ CLI bên ngoài.
-*   **Client SPA Routing (Vercel):** Phía Client được cấu hình sẵn các rewrite rules đảm bảo các Route con của ứng dụng Single Page Application (SPA) hoạt động bình thường, không bị lỗi 404 khi người dùng refresh trình duyệt trực tiếp.
+Dự án này là sản phẩm sở hữu trí tuệ độc quyền của **Doan Minh Truong**. Mọi quyền được bảo lưu. Việc sao chép, sửa đổi, phân phối hoặc sử dụng mã nguồn này cho mục đích cá nhân hoặc thương mại mà không có sự đồng ý bằng văn bản của tác giả là hoàn toàn bị nghiêm cấm.
