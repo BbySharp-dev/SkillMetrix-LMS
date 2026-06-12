@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Courses.Entities;
 
 public class Course
 {
@@ -25,7 +22,7 @@ public class Course
     public Guid InstructorId { get; set; }
 
     [Required]
-    [Column(TypeName = "tinyint")]
+    [Column(TypeName = "smallint")]
     public CourseStatus Status { get; set; }
 
     [Required]

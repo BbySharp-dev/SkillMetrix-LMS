@@ -252,7 +252,7 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         course.UpdatedBy = actorId;
 
         await context.SaveChangesAsync();
-        return await GetCourseByIdAsync(id);
+        return await GetCourseByIdAsync(id, actorId);
     }
 
     public async Task<Result> DeleteCourseAsync(Guid id, Guid actorId, bool isAdmin = false)
@@ -261,6 +261,10 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         if (course == null) return Result.Failure("Course not found");
         if (!isAdmin && course.InstructorId != actorId)
             return Result.Failure("You can only delete your own courses", ErrorType.Forbidden);
+
+        var hasEnrollments = await context.Enrollments.AnyAsync(e => e.CourseId == id);
+        if (hasEnrollments)
+            return Result.Failure("Cannot delete course that has active enrollments", ErrorType.Conflict);
 
         course.IsDeleted = true;
         course.DeletedAt = DateTime.UtcNow;
@@ -279,7 +283,6 @@ public class CourseService(ApplicationDbContext context) : ICourseService
         course.IsDeleted = false;
         course.DeletedAt = null;
         course.DeletedBy = null;
-        course.Status = CourseStatus.Draft;
         await context.SaveChangesAsync();
         return Result.Success();
     }

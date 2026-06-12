@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Reviews.Entities;
 
 public class CourseReview
 {
@@ -9,7 +6,7 @@ public class CourseReview
     public Guid CourseId { get; set; }
     public Guid UserId { get; set; }
 
-    [Column(TypeName = "tinyint")]
+    [Column(TypeName = "smallint")]
     public int Rating { get; set; }
     [MaxLength(1000)]
     public string? Comment { get; set; }

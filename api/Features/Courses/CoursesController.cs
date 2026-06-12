@@ -6,7 +6,8 @@ using SkillMetrix_LMS.API.Features.Admin.DTOs;
 namespace SkillMetrix_LMS.API.Features.Courses;
 
 /// <summary>
-/// Quản lý CRUD khóa học.
+/// Quản lý các nghiệp vụ cốt lõi của Khóa học (Courses).
+/// Cung cấp API cho Học viên (tìm kiếm, xem chi tiết), Giảng viên (tạo, quản lý khóa học) và Admin/Moderator (kiểm duyệt).
 /// </summary>
 [Route("api/[controller]")]
 public class CoursesController(ICourseService courseService, IChapterService chapterService)
@@ -16,12 +17,14 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// Lấy danh sách tất cả khóa học.
     /// </summary>
     /// <remarks>
-    /// Có hỗ trợ phân trang cho danh sách khóa học, mặc định chỉ lấy khóa học đã Publish.
+    /// API Public dành cho trang chủ hoặc trang tìm kiếm.
+    /// - Mặc định **chỉ hiển thị** các khóa học có trạng thái `Published`.
+    /// - Hỗ trợ lọc động mạnh mẽ (theo danh mục, khoảng giá, đánh giá...).
     /// </remarks>
     /// <param name="query">Các tham số lọc động (Search, Status, MinPrice...).</param>
-    /// <param name="pageNumber">Số trang hiện tại (mặc định 1).</param>
-    /// <param name="pageSize">Số lượng khóa học trên mỗi trang (mặc định 10).</param>
-    /// <returns>Danh sách khóa học có phân trang.</returns>
+    /// <param name="pageNumber">Số trang hiện tại (mặc định: 1).</param>
+    /// <param name="pageSize">Số lượng khóa học trên mỗi trang (mặc định: 10).</param>
+    /// <returns>Danh sách khóa học kèm theo metadata phân trang.</returns>
     /// <response code="200">Lấy danh sách khóa học thành công.</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<CourseResponseDto>>>), StatusCodes.Status200OK)]
@@ -41,12 +44,18 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Lấy thông tin cơ bản của một khóa học theo ID.
+    /// Lấy thông tin chi tiết của một khóa học theo ID.
     /// </summary>
-    /// <param name="id">ID của khóa học.</param>
-    /// <returns>Thông tin cơ bản của khóa học.</returns>
+    /// <remarks>
+    /// Cơ chế hiển thị phụ thuộc vào vai trò của người gọi API:
+    /// - **Người dùng thường / Khách:** Chỉ xem được khóa học đã `Published`.
+    /// - **Tác giả (Instructor):** Xem được khóa học của chính mình ở mọi trạng thái.
+    /// - **Admin / Moderator:** Xem được mọi khóa học ở mọi trạng thái.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <returns>Thông tin chi tiết của khóa học.</returns>
     /// <response code="200">Lấy thông tin khóa học thành công.</response>
-    /// <response code="404">Không tìm thấy khóa học, hoặc khóa học chưa được publish (đối với user thường).</response>
+    /// <response code="404">Không tìm thấy khóa học, hoặc khóa học đang bị ẩn đối với user hiện tại.</response>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<CourseResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -66,9 +75,13 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Lấy danh sách chương học và bài học (Curriculum) của một khóa học.
+    /// Lấy toàn bộ giáo trình (Curriculum) của một khóa học.
     /// </summary>
-    /// <param name="id">ID của khóa học cần lấy giáo trình.</param>
+    /// <remarks>
+    /// Trả về cấu trúc cây phân cấp: **Khóa học -> Các Chương học (Chapters) -> Các Bài học (Lessons)**.
+    /// Dùng để hiển thị danh sách bài học ở trang giới thiệu khóa học hoặc trong màn hình học tập.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
     /// <returns>Danh sách Chapter lồng bên trong là các Lesson.</returns>
     /// <response code="200">Lấy dữ liệu Curriculum thành công.</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
@@ -87,13 +100,17 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Tạo một khóa học mới.
+    /// Tạo bản nháp (Draft) cho một khóa học mới.
     /// </summary>
-    /// <param name="dto">Thông tin khóa học mới.</param>
-    /// <returns>Thông tin khóa học vừa tạo.</returns>
+    /// <remarks>
+    /// Khóa học sau khi tạo sẽ có trạng thái mặc định là `Draft`.
+    /// API này sẽ tự động validate dữ liệu đầu vào (FluentValidation).
+    /// </remarks>
+    /// <param name="dto">Payload chứa thông tin cơ bản của khóa học.</param>
+    /// <returns>Thông tin khóa học vừa khởi tạo.</returns>
     /// <response code="201">Tạo khóa học thành công.</response>
-    /// <response code="400">Thông tin cung cấp không hợp lệ.</response>
-    /// <response code="404">Không tìm thấy giảng viên được chỉ định.</response>
+    /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+    /// <response code="404">Không tìm thấy Giảng viên được chỉ định trong hệ thống.</response>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CourseDetailResponseDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -119,16 +136,23 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     /// <summary>
     /// Cập nhật thông tin cơ bản của khóa học.
     /// </summary>
-    /// <param name="id">ID của khóa học cần cập nhật.</param>
-    /// <param name="dto">Các thông tin cần cập nhật.</param>
+    /// <remarks>
+    /// Chỉ có **Tác giả** của khóa học hoặc **Admin** mới có quyền gọi API này.
+    /// Một số thông tin nhạy cảm (như Giá tiền) có thể bị chặn cập nhật nếu khóa học đã được public.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <param name="dto">Payload chứa các trường cần cập nhật.</param>
     /// <returns>Thông tin khóa học sau khi cập nhật.</returns>
-    /// <response code="200">Cập nhật khóa học thành công.</response>
-    /// <response code="400">Thông tin cập nhật không hợp lệ (ví dụ: đổi giá khóa public).</response>
+    /// <response code="200">Cập nhật thành công.</response>
+    /// <response code="400">Dữ liệu cập nhật không hợp lệ.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
+    /// <response code="403">Truy cập bị từ chối (Không phải tác giả khóa học).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
     [Authorize]
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResponse<CourseResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCourse(Guid id, UpdateCourseDto dto)
@@ -151,16 +175,23 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Xóa mềm một khóa học.
+    /// Xóa mềm (Soft Delete) một khóa học.
     /// </summary>
-    /// <param name="id">ID của khóa học cần xóa.</param>
-    /// <returns>Trạng thái thực thi.</returns>
-    /// <response code="200">Xóa khóa học thành công.</response>
+    /// <remarks>
+    /// Đánh dấu khóa học là đã xóa (IsDeleted = true) thay vì xóa vật lý khỏi Database.
+    /// Không cho phép xóa nếu khóa học đã có học viên đăng ký (tránh mất dữ liệu học tập).
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <returns>Trạng thái xóa.</returns>
+    /// <response code="200">Xóa mềm thành công.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
+    /// <response code="403">Không có quyền thực hiện thao tác.</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
-    /// <response code="409">Không thể xóa vì khóa học đã có học viên đăng ký.</response>
+    /// <response code="409">Conflict - Đã có học viên đăng ký, không thể xóa.</response>
     [Authorize]
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -182,11 +213,21 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Khôi phục khóa học đã xóa mềm.
+    /// Khôi phục một khóa học đã bị xóa mềm.
     /// </summary>
+    /// <remarks>
+    /// Chỉ dành cho Giảng viên (khôi phục khóa học của chính mình) hoặc Admin.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <returns>Trạng thái khôi phục.</returns>
+    /// <response code="200">Khôi phục thành công.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
+    /// <response code="403">Không có quyền thực hiện thao tác.</response>
+    /// <response code="404">Không tìm thấy khóa học (hoặc khóa học chưa bị xóa).</response>
     [Authorize(Policy = "RequireInstructorOrAdmin")]
     [HttpPost("{id}/restore")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RestoreCourse(Guid id)
@@ -203,12 +244,22 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Lấy danh sách khóa học của instructor hiện tại.
-    /// Tự động inject InstructorId từ token.
+    /// Lấy danh sách khóa học thuộc sở hữu của Giảng viên hiện tại.
     /// </summary>
+    /// <remarks>
+    /// Hệ thống sẽ tự động trích xuất `InstructorId` từ JWT Token của người request.
+    /// Không cần truyền InstructorId thủ công vào payload.
+    /// </remarks>
+    /// <param name="query">Các tiêu chí bộ lọc.</param>
+    /// <param name="pageNumber">Số trang (Mặc định: 1).</param>
+    /// <param name="pageSize">Kích thước trang (Mặc định: 10).</param>
+    /// <returns>Danh sách khóa học của giảng viên.</returns>
+    /// <response code="200">Lấy dữ liệu thành công.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
     [Authorize(Policy = "RequireInstructorOrAdmin")]
     [HttpGet("instructor/mine")]
     [ProducesResponseType(typeof(ApiResponse<PagedResponse<List<CourseResponseDto>>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMyCourses(
         [FromQuery] CourseQueryDto query,
         [FromQuery] int pageNumber = 1,
@@ -232,12 +283,16 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Giảng viên nộp khóa học chờ Admin duyệt.
+    /// Nộp khóa học để chờ Admin kiểm duyệt.
     /// </summary>
-    /// <param name="id">ID khóa học.</param>
-    /// <returns>Trạng thái nộp.</returns>
+    /// <remarks>
+    /// Chuyển trạng thái khóa học từ `Draft` sang `PendingApproval`.
+    /// Chỉ tác giả của khóa học mới có quyền gọi API này.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <returns>Trạng thái nộp kiểm duyệt.</returns>
     /// <response code="200">Nộp khóa học thành công.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
     /// <response code="403">Không có quyền (Không phải tác giả khóa học).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
     [Authorize]
@@ -264,13 +319,17 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Admin/Moderator duyệt khóa học.
+    /// Phê duyệt khóa học (Publish).
     /// </summary>
-    /// <param name="id">ID khóa học.</param>
-    /// <returns>Trạng thái duyệt.</returns>
-    /// <response code="200">Duyệt thành công.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Truy cập bị từ chối (Chỉ Admin/Moderator).</response>
+    /// <remarks>
+    /// Chuyển trạng thái khóa học từ `PendingApproval` sang `Published`. 
+    /// Sau khi gọi API này thành công, khóa học sẽ chính thức xuất hiện trên nền tảng.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <returns>Trạng thái phê duyệt.</returns>
+    /// <response code="200">Duyệt và Publish thành công.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
+    /// <response code="403">Truy cập bị từ chối (Role không hợp lệ).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
     [Authorize(Roles = "Admin,Moderator")]
     [HttpPut("{id}/approve")]
@@ -296,15 +355,18 @@ public class CoursesController(ICourseService courseService, IChapterService cha
     }
 
     /// <summary>
-    /// Admin/Moderator từ chối khóa học.
+    /// Từ chối khóa học và yêu cầu chỉnh sửa.
     /// </summary>
-    /// <param name="id">ID khóa học.</param>
-    /// <param name="dto">Lý do từ chối.</param>
+    /// <remarks>
+    /// Trả khóa học về trạng thái `Draft` hoặc `Rejected` kèm theo **lý do từ chối** gửi cho Giảng viên.
+    /// </remarks>
+    /// <param name="id">Mã định danh (GUID) của khóa học.</param>
+    /// <param name="dto">Payload chứa lý do từ chối (Bắt buộc).</param>
     /// <returns>Trạng thái từ chối.</returns>
     /// <response code="200">Từ chối thành công.</response>
-    /// <response code="400">Thiếu lý do từ chối.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Truy cập bị từ chối (Chỉ Admin/Moderator).</response>
+    /// <response code="400">Không cung cấp lý do từ chối hợp lệ.</response>
+    /// <response code="401">Missing/Invalid Token.</response>
+    /// <response code="403">Truy cập bị từ chối (Role không hợp lệ).</response>
     /// <response code="404">Không tìm thấy khóa học.</response>
     [Authorize(Roles = "Admin,Moderator")]
     [HttpPut("{id}/reject")]

@@ -11,4 +11,3 @@ public interface IReviewService
     Task<Result> DeleteReviewAsync(Guid userId, Guid reviewId);
     Task<Result<ReviewDto?>> GetUserReviewForCourseAsync(Guid userId, Guid courseId);
 }
-
