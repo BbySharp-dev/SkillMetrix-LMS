@@ -22,9 +22,24 @@ interface LessonEditorModalProps {
     onOpenChange: (open: boolean) => void;
     onSave: (data: { title: string; isFreePreview: boolean; videoUrl?: string | null; durationSeconds?: number }) => void;
     initialData?: { id?: string; title?: string; isFreePreview?: boolean; videoUrl?: string | null; durationSeconds?: number } | null;
-    onUploadVideo?: (lessonId: string, file: File) => Promise<void>;
+    onUploadVideo?: (lessonId: string, file: File, durationSeconds?: number) => Promise<void>;
     isUploading?: boolean;
 }
+
+const getDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+            window.URL.revokeObjectURL(video.src);
+            resolve(Math.round(video.duration));
+        };
+        video.onerror = () => {
+            resolve(0);
+        };
+        video.src = URL.createObjectURL(file);
+    });
+};
 
 export default function LessonEditorModal({
     open,
@@ -108,7 +123,13 @@ export default function LessonEditorModal({
             alert('File video tối đa 500MB.');
             return;
         }
-        await onUploadVideo(initialData.id, file);
+        let durationSeconds: number | undefined;
+        try {
+            durationSeconds = await getDuration(file);
+        } catch (err) {
+            console.error('Lỗi khi lấy thời lượng video:', err);
+        }
+        await onUploadVideo(initialData.id, file, durationSeconds);
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,10 +391,9 @@ export default function LessonEditorModal({
                                                         type="number"
                                                         min="0"
                                                         value={durationMinutes}
-                                                        onChange={(e) => setYoutubeUrl(y => {
+                                                        onChange={(e) => {
                                                             setDurationMinutes(Math.max(0, parseInt(e.target.value) || 0));
-                                                            return y;
-                                                        })}
+                                                        }}
                                                         className="w-20 px-3 py-2 bg-gray-50 border-2 border-transparent rounded-xl font-bold text-gray-900 focus:bg-white focus:border-indigo-400 outline-none transition-all text-center"
                                                     />
                                                     <span className="text-sm text-gray-500 font-bold">phút</span>
@@ -384,10 +404,9 @@ export default function LessonEditorModal({
                                                         min="0"
                                                         max="59"
                                                         value={durationSecondsVal}
-                                                        onChange={(e) => setYoutubeUrl(y => {
+                                                        onChange={(e) => {
                                                             setDurationSecondsVal(Math.min(59, Math.max(0, parseInt(e.target.value) || 0)));
-                                                            return y;
-                                                        })}
+                                                        }}
                                                         className="w-20 px-3 py-2 bg-gray-50 border-2 border-transparent rounded-xl font-bold text-gray-900 focus:bg-white focus:border-indigo-400 outline-none transition-all text-center"
                                                     />
                                                     <span className="text-sm text-gray-500 font-bold">giây</span>

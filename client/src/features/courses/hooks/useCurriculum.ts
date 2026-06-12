@@ -87,8 +87,8 @@ export const useLessonMutations = (courseId: string) => {
     });
 
     const uploadVideoMutation = useMutation({
-        mutationFn: ({ id, file }: { id: string, file: File }) => 
-            lessonApi.uploadVideo(id, file),
+        mutationFn: ({ id, file, durationSeconds }: { id: string, file: File, durationSeconds?: number }) => 
+            lessonApi.uploadVideo(id, file, durationSeconds),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.courses.curriculum(courseId) });
             toast.success('Upload video thành công');

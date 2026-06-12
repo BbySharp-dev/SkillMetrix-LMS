@@ -40,10 +40,11 @@ export const lessonApi = {
         await api.delete(`/lessons/${id}`);
     },
 
-    uploadVideo: async (id: string, file: File): Promise<LessonResponseDto> => {
+    uploadVideo: async (id: string, file: File, durationSeconds?: number): Promise<LessonResponseDto> => {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await api.post(`/lessons/${id}/video`, formData, {
+        const url = durationSeconds !== undefined ? `/lessons/${id}/video?durationSeconds=${durationSeconds}` : `/lessons/${id}/video`;
+        const res = await api.post(url, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         }) as ApiResponseWrapper<LessonResponseDto>;
         const d = getData(res);

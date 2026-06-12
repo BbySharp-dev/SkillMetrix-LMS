@@ -146,8 +146,8 @@ export default function CurriculumEditor({ courseId: propCourseId }: CurriculumE
         }
     };
 
-    const handleUploadVideo = async (lessonId: string, file: File) => {
-        const updated = await uploadVideo.mutateAsync({ id: lessonId, file });
+    const handleUploadVideo = async (lessonId: string, file: File, durationSeconds?: number) => {
+        const updated = await uploadVideo.mutateAsync({ id: lessonId, file, durationSeconds });
         setEditingLesson(updated as unknown as LessonDto);
     };
 
