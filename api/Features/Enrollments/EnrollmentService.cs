@@ -1,4 +1,3 @@
-using SkillMetrix_LMS.API.Features.Courses.DTOs;
 using SkillMetrix_LMS.API.Features.Enrollments.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Enrollments;
@@ -70,7 +69,7 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
             InstructorName = (await context.Users.FindAsync(course.InstructorId))?.FullName ?? "Giảng viên",
             PricePaid = enrollment.PricePaid,
             EnrolledAt = enrollment.EnrolledAt,
-            TotalLessons = 0, 
+            TotalLessons = 0,
             CompletedLessons = 0,
             CompletionPercent = 0
         };

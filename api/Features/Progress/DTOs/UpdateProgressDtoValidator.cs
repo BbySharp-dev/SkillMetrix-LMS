@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace SkillMetrix_LMS.API.Features.Progress.DTOs;
 
 public class UpdateProgressDtoValidator : AbstractValidator<UpdateProgressDto>

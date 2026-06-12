@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Chapters.Entities;
 
 public class Chapter
 {
@@ -19,5 +17,5 @@ public class Chapter
     public DateTime? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }
     public Course Course { get; set; } = null!;
-    public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+    public ICollection<Lesson> Lessons { get; set; } = [];
 }

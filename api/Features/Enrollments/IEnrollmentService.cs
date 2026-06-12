@@ -1,4 +1,3 @@
-using SkillMetrix_LMS.API.Features.Courses.DTOs;
 using SkillMetrix_LMS.API.Features.Enrollments.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Enrollments;

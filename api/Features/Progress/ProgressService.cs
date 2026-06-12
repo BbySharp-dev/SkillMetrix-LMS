@@ -1,6 +1,5 @@
 using SkillMetrix_LMS.API.Features.Certificates;
 using SkillMetrix_LMS.API.Features.Progress.DTOs;
-using Microsoft.Extensions.Logging;
 
 namespace SkillMetrix_LMS.API.Features.Progress;
 
@@ -81,13 +80,26 @@ public class ProgressService(
 
     public async Task<Result<LessonProgressDto>> GetLessonProgressAsync(Guid lessonId, Guid userId)
     {
+        var lessonExists = await context.Lessons.AnyAsync(l => l.Id == lessonId && !l.IsDeleted);
+        if (!lessonExists)
+        {
+            return Result<LessonProgressDto>.NotFound("Lesson not found");
+        }
+
         var progress = await context.UserLessonProgresses
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId);
 
         if (progress == null)
         {
-            return Result<LessonProgressDto>.NotFound("Progress not found");
+            return new LessonProgressDto
+            {
+                LessonId = lessonId,
+                IsCompleted = false,
+                LastWatchedSecond = 0,
+                CompletedAt = null,
+                LastUpdatedAt = DateTime.UtcNow
+            };
         }
 
         return new LessonProgressDto

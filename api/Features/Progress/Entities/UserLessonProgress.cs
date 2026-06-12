@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Progress.Entities;
 
 public class UserLessonProgress
 {

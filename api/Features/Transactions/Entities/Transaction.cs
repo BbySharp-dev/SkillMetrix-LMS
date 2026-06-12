@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Transactions.Entities;
 
 public class Transaction
 {
@@ -11,10 +8,10 @@ public class Transaction
     public Guid? CourseId { get; set; }
     public decimal Amount { get; set; }
 
-    [Column(TypeName = "tinyint")]
+    [Column(TypeName = "smallint")]
     public TransactionType Type { get; set; }
 
-    [Column(TypeName = "tinyint")]
+    [Column(TypeName = "smallint")]
     public TransactionStatus Status { get; set; }
     [MaxLength(1000)]
     public string? Description { get; set; }
