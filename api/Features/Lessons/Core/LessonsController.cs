@@ -156,7 +156,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
     /// Upload Video và đính kèm trực tiếp vào bài học.
     /// </summary>
     /// <remarks>
-    /// Xử lý việc tải luồng (stream) video từ Client lên Server/Cloud Storage (VD: AWS S3, Cloudinary).
+    /// Xử lý việc tải luồng (stream) video từ Client lên Server/Cloud Storage (VD: Supabase Storage).
     /// 
     /// **Giới hạn và Yêu cầu:**
     /// - **Content-Type:** `multipart/form-data`
