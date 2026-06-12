@@ -106,7 +106,6 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
             }, {
                 onSuccess: (newCourse) => {
                     if (newCourse?.id) {
-                        toast.success('Đã tạo khóa học thành công');
                         navigate(user?.role === 'Instructor' ? '/instructor/courses' : '/admin/my-courses', { replace: true });
                     } else {
                         toast.error('Lỗi: Không nhận được ID từ server.');
@@ -118,8 +117,7 @@ function CourseEditorForm({ initialData, isNew, courseId }: CourseEditorFormProp
             });
         } else if (courseId) {
             updateCourse.mutate(
-                { id: courseId, data: formData },
-                { onSuccess: () => toast.success('Đã lưu các thay đổi!') }
+                { id: courseId, data: formData }
             );
         }
     };
