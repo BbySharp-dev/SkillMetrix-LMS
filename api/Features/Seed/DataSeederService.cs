@@ -19,7 +19,7 @@ public class DataSeederService(
         var summary = await SeedLearningDataStrictAsync(users);
 
         summary.DefaultPassword = DefaultPassword;
-        summary.Credentials = users
+        summary.Credentials = [.. users
             .OrderBy(x => x.Role)
             .ThenBy(x => x.Email)
             .Select(x => new SeedCredentialDto
@@ -28,8 +28,7 @@ public class DataSeederService(
                 Email = x.Email!,
                 FullName = x.FullName,
                 Password = DefaultPassword
-            })
-            .ToList();
+            })];
 
         return summary;
     }
@@ -57,7 +56,7 @@ public class DataSeederService(
         var summary = await SeedLearningDataCustomAsync(users, options);
 
         summary.DefaultPassword = DefaultPassword;
-        summary.Credentials = users
+        summary.Credentials = [.. users
             .OrderBy(x => x.Role)
             .ThenBy(x => x.Email)
             .Select(x => new SeedCredentialDto
@@ -66,8 +65,7 @@ public class DataSeederService(
                 Email = x.Email!,
                 FullName = x.FullName,
                 Password = DefaultPassword
-            })
-            .ToList();
+            })];
 
         return summary;
     }
@@ -86,7 +84,7 @@ public class DataSeederService(
         {
             DefaultPassword = DefaultPassword,
             Counts = new SeedCountDto { Users = users.Count },
-            Credentials = users
+            Credentials = [.. users
                 .OrderBy(x => x.Role)
                 .ThenBy(x => x.Email)
                 .Select(x => new SeedCredentialDto
@@ -95,8 +93,7 @@ public class DataSeederService(
                     Email = x.Email!,
                     FullName = x.FullName,
                     Password = DefaultPassword
-                })
-                .ToList()
+                })]
         };
 
         return summary;
@@ -348,9 +345,9 @@ public class DataSeederService(
                 string description;
                 string thumbnail;
                 int price;
-                string[] customChapters = null;
-                string[] customLessons = null;
-                string[] customVideos = null;
+                string[]? customChapters = null;
+                string[]? customLessons = null;
+                string[]? customVideos = null;
 
                 if (courseIndexGlobal < realCoursesData.Length)
                 {
@@ -726,7 +723,7 @@ public class DataSeederService(
                 });
             }
 
-            if (ratingsList.Any())
+            if (ratingsList.Count > 0)
             {
                 course.Rating = (decimal)ratingsList.Average();
             }
@@ -956,9 +953,9 @@ public class DataSeederService(
         await context.SaveChangesAsync();
 
         // ─── Enrollments, Transactions, Progress ─────────────────────────────
-        var publishedCourses = courses.Where(c => c.Status == CourseStatus.Published).ToList();
+        List<Course> publishedCourses = [.. courses.Where(c => c.Status == CourseStatus.Published)];
         if (publishedCourses.Count == 0)
-            publishedCourses = courses.ToList();
+            publishedCourses = [.. courses];
 
         foreach (var (student, studentIndex) in students.Select((value, index) => (value, index)))
         {

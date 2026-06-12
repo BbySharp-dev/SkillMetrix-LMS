@@ -1,11 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace SkillMetrix_LMS.API.Features.Seed;
 
 public class DatabaseResetBackgroundService : BackgroundService
@@ -27,9 +19,9 @@ public class DatabaseResetBackgroundService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // Check if database auto-reset is enabled
-        var autoResetEnabledValue = _configuration["AUTO_RESET_ENABLED"] 
+        var autoResetEnabledValue = _configuration["AUTO_RESET_ENABLED"]
             ?? _configuration["Database:AutoResetEnabled"];
-            
+
         bool isEnabled = false;
         if (!string.IsNullOrEmpty(autoResetEnabledValue) && bool.TryParse(autoResetEnabledValue, out var parsed))
         {

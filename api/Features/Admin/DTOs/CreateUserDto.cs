@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace SkillMetrix_LMS.API.Features.Admin.DTOs;
 
 public class CreateUserDto

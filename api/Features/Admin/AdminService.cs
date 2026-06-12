@@ -13,10 +13,10 @@ public class AdminService(
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var keyword = query.Search.Trim().ToLower();
+            var keyword = query.Search.Trim();
             usersQuery = usersQuery.Where(u =>
-                (u.FullName ?? string.Empty).ToLower().Contains(keyword) ||
-                (u.Email ?? string.Empty).ToLower().Contains(keyword));
+                (u.FullName ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                (u.Email ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
         if (query.Role.HasValue)
@@ -133,8 +133,8 @@ public class AdminService(
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var keyword = query.Search.Trim().ToLower();
-            coursesQuery = coursesQuery.Where(c => c.Title.ToLower().Contains(keyword));
+            var keyword = query.Search.Trim();
+            coursesQuery = coursesQuery.Where(c => c.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
         if (query.Status.HasValue)
@@ -193,7 +193,7 @@ public class AdminService(
         if (course == null)
             return Result<bool>.NotFound("Course not found");
 
-        if (course.Status != CourseStatus.Pending && course.Status != CourseStatus.PendingApproval)
+        if (course.Status != CourseStatus.Pending)
             return Result<bool>.ValidationError("Only pending course can be approved");
 
         course.Status = CourseStatus.Published;
@@ -214,7 +214,7 @@ public class AdminService(
         if (course == null)
             return Result<bool>.NotFound("Course not found");
 
-        if (course.Status != CourseStatus.Pending && course.Status != CourseStatus.PendingApproval)
+        if (course.Status != CourseStatus.Pending)
             return Result<bool>.ValidationError("Only pending course can be rejected");
 
         course.Status = CourseStatus.Rejected;
@@ -249,7 +249,6 @@ public class AdminService(
         course.IsDeleted = false;
         course.DeletedAt = null;
         course.DeletedBy = null;
-        course.Status = CourseStatus.Draft;
 
         await context.SaveChangesAsync();
         return true;

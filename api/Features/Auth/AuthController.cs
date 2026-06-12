@@ -1,20 +1,29 @@
-using Microsoft.AspNetCore.Authorization;
 using SkillMetrix_LMS.API.Features.Auth.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Auth;
 
+/// <summary>
+/// Quản lý các tác vụ xác thực và định danh người dùng (Authentication and Identity).
+/// Cung cấp các API đăng ký, đăng nhập, quản lý phiên làm việc (Token) và bảo mật tài khoản.
+/// </summary>
 [Route("api/[controller]")]
 public class AuthController(IAuthService authService) : BaseApiController
 {
     /// <summary>
-    /// Đăng ký tài khoản mới.
+    /// Đăng ký tài khoản học viên mới.
     /// </summary>
     /// <remarks>
-    /// Tạo tài khoản mới với role mặc định là Student.
-    /// Trả về AccessToken + RefreshToken để client có thể đăng nhập ngay.
+    /// Tạo tài khoản mới với vai trò (role) mặc định là Student.
+    /// Nếu đăng ký thành công, API sẽ trả về ngay cặp AccessToken và RefreshToken để client có thể tự động đăng nhập.
     /// </remarks>
+    /// <param name="dto">Thông tin đăng ký (Email, Mật khẩu, Thông tin cá nhân,...).</param>
+    /// <returns>Thông tin xác thực bao gồm Token và dữ liệu người dùng cơ bản.</returns>
+    /// <response code="201">Đăng ký thành công và trả về thông tin xác thực.</response>
+    /// <response code="400">Dữ liệu đầu vào không hợp lệ (Validation Error) hoặc Email đã tồn tại.</response>
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         // FluentValidation tự động validate (RegisterDtoValidator)
         // Nếu invalid → trả về 400 Bad Request trước khi vào đây
@@ -34,14 +43,20 @@ public class AuthController(IAuthService authService) : BaseApiController
     }
 
     /// <summary>
-    /// Đăng nhập hệ thống.
+    /// Đăng nhập vào hệ thống.
     /// </summary>
     /// <remarks>
-    /// Xác thực bằng email + password.
-    /// Trả về AccessToken (15 phút) + RefreshToken (7 ngày).
+    /// Xác thực người dùng bằng Email và Mật khẩu.
+    /// Trả về AccessToken (thời hạn ngắn, VD: 15 phút) và RefreshToken (thời hạn dài, VD: 7 ngày).
     /// </remarks>
+    /// <param name="dto">Thông tin đăng nhập gồm Email và Password.</param>
+    /// <returns>Thông tin xác thực bao gồm Token và dữ liệu người dùng cơ bản.</returns>
+    /// <response code="200">Đăng nhập thành công.</response>
+    /// <response code="400">Sai email, mật khẩu hoặc tài khoản chưa được xác thực.</response>
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var result = await authService.LoginAsync(dto);
 
@@ -57,15 +72,22 @@ public class AuthController(IAuthService authService) : BaseApiController
     }
 
     /// <summary>
-    /// Cấp mới access token từ refresh token.
+    /// Cấp mới Access Token từ Refresh Token (Token Rotation).
     /// </summary>
     /// <remarks>
-    /// Gửi RefreshToken hiện tại để nhận cặp AccessToken + RefreshToken mới.
-    /// Token cũ sẽ bị revoke (Token Rotation).
-    /// Không cần Authorization header.
+    /// Gửi RefreshToken hiện tại đang còn hạn để nhận về một cặp AccessToken + RefreshToken hoàn toàn mới.
+    /// Token cũ sẽ ngay lập tức bị thu hồi (revoke) để đảm bảo bảo mật.
+    /// Endpoint này không yêu cầu truyền AccessToken trong header (AllowAnonymous).
     /// </remarks>
+    /// <param name="dto">Chứa Refresh Token cũ của người dùng.</param>
+    /// <returns>Cặp Token mới.</returns>
+    /// <response code="200">Làm mới token thành công.</response>
+    /// <response code="400">Refresh Token không hợp lệ, đã hết hạn hoặc đã bị thu hồi.</response>
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
     {
         var result = await authService.RefreshTokenAsync(dto);
 
@@ -84,12 +106,20 @@ public class AuthController(IAuthService authService) : BaseApiController
     /// Đăng xuất khỏi hệ thống.
     /// </summary>
     /// <remarks>
-    /// Revoke RefreshToken hiện tại. Yêu cầu đã đăng nhập (có AccessToken).
-    /// Client nên xóa token ở local storage sau khi gọi API này.
+    /// Thu hồi (Revoke) RefreshToken hiện tại dưới database. Yêu cầu request phải đính kèm AccessToken hợp lệ.
+    /// Sau khi gọi API này thành công, Client có trách nhiệm xóa token lưu ở local storage / cookies.
     /// </remarks>
-    [Authorize]  // Yêu cầu đã đăng nhập
+    /// <param name="dto">Chứa Refresh Token cần thu hồi.</param>
+    /// <returns>Thông báo đăng xuất thành công.</returns>
+    /// <response code="200">Đăng xuất và thu hồi token thành công.</response>
+    /// <response code="400">Refresh Token không hợp lệ.</response>
+    /// <response code="401">Không tìm thấy AccessToken hợp lệ trong request.</response>
+    [Authorize]
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout(RefreshTokenDto dto)
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout([FromBody] RefreshTokenDto dto)
     {
         var userId = GetCurrentUserId();
         if (userId is null)
@@ -108,10 +138,20 @@ public class AuthController(IAuthService authService) : BaseApiController
     }
 
     /// <summary>
-    /// Gửi yêu cầu đặt lại mật khẩu. Token sẽ được gửi qua email (hoặc trả về trong response ở môi trường dev).
+    /// Gửi yêu cầu khôi phục mật khẩu (Forgot Password).
     /// </summary>
+    /// <remarks>
+    /// Tạo một mã khôi phục (Reset Token) và gửi kèm hướng dẫn đặt lại mật khẩu đến Email của người dùng.
+    /// (Lưu ý: Ở môi trường Dev, token có thể được trả về thẳng trong response để tiện kiểm thử).
+    /// </remarks>
+    /// <param name="dto">Email của tài khoản cần khôi phục mật khẩu.</param>
+    /// <returns>Thông báo xác nhận gửi email.</returns>
+    /// <response code="200">Yêu cầu hợp lệ, hệ thống tiến hành gửi email khôi phục.</response>
+    /// <response code="400">Dữ liệu email không hợp lệ.</response>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
         var result = await authService.ForgotPasswordAsync(dto.Email);
@@ -123,10 +163,19 @@ public class AuthController(IAuthService authService) : BaseApiController
     }
 
     /// <summary>
-    /// Đặt lại mật khẩu bằng token nhận được từ forgot-password.
+    /// Đặt lại mật khẩu mới bằng Reset Token.
     /// </summary>
+    /// <remarks>
+    /// Yêu cầu cung cấp Reset Token hợp lệ (nhận được từ email forgot-password) cùng với mật khẩu mới.
+    /// </remarks>
+    /// <param name="dto">Thông tin bao gồm Email, Reset Token và Mật khẩu mới.</param>
+    /// <returns>Thông báo đổi mật khẩu thành công.</returns>
+    /// <response code="200">Đặt lại mật khẩu thành công.</response>
+    /// <response code="400">Token không hợp lệ, đã hết hạn hoặc mật khẩu không đạt yêu cầu.</response>
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
         var result = await authService.ResetPasswordAsync(dto);
@@ -137,10 +186,19 @@ public class AuthController(IAuthService authService) : BaseApiController
     }
 
     /// <summary>
-    /// Xác thực email của tài khoản.
+    /// Xác thực địa chỉ Email của tài khoản đăng ký mới.
     /// </summary>
+    /// <remarks>
+    /// Kích hoạt tài khoản người dùng bằng cách cung cấp UserID và mã Token xác thực nhận được qua Email.
+    /// </remarks>
+    /// <param name="dto">Chứa UserID và Token xác thực.</param>
+    /// <returns>Thông báo xác thực email thành công.</returns>
+    /// <response code="200">Tài khoản được kích hoạt thành công.</response>
+    /// <response code="400">Token xác thực không hợp lệ hoặc tài khoản đã được xác thực trước đó.</response>
     [HttpPost("confirm-email")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto dto)
     {
         var result = await authService.ConfirmEmailAsync(dto.UserId, dto.Token);
@@ -151,10 +209,19 @@ public class AuthController(IAuthService authService) : BaseApiController
     }
 
     /// <summary>
-    /// Gửi lại email xác thực.
+    /// Yêu cầu gửi lại Email xác thực tài khoản.
     /// </summary>
+    /// <remarks>
+    /// Dùng trong trường hợp người dùng không nhận được email xác thực lần đầu, hoặc token cũ đã hết hạn.
+    /// </remarks>
+    /// <param name="dto">Email của tài khoản cần gửi lại mã xác thực.</param>
+    /// <returns>Thông báo đã gửi lại email.</returns>
+    /// <response code="200">Hệ thống đã gửi lại email xác thực.</response>
+    /// <response code="400">Tài khoản không tồn tại hoặc đã được xác thực rồi.</response>
     [HttpPost("resend-verification")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationDto dto)
     {
         var result = await authService.ResendVerificationEmailAsync(dto.Email);

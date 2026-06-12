@@ -1,7 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using SkillMetrix_LMS.API.Features.Certificates.DTOs;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
-using SkillMetrix_LMS.API.Shared.Common;
 
 namespace SkillMetrix_LMS.API.Features.Certificates;
 
@@ -83,9 +80,10 @@ public class CertificateService(ApplicationDbContext context) : ICertificateServ
     public async Task<Result<CertificateDto>> IssueCertificateAsync(Guid userId, Guid courseId)
     {
         var existing = await context.Certificates
-            .AnyAsync(c => c.UserId == userId && c.CourseId == courseId);
-        if (existing)
-            return Result<CertificateDto>.Conflict("Certificate already issued for this course");
+            .Include(c => c.Course).ThenInclude(c => c.Instructor)
+            .FirstOrDefaultAsync(c => c.UserId == userId && c.CourseId == courseId);
+        if (existing != null)
+            return MapToDto(existing);
 
         var isEnrolled = await context.Enrollments
             .AnyAsync(e => e.UserId == userId && e.CourseId == courseId);

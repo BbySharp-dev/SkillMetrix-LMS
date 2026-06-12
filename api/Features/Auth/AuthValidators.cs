@@ -1,4 +1,3 @@
-using FluentValidation;
 using SkillMetrix_LMS.API.Features.Auth.DTOs;
 
 namespace SkillMetrix_LMS.API.Features.Auth;

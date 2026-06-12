@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Certificates.Entities;
 
 public class Certificate
 {
