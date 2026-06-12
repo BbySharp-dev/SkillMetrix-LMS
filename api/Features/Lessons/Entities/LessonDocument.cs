@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Lessons.Entities;
 
 public class LessonDocument
 {

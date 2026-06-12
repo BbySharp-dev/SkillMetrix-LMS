@@ -1,7 +1,6 @@
-using FluentValidation;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
-namespace SkillMetrix_LMS.API.Features.Lessons;
+namespace SkillMetrix_LMS.API.Features.Lessons.Core;
 
 public class CreateLessonDtoValidator : AbstractValidator<CreateLessonDto>
 {

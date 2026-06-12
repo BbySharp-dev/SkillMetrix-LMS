@@ -1,8 +1,7 @@
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 using SkillMetrix_LMS.API.Features.Upload;
-using CloudinaryDotNet.Actions;
 
-namespace SkillMetrix_LMS.API.Features.Lessons;
+namespace SkillMetrix_LMS.API.Features.Lessons.Core;
 
 public class LessonService(ApplicationDbContext context, IFileUploadService uploadService) : ILessonService
 {
@@ -280,7 +279,7 @@ public class LessonService(ApplicationDbContext context, IFileUploadService uplo
     private static bool IsValidYoutubeUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return false;
-        return url.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) || 
+        return url.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) ||
                url.Contains("youtu.be", StringComparison.OrdinalIgnoreCase);
     }
 }

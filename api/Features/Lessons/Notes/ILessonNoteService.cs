@@ -1,6 +1,6 @@
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
-namespace SkillMetrix_LMS.API.Features.Lessons;
+namespace SkillMetrix_LMS.API.Features.Lessons.Notes;
 
 public interface ILessonNoteService
 {

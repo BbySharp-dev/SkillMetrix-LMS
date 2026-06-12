@@ -1,10 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
-using SkillMetrix_LMS.API.Models;
-using SkillMetrix_LMS.API.Shared;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
-namespace SkillMetrix_LMS.API.Features.Lessons;
+namespace SkillMetrix_LMS.API.Features.Lessons.Documents;
 
 public class LessonDocumentService(ApplicationDbContext context) : ILessonDocumentService
 {

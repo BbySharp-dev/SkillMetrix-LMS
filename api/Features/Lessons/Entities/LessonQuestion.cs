@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Lessons.Entities;
 
 public class LessonQuestion
 {
@@ -30,5 +27,5 @@ public class LessonQuestion
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
 
-    public ICollection<LessonAnswer> Answers { get; set; } = new List<LessonAnswer>();
+    public ICollection<LessonAnswer> Answers { get; set; } = [];
 }

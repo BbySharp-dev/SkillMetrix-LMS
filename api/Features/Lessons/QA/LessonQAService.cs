@@ -1,9 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using SkillMetrix_LMS.API.Infrastructure.Persistence;
-using SkillMetrix_LMS.API.Models;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 
-namespace SkillMetrix_LMS.API.Features.Lessons;
+namespace SkillMetrix_LMS.API.Features.Lessons.QA;
 
 public class LessonQAService(ApplicationDbContext context) : ILessonQAService
 {
@@ -120,7 +117,7 @@ public class LessonQAService(ApplicationDbContext context) : ILessonQAService
             UserFullName = q.User?.FullName ?? "Unknown",
             UserAvatarUrl = q.User?.AvatarUrl,
             CreatedAt = q.CreatedAt,
-            Answers = q.Answers?.Select(MapAnswer).ToList() ?? new(),
+            Answers = q.Answers?.Select(MapAnswer).ToList() ?? [],
         };
     }
 
