@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Shared.Common;
+namespace SkillMetrix_LMS.API.Domain.Common;
 
 /// <summary>
 /// Phân loại lỗi để Controller quyết định HTTP Status Code phù hợp

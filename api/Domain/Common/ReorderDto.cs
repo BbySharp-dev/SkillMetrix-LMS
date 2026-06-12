@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Shared.Common;
+namespace SkillMetrix_LMS.API.Domain.Common;
 
 public class ReorderDto
 {

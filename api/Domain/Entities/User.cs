@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Domain.Entities;
 
 public class User : IdentityUser<Guid>
 {
@@ -12,7 +10,7 @@ public class User : IdentityUser<Guid>
     [MaxLength(500)]
     public string? AvatarUrl { get; set; }
 
-    [Column(TypeName = "tinyint")]
+    [Column(TypeName = "smallint")]
     public UserRole Role { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

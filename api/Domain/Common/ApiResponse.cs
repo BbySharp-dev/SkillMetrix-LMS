@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Shared.Common;
+namespace SkillMetrix_LMS.API.Domain.Common;
 
 /// <summary>
 /// Standardized API response - chỉ dùng trong Controller

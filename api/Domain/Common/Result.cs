@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Shared.Common;
+namespace SkillMetrix_LMS.API.Domain.Common;
 
 /// <summary>
 /// Result pattern - Service layer chỉ trả về kết quả nghiệp vụ
@@ -14,10 +14,10 @@ public class Result<T>
     private Result() { }
 
     public static Result<T> Success(T value)
-        => new Result<T> { IsSuccess = true, Value = value };
+        => new() { IsSuccess = true, Value = value };
 
     public static Result<T> Failure(string errorMessage, ErrorType errorType = ErrorType.BusinessRule)
-        => new Result<T> { IsSuccess = false, ErrorMessage = errorMessage, ErrorType = errorType };
+        => new() { IsSuccess = false, ErrorMessage = errorMessage, ErrorType = errorType };
 
     // ─── Helper methods ───────────────────────────────────────────
     public static Result<T> NotFound(string errorMessage = "Resource not found")
@@ -52,10 +52,10 @@ public class Result
     private Result() { }
 
     public static Result Success()
-        => new Result { IsSuccess = true };
+        => new() { IsSuccess = true };
 
     public static Result Failure(string errorMessage, ErrorType errorType = ErrorType.BusinessRule)
-        => new Result { IsSuccess = false, ErrorMessage = errorMessage, ErrorType = errorType };
+        => new() { IsSuccess = false, ErrorMessage = errorMessage, ErrorType = errorType };
 
     // ─── Helper methods ───────────────────────────────────────────
     public static Result NotFound(string errorMessage = "Resource not found")

@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Models.Enums;
+namespace SkillMetrix_LMS.API.Domain.Enums;
 
 public enum TransactionStatus
 {
