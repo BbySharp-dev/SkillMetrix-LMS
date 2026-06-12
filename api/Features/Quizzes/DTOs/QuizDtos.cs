@@ -90,8 +90,8 @@ public record CreateQuizDto(
     string? Description,
     decimal PassingScore,
     int? TimeLimitMinutes,
-    int MaxAttempts,
-    bool IsFinalQuiz
+    int? MaxAttempts = 3,
+    bool IsFinalQuiz = false
 );
 
 public record UpdateQuizDto(
@@ -109,7 +109,7 @@ public record CreateQuestionDto(
     string Content,
     decimal Point,
     int OrderIndex,
-    List<CreateOptionDto> Options
+    List<CreateOptionDto>? Options = null
 );
 
 public record UpdateQuestionDto(

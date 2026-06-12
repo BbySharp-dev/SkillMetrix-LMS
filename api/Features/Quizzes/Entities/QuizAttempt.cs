@@ -1,4 +1,4 @@
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Quizzes.Entities;
 
 public class QuizAttempt
 {
@@ -12,5 +12,5 @@ public class QuizAttempt
 
     public Quiz Quiz { get; set; } = null!;
     public User User { get; set; } = null!;
-    public ICollection<QuizAttemptAnswer> Answers { get; set; } = new List<QuizAttemptAnswer>();
+    public ICollection<QuizAttemptAnswer> Answers { get; set; } = [];
 }

@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace SkillMetrix_LMS.API.Models;
+namespace SkillMetrix_LMS.API.Features.Quizzes.Entities;
 
 public class QuizQuestion
 {
@@ -12,5 +10,5 @@ public class QuizQuestion
     public int OrderIndex { get; set; }
 
     public Quiz Quiz { get; set; } = null!;
-    public ICollection<QuizOption> Options { get; set; } = new List<QuizOption>();
+    public ICollection<QuizOption> Options { get; set; } = [];
 }

@@ -79,7 +79,7 @@ public class QuizService(ApplicationDbContext context) : IQuizService
             Description = dto.Description,
             PassingScore = dto.PassingScore,
             TimeLimitMinutes = dto.TimeLimitMinutes,
-            MaxAttempts = dto.MaxAttempts,
+            MaxAttempts = dto.MaxAttempts ?? 3,
             IsFinalQuiz = dto.IsFinalQuiz,
             CreatedAt = DateTime.UtcNow
         };
@@ -141,14 +141,16 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         if (quiz == null)
             return Result<QuestionResponseDto>.NotFound("Quiz not found");
 
-        // Validate: must have at least 2 options
-        if (dto.Options.Count < 2)
-            return Result<QuestionResponseDto>.ValidationError("A question must have at least 2 options");
+        // Validate options only if they are provided
+        if (dto.Options != null && dto.Options.Any())
+        {
+            if (dto.Options.Count < 2)
+                return Result<QuestionResponseDto>.ValidationError("A question must have at least 2 options");
 
-        // Validate: must have exactly 1 correct option
-        var correctCount = dto.Options.Count(o => o.IsCorrect);
-        if (correctCount != 1)
-            return Result<QuestionResponseDto>.ValidationError("A question must have exactly 1 correct option");
+            var correctCount = dto.Options.Count(o => o.IsCorrect);
+            if (correctCount != 1)
+                return Result<QuestionResponseDto>.ValidationError("A question must have exactly 1 correct option");
+        }
 
         var question = new QuizQuestion
         {
@@ -161,16 +163,19 @@ public class QuizService(ApplicationDbContext context) : IQuizService
 
         context.QuizQuestions.Add(question);
 
-        foreach (var opt in dto.Options)
+        if (dto.Options != null)
         {
-            context.QuizOptions.Add(new QuizOption
+            foreach (var opt in dto.Options)
             {
-                Id = Guid.NewGuid(),
-                QuestionId = question.Id,
-                Content = opt.Content,
-                IsCorrect = opt.IsCorrect,
-                OrderIndex = opt.OrderIndex
-            });
+                context.QuizOptions.Add(new QuizOption
+                {
+                    Id = Guid.NewGuid(),
+                    QuestionId = question.Id,
+                    Content = opt.Content,
+                    IsCorrect = opt.IsCorrect,
+                    OrderIndex = opt.OrderIndex
+                });
+            }
         }
 
         await context.SaveChangesAsync();
@@ -221,6 +226,14 @@ public class QuizService(ApplicationDbContext context) : IQuizService
 
         if (question == null)
             return Result<bool>.NotFound("Question not found");
+
+        var referencingAnswers = await context.QuizAttemptAnswers
+            .Where(a => a.QuestionId == questionId)
+            .ToListAsync();
+        if (referencingAnswers.Any())
+        {
+            context.QuizAttemptAnswers.RemoveRange(referencingAnswers);
+        }
 
         context.QuizQuestions.Remove(question);
         await context.SaveChangesAsync();
@@ -292,6 +305,14 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         if (option == null)
             return Result<bool>.NotFound("Option not found");
 
+        var referencingAnswers = await context.QuizAttemptAnswers
+            .Where(a => a.SelectedOptionId == optionId && a.QuestionId == questionId)
+            .ToListAsync();
+        if (referencingAnswers.Any())
+        {
+            context.QuizAttemptAnswers.RemoveRange(referencingAnswers);
+        }
+
         context.QuizOptions.Remove(option);
         await context.SaveChangesAsync();
 
@@ -344,6 +365,7 @@ public class QuizService(ApplicationDbContext context) : IQuizService
 
     public async Task<Result<Guid>> StartAttemptAsync(Guid quizId, Guid userId)
     {
+        Console.WriteLine($"[DEBUG] StartAttemptAsync: quizId={quizId}, userId={userId}");
         var quiz = await context.Quizzes
             .AsNoTracking()
             .FirstOrDefaultAsync(q => q.Id == quizId && !q.IsDeleted);
@@ -355,6 +377,7 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         var isEnrolled = await context.Enrollments
             .AnyAsync(e => e.CourseId == quiz.CourseId && e.UserId == userId);
 
+        Console.WriteLine($"[DEBUG] StartAttemptAsync: isEnrolled={isEnrolled}");
         if (!isEnrolled)
             return Result<Guid>.Forbidden("You must be enrolled to take this quiz");
 
@@ -362,6 +385,7 @@ public class QuizService(ApplicationDbContext context) : IQuizService
         var attemptCount = await context.QuizAttempts
             .CountAsync(a => a.QuizId == quizId && a.UserId == userId);
 
+        Console.WriteLine($"[DEBUG] StartAttemptAsync: attemptCount={attemptCount}, quiz.MaxAttempts={quiz.MaxAttempts}");
         if (attemptCount >= quiz.MaxAttempts)
             return Result<Guid>.Failure(
                 $"You have reached the maximum number of attempts ({quiz.MaxAttempts})",
