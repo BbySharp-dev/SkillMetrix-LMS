@@ -694,7 +694,7 @@
                                     "pm.test('Get instructor courses returns 200', function () {",
                                     "    pm.response.to.have.status(200);",
                                     "    var json = pm.response.json();",
-                                    "    pm.expect(json.data).to.be.an('array');",
+                                    "    pm.expect(json.data.data).to.be.an('array');",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -763,7 +763,7 @@
                                     "pm.test('Get student enrollments returns 200', function () {",
                                     "    pm.response.to.have.status(200);",
                                     "    var json = pm.response.json();",
-                                    "    pm.expect(json.data).to.be.an('array');",
+                                    "    pm.expect(json.data.data).to.be.an('array');",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -1654,15 +1654,15 @@
                                     "pm.test('Response has pagination', function () {",
                                     "    var json = pm.response.json();",
                                     "    pm.expect(json).to.have.property('data');",
-                                    "    pm.expect(json).to.have.property('pageNumber');",
-                                    "    pm.expect(json).to.have.property('pageSize');",
-                                    "    pm.expect(json).to.have.property('totalRecords');",
+                                    "    pm.expect(json.data).to.have.property('pageNumber');",
+                                    "    pm.expect(json.data).to.have.property('pageSize');",
+                                    "    pm.expect(json.data).to.have.property('totalRecords');",
                                     "});",
                                     "",
                                     "// Store a published course for later enrollment",
                                     "var json = pm.response.json();",
-                                    "if (json.data && json.data.length > 0) {",
-                                    "    pm.collectionVariables.set('publishedCourseId', json.data[0].id);",
+                                    "if (json.data && json.data.data && json.data.data.length > 0) {",
+                                    "    pm.collectionVariables.set('publishedCourseId', json.data.data[0].id);",
                                     "}"
                                 ],
                                 "type": "text/javascript"
@@ -2181,7 +2181,7 @@
                                     "pm.test('Get users list returns 200', function () {",
                                     "    pm.response.to.have.status(200);",
                                     "    var json = pm.response.json();",
-                                    "    pm.expect(json.data).to.be.an('array');",
+                                    "    pm.expect(json.data.data).to.be.an('array');",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -2858,6 +2858,7 @@
                                     "    pm.response.to.have.status(200);",
                                     "    var json = pm.response.json();",
                                     "    pm.expect(json.data.orderIndex).to.eql(2);",
+                                    "    pm.collectionVariables.set('lessonId2', json.data.id);",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -2977,6 +2978,186 @@
                                 "api",
                                 "lessons",
                                 "{{lessonId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. Enrollments",
+            "description": "Student enrollment operations",
+            "item": [
+                {
+                    "name": "Enroll in Course (Student)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Enrollment successful - 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Store enrollment data', function () {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.expect(json.data).to.have.property('id');",
+                                    "    pm.expect(json.data.courseId).to.eql(pm.collectionVariables.get('courseId'));",
+                                    "    pm.collectionVariables.set('enrollmentId', json.data.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{studentToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"courseId\": \"{{courseId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/enrollments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "enrollments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Enroll - Already Enrolled (422)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Duplicate enrollment returns 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{studentToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"courseId\": \"{{courseId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/enrollments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "enrollments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Enroll - No Auth (401)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('No auth returns 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"courseId\": \"{{courseId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/enrollments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "enrollments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Enrollments",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Get enrollments returns 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has at least 1 enrollment', function () {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.expect(json.data.data).to.be.an('array');",
+                                    "    pm.expect(json.data.data.length).to.be.at.least(1);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{studentToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/enrollments/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "enrollments",
+                                "me"
                             ]
                         }
                     }
@@ -3180,7 +3361,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"text\": \"What does API stand for?\",\n    \"type\": \"SingleChoice\",\n    \"orderIndex\": 1\n}"
+                            "raw": "{\n    \"content\": \"What does API stand for?\",\n    \"point\": 1.0,\n    \"orderIndex\": 1,\n    \"options\": []\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Quizzes/{{quizId}}/questions",
@@ -3273,7 +3454,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"text\": \"Application Programming Interface\",\n    \"isCorrect\": true,\n    \"orderIndex\": 1\n}"
+                            "raw": "{\n    \"content\": \"Application Programming Interface\",\n    \"isCorrect\": true,\n    \"orderIndex\": 1\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Quizzes/{{quizId}}/questions/{{quizQuestionId}}/options",
@@ -3444,7 +3625,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "[\n    {\n        \"questionId\": \"{{quizQuestionId}}\",\n        \"selectedOptionIds\": [\"{{quizOptionId}}\"]\n    }\n]"
+                            "raw": "[\n    {\n        \"questionId\": \"{{quizQuestionId}}\",\n        \"selectedOptionId\": \"{{quizOptionId}}\"\n    }\n]"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Quizzes/{{quizId}}/attempts/{{quizAttemptId}}/submit",
@@ -3654,186 +3835,6 @@
             ]
         },
         {
-            "name": "5. Enrollments",
-            "description": "Student enrollment operations",
-            "item": [
-                {
-                    "name": "Enroll in Course (Student)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Enrollment successful - 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Store enrollment data', function () {",
-                                    "    var json = pm.response.json();",
-                                    "    pm.expect(json.data).to.have.property('id');",
-                                    "    pm.expect(json.data.courseId).to.eql(pm.collectionVariables.get('courseId'));",
-                                    "    pm.collectionVariables.set('enrollmentId', json.data.id);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{studentToken}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"courseId\": \"{{courseId}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/enrollments",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "enrollments"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Enroll - Already Enrolled (422)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Duplicate enrollment returns 422', function () {",
-                                    "    pm.response.to.have.status(422);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{studentToken}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"courseId\": \"{{courseId}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/enrollments",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "enrollments"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Enroll - No Auth (401)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('No auth returns 401', function () {",
-                                    "    pm.response.to.have.status(401);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"courseId\": \"{{courseId}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/enrollments",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "enrollments"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Get My Enrollments",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('Get enrollments returns 200', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "",
-                                    "pm.test('Has at least 1 enrollment', function () {",
-                                    "    var json = pm.response.json();",
-                                    "    pm.expect(json.data).to.be.an('array');",
-                                    "    pm.expect(json.data.length).to.be.at.least(1);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{studentToken}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/enrollments/me",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "enrollments",
-                                "me"
-                            ]
-                        }
-                    }
-                }
-            ]
-        },
-        {
             "name": "6. Progress",
             "description": "Lesson & course progress tracking",
             "item": [
@@ -3931,6 +3932,51 @@
                                 "api",
                                 "lessons",
                                 "{{lessonId}}",
+                                "progress"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Progress - Complete Lesson 2",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Progress updated to completed', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{studentToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lastWatchedSecond\": 900\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/lessons/{{lessonId2}}/progress",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "lessons",
+                                "{{lessonId2}}",
                                 "progress"
                             ]
                         }
@@ -4302,7 +4348,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/api/certificates/course/{{publishedCourseId}}",
+                            "raw": "{{baseUrl}}/api/certificates/course/{{courseId}}",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -4310,7 +4356,7 @@
                                 "api",
                                 "certificates",
                                 "course",
-                                "{{publishedCourseId}}"
+                                "{{courseId}}"
                             ]
                         }
                     }
@@ -4375,7 +4421,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/api/certificates/course/{{publishedCourseId}}",
+                            "raw": "{{baseUrl}}/api/certificates/course/{{courseId}}",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -4383,7 +4429,7 @@
                                 "api",
                                 "certificates",
                                 "course",
-                                "{{publishedCourseId}}"
+                                "{{courseId}}"
                             ]
                         }
                     }
@@ -4443,11 +4489,11 @@
                                     "",
                                     "pm.test('Has transaction data', function () {",
                                     "    var json = pm.response.json();",
-                                    "    pm.expect(json.data).to.be.an('array');",
-                                    "    pm.expect(json.data.length).to.be.at.least(1);",
-                                    "    pm.expect(json.data[0]).to.have.property('amount');",
-                                    "    pm.expect(json.data[0]).to.have.property('type');",
-                                    "    pm.expect(json.data[0]).to.have.property('status');",
+                                    "    pm.expect(json.data.data).to.be.an('array');",
+                                    "    pm.expect(json.data.data.length).to.be.at.least(1);",
+                                    "    pm.expect(json.data.data[0]).to.have.property('amount');",
+                                    "    pm.expect(json.data.data[0]).to.have.property('type');",
+                                    "    pm.expect(json.data.data[0]).to.have.property('status');",
                                     "});"
                                 ],
                                 "type": "text/javascript"
