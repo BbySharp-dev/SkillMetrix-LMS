@@ -79,7 +79,7 @@ export default function Footer() {
                     </Link>
 
                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                        © {new Date().getFullYear()} SkillMetrix LMS, Inc.
+                        © {new Date().getFullYear()} SkillMetrix LMS. Phát triển bởi Doan Minh Truong.
                     </p>
 
                     <div className="flex items-center gap-6">
