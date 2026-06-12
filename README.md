@@ -1,39 +1,42 @@
 # SkillMetrix LMS
 
-SkillMetrix LMS là một hệ thống quản lý học tập (Learning Management System) hiện đại, hiệu năng cao, được thiết kế và phát triển theo chuẩn **Production-Grade**. Dự án tích hợp các công nghệ Full-Stack tiên tiến nhất năm 2026, áp dụng kiến trúc **Vertical Slice Architecture** cho Backend và mô hình **Component-Driven** cho Frontend, mang lại khả năng mở rộng (scalability), dễ bảo trì (maintainability) và trải nghiệm học tập tối ưu cho người dùng.
+SkillMetrix LMS là một hệ thống quản lý học tập (Learning Management System) hiện đại, hiệu năng cao, được thiết kế và phát triển theo chuẩn **Production-Grade**. Dự án tích hợp các công nghệ Full-Stack tiên tiến, áp dụng kiến trúc **Vertical Slice Architecture** cho Backend và mô hình **Component-Driven** cho Frontend, mang lại khả năng mở rộng (scalability), dễ bảo trì (maintainability) và trải nghiệm học tập tối ưu.
 
 ---
 
-## 🚀 Điểm Nhấn Công Nghệ (Tech Stack Highlights - 2026)
+## 🚀 Điểm Nhấn Công Nghệ (Tech Stack Highlights)
 
 *   **Backend (.NET Core API):**
     *   **Core Framework:** ASP.NET Core Web API với **.NET 8.0 LTS** (Cấu trúc mã nguồn hiện đại, tối ưu hiệu năng).
-    *   **Database ORM:** Entity Framework Core 8 kết hợp Microsoft SQL Server.
-    *   **API Documentation & UI:** **Scalar API Reference** (Giao diện API tương tác, hiện đại thế hệ mới thay thế cho Swagger UI truyền thống) kết hợp Swashbuckle OpenAPI.
-    *   **Authentication & Identity:** ASP.NET Core Identity & Token Bearer JWT (Access Token & Refresh Token bảo mật cao).
+    *   **Database ORM & Engine:** Entity Framework Core 8 kết hợp với cơ sở dữ liệu **PostgreSQL (Supabase Cloud Database)**.
+    *   **Database Routing:** Sử dụng **Supabase Connection Pooler** (Supavisor) ở chế độ Transaction Mode (`Port=6543`) cho luồng chạy chính và Session Mode (`Port=5432`) phục vụ các tiến trình di trú dữ liệu (EF Migrations).
+    *   **API Documentation & UI:** **Scalar API Reference** (Giao diện API tương tác thế hệ mới thay thế cho Swagger UI truyền thống) kết hợp Swashbuckle OpenAPI.
+    *   **Authentication & Identity:** ASP.NET Core Identity & Token Bearer JWT (Access Token & Refresh Token bảo mật).
     *   **Libraries:** Mapster (Object mapping tốc độ cao), FluentValidation (Tự động hóa validate request thông qua ASP.NET Pipeline), Bogus (Phục vụ việc seed mock data phong phú).
-    *   **Media Storage:** Integration với Cloudinary SDK phục vụ việc upload tài liệu và video bài học.
+    *   **Media Storage:** Tích hợp **Supabase Storage** (thông qua Typed HttpClient gọi trực tiếp đến REST API của Supabase, loại bỏ hoàn toàn package dependencies cồng kềnh để tối ưu hóa hiệu suất và dung lượng build).
 *   **Frontend (React Client):**
     *   **Core:** React 19, Vite 8, TypeScript (Công nghệ biên dịch và Hot Module Replacement cực nhanh).
     *   **Styling:** **Tailwind CSS v4** (Hiệu năng CSS vượt trội nhờ compiler mới, giảm tối đa dung lượng build).
     *   **State Management & Caching:** Zustand 5 (Quản lý global client state gọn nhẹ) và TanStack React Query v5 (Đồng bộ, tối ưu hóa caching server-state và auto-refetching).
     *   **Routing:** React Router DOM v7 (Hỗ trợ cấu trúc route đa cấp và middleware bảo vệ tài nguyên).
+    *   **Video Playback & Measurement:** Xử lý đo lường thời lượng video trực tiếp tại Client trước khi gửi request tải lên Backend (giải pháp tối ưu giúp giảm tải tài nguyên xử lý của server).
     *   **UI Components:** Radix UI primitives kết hợp Shadcn UI, Sonner (Thông báo toast), Recharts (Trực quan hóa số liệu phân tích) và Lucide React cho hệ thống icon tối giản.
 *   **Testing & DevOps:**
-    *   **Local Database Container:** Dockerized với Azure SQL Edge (Tương thích 100% với cả chip Apple Silicon ARM64 và Intel x64).
+    *   **Local Database Container:** Cấu hình Dockerized hỗ trợ khởi chạy **PostgreSQL 16** cục bộ (Tương thích 100% với cả chip Apple Silicon ARM64 và Intel x64).
     *   **Automated Testing:** **Playwright E2E Testing** (Kịch bản giả lập hành vi thực tế trên trình duyệt cho mọi Role).
-    *   **Cloud Deployment Ready:** Cấu hình Dockerfile, docker-compose hoàn chỉnh và config Railway CD.
+    *   **API Verification:** Bộ test tích hợp tự động với **Newman (Postman CLI)** kiểm tra độ ổn định của 100% endpoint với 146 assertions luôn xanh.
+    *   **Cloud Deployment Ready:** Cấu hình Dockerfile, docker-compose hoàn chỉnh phục vụ triển khai lên các dịch vụ Docker Cloud (Render, Koyeb, Railway...).
 
 ---
 
 ## 🏛️ Kiến Trúc Hệ Thống (Architectural Design)
 
 ### 1. Backend: Vertical Slice Architecture (VSA)
-Thay vì sử dụng kiến trúc phân lớp truyền thống (N-Tier/Clean Architecture) thường dẫn đến việc mã nguồn bị phân tán ở nhiều Project khác nhau, dự án áp dụng **Vertical Slice Architecture**.
-*   **Đặc điểm:** Toàn bộ code xử lý một tính năng (gồm Controller, Service, Validator, DTO) được gom nhóm lại trong một thư mục (Slice) nằm dưới thư mục [api/Features/](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Features) (Ví dụ: `Auth`, `Courses`, `Quizzes`, `Reviews`, `Transactions`).
+Dự án áp dụng **Vertical Slice Architecture** thay vì kiến trúc phân lớp truyền thống (N-Tier) để nâng cao khả năng quản lý mã nguồn.
+*   **Đặc điểm:** Toàn bộ code xử lý một tính năng (gồm Controller, Service, Validator, DTO) được gom nhóm lại trong một thư mục (Slice) nằm dưới thư mục [api/Features/](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Features) (Ví dụ: `Auth`, `Courses`, `Quizzes`, `Reviews`, `Transactions`, `Lessons`).
 *   **Ưu điểm:**
     *   **High Cohesion (Tính liên kết cao):** Khi cần sửa đổi hay phát triển một tính năng, nhà phát triển chỉ cần làm việc trong duy nhất một thư mục tính năng đó.
-    *   **Low Coupling (Tính phụ thuộc thấp):** Các lát cắt tính năng hoạt động độc lập, hạn chế tối đa side-effect lên các vùng tính năng khác khi nâng cấp.
+    *   **Low Coupling (Tính phụ thuộc thấp):** Các lát cắt tính năng hoạt động độc lập, hạn chế tối đa tác động chéo (side-effect) lên các vùng tính năng khác khi nâng cấp.
 *   **Global Exception Handling Middleware:** Bộ lọc lỗi tập trung tự động bắt tất cả các ngoại lệ chưa được xử lý trong runtime, ghi log và định dạng lại mã lỗi JSON trả về đồng nhất cho Client.
 
 ### 2. Frontend: Component-Driven & Role-Based Private Routes
@@ -54,22 +57,17 @@ SkillMetrix LMS triển khai hệ thống phân quyền chặt chẽ thông qua 
 *   **Điều hành viên (Moderator):** Kiểm duyệt nội dung các khóa học mới do Giảng viên gửi yêu cầu xuất bản để đảm bảo chất lượng giảng dạy và tính phù hợp trước khi xuất hiện trên trang chủ công cộng.
 *   **Quản trị viên (Admin):** Toàn quyền kiểm soát hệ thống; quản lý danh sách người dùng (Kích hoạt/Khóa tài khoản, Thay đổi Role); cấu hình hệ thống và xem báo cáo tài chính tổng quan.
 
-### Các tính năng mang tính Production-Grade tiêu biểu:
-1.  **Hệ Thống Trắc Nghiệm Tự Động Chấm Điểm (Quiz Engine):** Hỗ trợ tạo ngân hàng câu hỏi nhiều lựa chọn (Multiple-choice), thiết lập điểm số chuẩn qua môn (Passing Score) theo phần trăm, giới hạn thời gian và lưu lại toàn bộ lịch sử các lượt làm bài chi tiết của học viên.
-2.  **Hệ Thống Phục Hồi Dữ Liệu Demo Tự Động (Auto-Reset Database):** Sử dụng `DatabaseResetBackgroundService` (kế thừa `BackgroundService` chạy nền của ASP.NET Core) tự động dọn dẹp và reset database về trạng thái ban đầu kèm seed dữ liệu mẫu mới mỗi ngày vào lúc 20:00 UTC (3:00 AM giờ Việt Nam).
-3.  **Tự Động Cấp Chứng Chỉ (Certificate Validation):** Khi tiến độ học tập đạt 100%, hệ thống tự động sinh chứng chỉ hoàn thành khóa học và cấp kèm một **Mã chứng chỉ độc bản (Unique Certificate Code)** đã được đánh Index trong Database phục vụ việc xác thực tính hợp lệ trực tuyến.
-
 ---
 
-## 💾 Thiết Kế Cơ Cơ Dữ Liệu & Tối Ưu Hóa (Database Optimization)
+## 💾 Thiết Kế Cơ Sở Dữ Liệu & Tối Ưu Hóa (Database Optimization)
 
-Cấu trúc cơ sở dữ liệu SQL Server được ánh xạ và cấu hình chi tiết tại [ApplicationDbContext.cs](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Infrastructure/Persistence/ApplicationDbContext.cs):
-*   **Tối ưu bộ nhớ lưu trữ:** Cấu hình kiểu dữ liệu `tinyint` trong SQL Server cho các thuộc tính Enum (Trạng thái khóa học, Vai trò người dùng, Điểm số đánh giá) thay vì dùng mặc định `int` (4 bytes) nhằm tiết kiệm không gian lưu trữ và tăng hiệu năng truy vấn.
+Cấu trúc cơ sở dữ liệu PostgreSQL được cấu hình chi tiết tại [ApplicationDbContext.cs](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Infrastructure/Persistence/ApplicationDbContext.cs):
+*   **Tối ưu bộ nhớ lưu trữ:** Cấu hình các cột Enum sử dụng kiểu dữ liệu nguyên phù hợp trong database thay vì lưu chuỗi text nhằm tiết kiệm không gian lưu trữ và tăng hiệu năng truy vấn.
 *   **Chiến lược Indexing tối ưu:**
     *   Tạo Single Index trên các cột thường xuyên được truy vấn lọc, tìm kiếm và sắp xếp: `InstructorId`, `Status`, `IsDeleted`, `CreatedAt`, `PublishedAt`.
     *   Tạo Composite Index tối ưu cho các truy vấn ghép phức tạp: `new { Status, IsDeleted, PublishedAt }` (Hiển thị các khóa học đang hoạt động trên trang chủ), `new { UserId, LastUpdatedAt }` (Tính toán chuỗi streak học tập hàng ngày).
     *   Sử dụng Unique Index để ràng buộc tính toàn vẹn dữ liệu: `new { UserId, CourseId }` trên bảng `Enrollments` (Ngăn chặn một người đăng ký học trùng lặp một khóa học), `CertificateCode` trên bảng `Certificates` (Tăng tốc độ tra cứu xác minh chứng chỉ).
-*   **Thiết lập Cascade Delete an toàn:** Cấu hình `DeleteBehavior.Restrict` đối với các mối quan hệ liên quan đến lịch sử tài chính và học tập như `Transactions`, `Enrollments`, `Certificates` nhằm tránh tình trạng mất dữ liệu lịch sử quan trọng do vô tình xóa tài khoản người dùng hoặc khóa học (tránh lỗi Multiple Cascade Paths trong SQL Server).
+*   **Thiết lập Cascade Delete an toàn:** Cấu hình `DeleteBehavior.Restrict` đối với các mối quan hệ liên quan đến lịch sử tài chính và học tập như `Transactions`, `Enrollments`, `Certificates` nhằm tránh tình trạng mất dữ liệu lịch sử quan trọng do vô tình xóa tài khoản người dùng hoặc khóa học.
 
 ---
 
@@ -79,30 +77,48 @@ Cấu trúc cơ sở dữ liệu SQL Server được ánh xạ và cấu hình c
 *   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 *   [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 *   [Node.js (v18+)](https://nodejs.org/) & [pnpm](https://pnpm.io/)
+*   Tài khoản **Supabase** (Free Tier) đã tạo sẵn Bucket tên là `skillmetrix` ở chế độ **Public**.
 
-### Bước 1: Khởi động Database với Docker Compose
-Để giúp dự án chạy mượt mà trên cả máy tính chạy chip ARM64 (Apple Silicon M1/M2/M3) lẫn chip Intel x64, dự án cấu hình image **Azure SQL Edge** thay vì SQL Server truyền thống. 
-Chạy lệnh sau tại thư mục chứa file `docker-compose.yml`:
+---
+
+### Bước 1: Cấu hình Secrets và Kết nối Database
+
+Bạn có hai cách để khởi chạy cơ sở dữ liệu:
+
+#### Cách A: Sử dụng Supabase Cloud Database (Được khuyến nghị cho giống môi trường chạy thực tế)
+Chạy các lệnh cấu hình bí mật cục bộ bằng công cụ `user-secrets` tại thư mục [api/](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api):
 ```bash
-docker compose up -d
-```
-*Database sẽ khởi chạy độc lập trên port `1434` nhằm tránh xung đột với các phiên bản SQL Server cài sẵn trên máy.*
+cd api
 
-### Bước 2: Cài đặt và Chạy Backend API
-1.  Di chuyển vào thư mục API:
+# 1. Cấu hình Connection String tới Session Pooler của Supabase (Cổng 5432)
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=aws-1-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.your-project-id;Password=YourDbPassword;SSL Mode=Require;Trust Server Certificate=true;"
+
+# 2. Cấu hình Credentials của Supabase Storage
+dotnet user-secrets set "Supabase:Url" "https://your-project-id.supabase.co"
+dotnet user-secrets set "Supabase:ServiceRoleKey" "your-service-role-key"
+dotnet user-secrets set "Supabase:BucketName" "skillmetrix"
+```
+
+#### Cách B: Sử dụng PostgreSQL cục bộ bằng Docker
+Nếu muốn chạy cơ sở dữ liệu hoàn toàn dưới máy (Local Offline):
+1.  Khởi chạy container PostgreSQL:
     ```bash
-    cd api
+    docker compose up -d
     ```
-2.  Tạo file môi trường `.env` từ file mẫu `.env.example`:
+2.  Cập nhật cấu hình Connection String trỏ về local trong secrets:
     ```bash
-    cp .env.example .env
+    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=SkillMetrixDB;Username=postgres;Password=your_local_password;"
     ```
-    *(Mở file `.env` lên và điều chỉnh lại cấu hình kết nối DB hoặc JWT Secret Key nếu cần).*
-3.  Áp dụng Entity Framework Core Migrations để tạo bảng và dữ liệu ban đầu:
+
+---
+
+### Bước 2: Chạy Migrations và Khởi chạy Backend API
+
+1.  Áp dụng Entity Framework Core Migrations để tự động tạo cấu trúc bảng dữ liệu:
     ```bash
     dotnet ef database update
     ```
-4.  Khởi chạy Backend API:
+2.  Khởi chạy ứng dụng:
     ```bash
     dotnet run
     ```
@@ -110,32 +126,30 @@ docker compose up -d
     *   **Scalar API Reference (Tương tác trực tiếp):** Truy cập `http://localhost:5015/scalar` để kiểm tra tài liệu và test trực tiếp các endpoint.
     *   **Swagger UI:** Truy cập `http://localhost:5015/swagger`.
 
+---
+
 ### Bước 3: Cài đặt và Chạy Frontend Client
-1.  Mở một Terminal mới và di chuyển vào thư mục client:
+
+1.  Di chuyển vào thư mục client:
     ```bash
     cd client
     ```
-2.  Tạo file môi trường `.env.local` từ file mẫu `.env.example`:
+2.  Tạo file cấu hình môi trường từ mẫu:
     ```bash
     cp .env.example .env.local
     ```
-3.  Cài đặt các thư viện phụ thuộc bằng `pnpm`:
+3.  Cài đặt các gói thư viện và chạy:
     ```bash
     pnpm install
-    ```
-4.  Chạy ứng dụng trong môi trường Development:
-    ```bash
     pnpm dev
     ```
-    *Client sẽ hoạt động tại địa chỉ: `http://localhost:5173`*
+    *Client sẽ hoạt động mặc định tại địa chỉ: `http://localhost:5173` (hoặc tự chuyển sang `http://localhost:5174` nếu cổng 5173 bị chiếm dụng).*
 
 ---
 
 ## 🧪 Quy Trình Kiểm Thử Tự Động (Testing Workflow)
 
-Dự án nhấn mạnh tính hoàn thiện và chuẩn production thông qua việc triển khai các kịch bản kiểm thử tự động toàn diện.
-
-### End-to-End (E2E) Testing với Playwright
+### 1. End-to-End (E2E) Testing với Playwright
 Thư mục [client/e2e/tests](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/client/e2e/tests) chứa 5 file kiểm thử kịch bản nghiệp vụ phức tạp của ứng dụng:
 *   `auth.spec.ts`: Xác thực quy trình Đăng nhập, Đăng ký, Quên mật khẩu và Reset mật khẩu.
 *   `public.spec.ts`: Kiểm thử việc duyệt tìm kiếm khóa học và xem chi tiết khóa học của khách vãng lai.
@@ -143,26 +157,23 @@ Thư mục [client/e2e/tests](file:///Users/aiumimi/Developer/FullStack/SkillMet
 *   `instructor.spec.ts`: Kiểm tra nghiệp vụ tạo khóa học, sắp xếp chương học/bài học, và thiết kế bài kiểm tra trắc nghiệm của giảng viên.
 *   `admin.spec.ts`: Giả lập nghiệp vụ duyệt phê duyệt nội dung khóa học mới và quản trị tài khoản người dùng của quản trị viên.
 
-Để thực thi chạy các bài kiểm thử E2E:
+Thực thi chạy kiểm thử E2E:
 ```bash
 cd client
-# Cài đặt các trình duyệt Playwright (cho lần chạy đầu tiên)
 pnpm exec playwright install
-
-# Chạy toàn bộ các ca kiểm thử ở chế độ headless
-pnpm test:e2e
-
-# Mở giao diện Playwright UI trực quan phục vụ việc debug trực tiếp từng dòng code test
-pnpm test:e2e:ui
+pnpm test:e2e      # Chạy chế độ không hiển thị trình duyệt (headless)
+pnpm test:e2e:ui   # Chạy bằng giao diện Playwright UI hỗ trợ debug trực quan
 ```
 
-### API Testing với Postman Collection
-Dự án cung cấp sẵn file Postman Collection tại [api/tests/SkillMetrix-LMS.postman_collection.json](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/tests/SkillMetrix-LMS.postman_collection.json). Bạn chỉ cần Import file này vào phần mềm Postman để thực thi kiểm thử tích hợp (Integration Test) tự động đối với toàn bộ hệ thống API endpoints một cách nhanh chóng.
+### 2. Integration Testing với Postman & Newman
+Tệp tin Postman Collection được chuẩn bị sẵn tại [api/tests/SkillMetrix-LMS.postman_collection.json](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/tests/SkillMetrix-LMS.postman_collection.json). Bạn có thể kiểm tra nhanh toàn bộ các endpoint bằng lệnh CLI:
+```bash
+npx newman run api/tests/SkillMetrix-LMS.postman_collection.json
+```
 
 ---
 
 ## ☁️ Sẵn Sàng Cho Deploy Thực Tế (Production Cloud Readiness)
 
-*   **Tự động hóa Migration khởi chạy:** Backend được tích hợp sẵn đoạn code tự động chạy `dbContext.Database.Migrate()` khi bắt đầu khởi chạy ứng dụng (Startup) giúp hệ thống tự động cập nhật schema DB trên Cloud (như Railway) mà không cần can thiệp thủ công từ công cụ CLI bên ngoài.
-*   **Cấu hình Deploy (Railway):** Tệp [api/railway.toml](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/railway.toml) chỉ định chính xác môi trường build và tối ưu hóa thời gian khởi chạy API trên nền tảng Railway.
+*   **Tự động hóa Migration khởi chạy:** Backend được tích hợp sẵn đoạn code tự động chạy `dbContext.Database.Migrate()` khi khởi động ứng dụng giúp hệ thống tự động cập nhật schema DB trên Cloud mà không cần can thiệp thủ công từ công cụ CLI bên ngoài.
 *   **Client SPA Routing (Vercel):** Phía Client được cấu hình sẵn các rewrite rules đảm bảo các Route con của ứng dụng Single Page Application (SPA) hoạt động bình thường, không bị lỗi 404 khi người dùng refresh trình duyệt trực tiếp.
