@@ -1,6 +1,4 @@
-using System.Security.Claims;
-
-namespace SkillMetrix_LMS.API.Controllers;
+namespace SkillMetrix_LMS.API.Infrastructure.Controllers;
 
 /// <summary>
 /// Base controller cung cấp helper methods chung cho tất cả Controllers.
@@ -54,8 +52,9 @@ public abstract class BaseApiController : ControllerBase
 
     /// <summary>
     /// Logic map ErrorType → HTTP response dùng chung cho cả 2 overload HandleError.
+    /// Thay đổi từ IActionResult sang ObjectResult để tối ưu CA1859.
     /// </summary>
-    private IActionResult MapErrorToResponse(ErrorType errorType, string message)
+    private ObjectResult MapErrorToResponse(ErrorType errorType, string message)
         => errorType switch
         {
             ErrorType.NotFound => NotFound(new ApiResponse<object>(message)),

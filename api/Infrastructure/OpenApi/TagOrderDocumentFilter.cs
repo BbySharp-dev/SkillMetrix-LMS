@@ -1,7 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace SkillMetrix_LMS.API.OpenApi;
+namespace SkillMetrix_LMS.API.Infrastructure.OpenApi;
 
 /// <summary>
 /// Sắp xếp mảng tags gốc của openapi theo thứ tự nghiệp vụ để thanh bên swagger ui / scalar thống nhất.
@@ -10,8 +10,16 @@ public sealed class TagOrderDocumentFilter : IDocumentFilter
 {
     private static readonly string[] TagOrder =
     [
-        "Health", "Auth", "Courses", "Chapters", "Lessons",
-        "Enrollments", "Progress", "Transactions", "Upload", "Seed"
+        "Health",
+        "Auth",
+        "Courses",
+        "Chapters",
+        "Lessons",
+        "Enrollments",
+        "Progress",
+        "Transactions",
+        "Upload",
+        "Seed"
     ];
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)

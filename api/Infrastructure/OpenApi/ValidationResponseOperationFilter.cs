@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using SkillMetrix_LMS.API.Shared.Common;
 
-namespace SkillMetrix_LMS.API.OpenApi;
+namespace SkillMetrix_LMS.API.Infrastructure.OpenApi;
 
 /// <summary>
 /// Swagger Operation Filter to automatically add HTTP 400 (Bad Request) response to POST, PUT, and PATCH operations.

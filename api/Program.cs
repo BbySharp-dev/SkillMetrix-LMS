@@ -1,13 +1,11 @@
-using FluentValidation;
 using FluentValidation.AspNetCore;
-using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using SkillMetrix_LMS.API.Shared.Middleware;
+using SkillMetrix_LMS.API.Infrastructure.Middleware;
 using System.Text;
-using SkillMetrix_LMS.API.OpenApi;
+using SkillMetrix_LMS.API.Infrastructure.OpenApi;
 using Scalar.AspNetCore;
 using SkillMetrix_LMS.API.Features.Seed;
 using SkillMetrix_LMS.API.Features.Auth;
@@ -15,7 +13,10 @@ using SkillMetrix_LMS.API.Features.Courses;
 using SkillMetrix_LMS.API.Features.Reviews;
 using SkillMetrix_LMS.API.Features.Chapters;
 using SkillMetrix_LMS.API.Features.Enrollments;
-using SkillMetrix_LMS.API.Features.Lessons;
+using SkillMetrix_LMS.API.Features.Lessons.Core;
+using SkillMetrix_LMS.API.Features.Lessons.Documents;
+using SkillMetrix_LMS.API.Features.Lessons.Notes;
+using SkillMetrix_LMS.API.Features.Lessons.QA;
 using SkillMetrix_LMS.API.Features.Upload;
 using SkillMetrix_LMS.API.Features.Transactions;
 using SkillMetrix_LMS.API.Features.Quizzes;
@@ -166,9 +167,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
      ?? [
-         "http://localhost:5173", 
+         "http://localhost:5173",
          "https://client-gamma-sepia.vercel.app",
-         "https://skill-metrix-lms.vercel.app"    
+         "https://skill-metrix-lms.vercel.app"
      ];
 
 builder.Services.AddCors(options =>

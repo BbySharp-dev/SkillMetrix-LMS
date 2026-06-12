@@ -4,44 +4,36 @@ using System.Text;
 
 namespace SkillMetrix_LMS.API.Infrastructure.Email;
 
-public class EmailService : IEmailService
+public class EmailService(IConfiguration configuration, ILogger<EmailService> logger) : IEmailService
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<EmailService> _logger;
-
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
 
     private bool IsDevelopment => string.Equals(
-        _configuration["ASPNETCORE_ENVIRONMENT"],
+        configuration["ASPNETCORE_ENVIRONMENT"],
         "Development",
         StringComparison.OrdinalIgnoreCase);
 
     private string GetFromAddress() =>
-        _configuration["Email:FromAddress"] ?? "noreply@skillmetrix.com";
+        configuration["Email:FromAddress"] ?? "noreply@skillmetrix.com";
 
     private string GetFromName() =>
-        _configuration["Email:FromName"] ?? "SkillMetrix LMS";
+        configuration["Email:FromName"] ?? "SkillMetrix LMS";
 
     public async Task SendEmailAsync(string to, string subject, string htmlBody)
     {
         if (IsDevelopment)
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "[DEV EMAIL] To: {To}\nSubject: {Subject}\nBody: {Body}",
                 to, subject, htmlBody);
             return;
         }
 
-        var host = _configuration["Email:Smtp:Host"]
+        var host = configuration["Email:Smtp:Host"]
             ?? throw new InvalidOperationException("SMTP Host not configured");
-        var port = _configuration.GetValue<int>("Email:Smtp:Port", 587);
-        var username = _configuration["Email:Smtp:Username"] ?? string.Empty;
-        var password = _configuration["Email:Smtp:Password"] ?? string.Empty;
-        var enableSsl = _configuration.GetValue<bool>("Email:Smtp:EnableSsl", true);
+        var port = configuration.GetValue<int>("Email:Smtp:Port", 587);
+        var username = configuration["Email:Smtp:Username"] ?? string.Empty;
+        var password = configuration["Email:Smtp:Password"] ?? string.Empty;
+        var enableSsl = configuration.GetValue<bool>("Email:Smtp:EnableSsl", true);
 
         using var client = new SmtpClient(host, port)
         {
@@ -61,7 +53,7 @@ public class EmailService : IEmailService
         };
 
         await client.SendMailAsync(message);
-        _logger.LogInformation("Email sent successfully to {To}", to);
+        logger.LogInformation("Email sent successfully to {To}", to);
     }
 
     public async Task SendPasswordResetEmailAsync(string to, string resetLink)

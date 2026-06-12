@@ -5,7 +5,7 @@ using SkillMetrix_LMS.API.Features.Chapters.DTOs;
 using SkillMetrix_LMS.API.Features.Lessons.DTOs;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace SkillMetrix_LMS.API.OpenApi;
+namespace SkillMetrix_LMS.API.Infrastructure.OpenApi;
 
 public class RequestDtoExampleSchemaFilter : ISchemaFilter
 {

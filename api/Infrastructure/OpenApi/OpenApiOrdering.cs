@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
-namespace SkillMetrix_LMS.API.OpenApi;
+namespace SkillMetrix_LMS.API.Infrastructure.OpenApi;
 
 /// <summary>
 /// Tạo thứ tự thao tác và nhóm ổn định cho swagger/scalar: theo domain controller, rồi theo đường dẫn và HTTP method (get → post → put → patch → delete).

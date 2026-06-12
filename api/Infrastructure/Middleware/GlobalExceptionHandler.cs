@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace SkillMetrix_LMS.API.Shared.Middleware;
+namespace SkillMetrix_LMS.API.Infrastructure.Middleware;
 
 /// <summary>
 /// Global exception handling middleware that catches all unhandled exceptions

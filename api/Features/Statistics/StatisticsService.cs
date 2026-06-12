@@ -27,9 +27,7 @@ public class StatisticsService(ApplicationDbContext context) : IStatisticsServic
             .SumAsync(e => (decimal?)e.PricePaid) ?? 0m;
 
         var averageRating = await instructorCourses
-            .Select(c => c.Rating)
-            .DefaultIfEmpty(0)
-            .AverageAsync();
+            .AverageAsync(c => c.Rating) ?? 0m;
 
         return new InstructorOverviewDto
         {
@@ -44,7 +42,7 @@ public class StatisticsService(ApplicationDbContext context) : IStatisticsServic
 
     public async Task<Result<List<RevenuePointDto>>> GetInstructorRevenueAsync(Guid instructorId, int months = 12)
     {
-        var fromDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-(months - 1));
+        var fromDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-(months - 1));
 
         var courseIds = await context.Courses
             .Where(c => !c.IsDeleted && c.InstructorId == instructorId)

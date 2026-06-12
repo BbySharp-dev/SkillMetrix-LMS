@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
-
-namespace SkillMetrix_LMS.API.Controllers;
+namespace SkillMetrix_LMS.API.Features.Health;
 
 /// <summary>
 /// Health check controller for monitoring API status.
