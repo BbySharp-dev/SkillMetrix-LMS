@@ -176,27 +176,20 @@ public class DataSeederService(
     {
         var users = new List<User>
         {
-            CreateUser("admin@skillmetrix.dev", "Nguyễn Minh Đức", UserRole.Admin),
-            CreateUser("moderator1@skillmetrix.dev", "Lê Văn Tùng", UserRole.Moderator),
-            CreateUser("moderator2@skillmetrix.dev", "Phạm Hải Đăng", UserRole.Moderator),
-            CreateUser("instructor1@skillmetrix.dev", "Lê Hoàng Long", UserRole.Instructor),
-            CreateUser("instructor2@skillmetrix.dev", "Phạm Minh Tuấn", UserRole.Instructor),
-            CreateUser("instructor3@skillmetrix.dev", "Trần Thị Hồng Hạnh", UserRole.Instructor),
-            CreateUser("instructor4@skillmetrix.dev", "Nguyễn Anh Tú", UserRole.Instructor),
-            CreateUser("instructor5@skillmetrix.dev", "Hoàng Văn Nam", UserRole.Instructor),
-            CreateUser("instructor6@skillmetrix.dev", "Đặng Minh Trí", UserRole.Instructor)
-        };
-
-        var studentNames = new[] {
-            "Nguyễn Thu Trang", "Đỗ Minh Quân", "Trần Việt Anh", "Phạm Thùy Linh", "Lê Tuấn Kiệt",
-            "Bùi Hồng Đăng", "Vũ Hoàng My", "Phan Gia Huy", "Đặng Khánh Vy", "Nguyễn Minh Triết",
-            "Hoàng Bảo Ngọc", "Lý Thanh Bình", "Tạ Minh Châu", "Ngô Tiến Đạt", "Dương Cát Tường",
-            "Mai Phương Thảo", "Trịnh Hữu Phước", "Phan Thanh Sơn"
+            CreateUser("admin@skillmetrix.dev", "Đoàn Minh Trường (Admin)", UserRole.Admin),
+            CreateUser("moderator1@skillmetrix.dev", "Đoàn Minh Trường (Moderator 1)", UserRole.Moderator),
+            CreateUser("moderator2@skillmetrix.dev", "Đoàn Minh Trường (Moderator 2)", UserRole.Moderator),
+            CreateUser("instructor1@skillmetrix.dev", "Đoàn Minh Trường (Instructor 1)", UserRole.Instructor),
+            CreateUser("instructor2@skillmetrix.dev", "Đoàn Minh Trường (Instructor 2)", UserRole.Instructor),
+            CreateUser("instructor3@skillmetrix.dev", "Đoàn Minh Trường (Instructor 3)", UserRole.Instructor),
+            CreateUser("instructor4@skillmetrix.dev", "Đoàn Minh Trường (Instructor 4)", UserRole.Instructor),
+            CreateUser("instructor5@skillmetrix.dev", "Đoàn Minh Trường (Instructor 5)", UserRole.Instructor),
+            CreateUser("instructor6@skillmetrix.dev", "Đoàn Minh Trường (Instructor 6)", UserRole.Instructor)
         };
 
         for (var i = 1; i <= 18; i++)
         {
-            var name = i - 1 < studentNames.Length ? studentNames[i - 1] : $"Học viên {i:00}";
+            var name = $"Đoàn Minh Trường (Student {i})";
             users.Add(CreateUser($"student{i}@skillmetrix.dev", name, UserRole.Student));
         }
 
@@ -225,16 +218,16 @@ public class DataSeederService(
         var users = new List<User>();
 
         for (var i = 0; i < options.AdminCount; i++)
-            users.Add(CreateUser($"admin{i + 1}@skillmetrix.dev", $"Admin {i + 1}", UserRole.Admin));
+            users.Add(CreateUser($"admin{i + 1}@skillmetrix.dev", $"Đoàn Minh Trường (Admin {i + 1})", UserRole.Admin));
 
         for (var i = 0; i < options.ModeratorCount; i++)
-            users.Add(CreateUser($"moderator{i + 1}@skillmetrix.dev", $"Moderator {i + 1}", UserRole.Moderator));
+            users.Add(CreateUser($"moderator{i + 1}@skillmetrix.dev", $"Đoàn Minh Trường (Moderator {i + 1})", UserRole.Moderator));
 
         for (var i = 0; i < options.InstructorCount; i++)
-            users.Add(CreateUser($"instructor{i + 1}@skillmetrix.dev", $"Instructor {i + 1}", UserRole.Instructor));
+            users.Add(CreateUser($"instructor{i + 1}@skillmetrix.dev", $"Đoàn Minh Trường (Instructor {i + 1})", UserRole.Instructor));
 
         for (var i = 0; i < options.StudentCount; i++)
-            users.Add(CreateUser($"student{i + 1}@skillmetrix.dev", $"Student {i + 1:D3}", UserRole.Student));
+            users.Add(CreateUser($"student{i + 1}@skillmetrix.dev", $"Đoàn Minh Trường (Student {i + 1})", UserRole.Student));
 
         foreach (var user in users)
         {
