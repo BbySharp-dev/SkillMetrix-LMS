@@ -213,8 +213,3 @@ npx newman run api/tests/SkillMetrix-LMS.postman_collection.json
 
 </details>
 
----
-
-## 📄 Bản Quyền & Sở Hữu Trí Tuệ (Copyright)
-
-Dự án này là sản phẩm sở hữu trí tuệ độc quyền của **Doan Minh Truong**. Mọi quyền được bảo lưu. Việc sao chép, sửa đổi, phân phối hoặc sử dụng mã nguồn này cho mục đích cá nhân hoặc thương mại mà không có sự đồng ý bằng văn bản của tác giả là hoàn toàn bị nghiêm cấm.
