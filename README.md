@@ -47,52 +47,76 @@
 *   **Core Tech:** React 19, Vite 8, TypeScript giúp tăng tốc HMR (Hot Module Replacement) và đóng gói mã nguồn cực nhanh.
 *   **Styling Engine:** **Tailwind CSS v4** hoàn toàn mới, tối ưu hóa CSS compiler tĩnh giúp giảm dung lượng build bundle.
 *   **State Management & Server Cache:**
-    *   **Zustand 5:** Quản lý global state cực kỳ nhẹ nhàng, không bị boilerplate như Redux.
+    *   **Zustand 5:** Quản lý global state cực kỳ nhẹ nhàng, không bị biểu mẫu cồng kềnh (boilerplate) như Redux.
     *   **TanStack React Query v5:** Caching dữ liệu server, tự động đồng bộ và refetch dữ liệu nền mượt mà.
 *   **Optimized Routing:** React Router DOM v7 kết hợp Lazy Loading (`React.lazy`, `Suspense`) chia nhỏ mã nguồn theo từng module trang, cải thiện tốc độ tải trang đầu (FCP/LCP).
 *   **Interactive Controls & UI:** Radix UI primitives kết hợp với Shadcn UI, Sonner (Toast notifications), và biểu đồ thống kê trực quan Recharts.
 
 ---
 
-## 🏛️ Kiến Trúc Hệ Thống (Architectural Design)
-
-<details>
-<summary><b>📐 Chi tiết Kiến trúc Backend & Frontend (Click để mở rộng)</b></summary>
+## 🏛️ Phân Tích Kiến Trúc Hệ Thống (Architectural Design Deep-Dive)
 
 ### 1. Backend: Vertical Slice Architecture (VSA)
-Dự án áp dụng **Vertical Slice Architecture** thay vì kiến trúc phân lớp truyền thống (N-Tier) để nâng cao khả năng quản lý mã nguồn.
-*   **Đặc điểm:** Toàn bộ code xử lý một tính năng (gồm Controller, Service, Validator, DTO) được gom nhóm lại trong một thư mục (Slice) nằm dưới thư mục [api/Features/](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Features) (Ví dụ: `Auth`, `Courses`, `Quizzes`, `Reviews`, `Transactions`, `Lessons`).
-*   **Ưu điểm:**
-    *   **High Cohesion (Tính liên kết cao):** Khi cần sửa đổi hay phát triển một tính năng, nhà phát triển chỉ cần làm việc trong duy nhất một thư mục tính năng đó.
-    *   **Low Coupling (Tính phụ thuộc thấp):** Các lát cắt tính năng hoạt động độc lập, hạn chế tối đa tác động chéo (side-effect) lên các vùng tính năng khác khi nâng cấp.
-*   **Global Exception Handling Middleware:** Bộ lọc lỗi tập trung tự động bắt tất cả các ngoại lệ chưa được xử lý trong runtime, ghi log và định dạng lại mã lỗi JSON trả về đồng nhất cho Client.
+Thay vì tổ chức code theo các tầng kỹ thuật (Controller Layer, Service Layer, Repository Layer) của kiến trúc N-Tier truyền thống, dự án áp dụng **Vertical Slice Architecture** (Kiến trúc Lát cắt Dọc).
+*   **Tổ chức Folder:** Mỗi thư mục tính năng dưới [api/Features/](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Features) chứa toàn bộ các thành phần để chạy một nghiệp vụ:
+    ```text
+    Features/Courses/
+    ├── Core/
+    │   ├── ICourseService.cs      <-- Định nghĩa logic nghiệp vụ
+    │   ├── CourseService.cs       <-- Thực thi nghiệp vụ và tương tác DbContext
+    │   └── CoursesController.cs   <-- RESTful Endpoint định tuyến API
+    ├── DTOs/
+    │   ├── CourseResponseDto.cs   <-- Dữ liệu trả về Client
+    │   └── CreateCoursePayload.cs <-- Dữ liệu đầu vào từ Client
+    └── Validators/
+        └── CreateCourseValidator.cs <-- Ràng buộc validation FluentValidation
+    ```
+*   **Result Pattern:** Loại bỏ hoàn toàn việc quăng lỗi ngoại lệ (`throw Exception`) trong tầng Service làm chậm luồng xử lý. Thay vào đó, mọi nghiệp vụ trả về đối tượng `Result<T>` hoặc `Result` biểu diễn trạng thái thành công/thất bại rõ ràng, giúp Controller xử lý HTTP status codes đồng nhất.
+*   **Global Exception Handling Middleware:** Middleware xử lý ngoại lệ tập trung bắt mọi lỗi không mong muốn ở runtime (như mất kết nối database, lỗi hệ thống) để log lỗi và trả về JSON chuẩn hóa cho Client.
 
-### 2. Frontend: Component-Driven & Role-Based Private Routes
-Hệ thống Frontend được cấu trúc dạng module hóa tại thư mục [client/src/features](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/client/src/features) tương ứng trực tiếp với các module Backend.
-*   **Phân quyền Route (RBAC):** Kết hợp `react-router-dom` v7 với các wrapper component bảo mật:
-    *   `PrivateRoute`: Bảo vệ các tài nguyên yêu cầu đăng nhập.
-    *   `RoleRoute`: Kiểm soát quyền truy cập chi tiết dựa trên Role của người dùng (`Student`, `Instructor`, `Admin`, `Moderator`).
-*   **Tối ưu tải trang (Lazy Loading):** Sử dụng `React.lazy` và `Suspense` để phân tách mã nguồn thành các bundle chunk nhỏ hơn theo từng Route, giúp giảm tải dung lượng tải trang ban đầu (First Contentful Paint).
-
-</details>
+### 2. Frontend: Component-Driven & State Synchronization
+*   **Component-Driven Development:** Mọi thành phần UI được modul hóa riêng biệt, dễ dàng tái sử dụng (Atomic Components).
+*   **Zustand Hydration:** Quản lý phiên làm việc của người dùng bằng Zustand, tự động đồng bộ hóa thông tin xác thực (`User Profile` và `JWT Tokens`) với LocalStorage và tự động giải mã JWT (`jwt-decode`) để cấp quyền tức thì trên Client.
+*   **React Query Caching & Invalidation Loop:** Thiết lập cơ chế tự động xóa bộ nhớ đệm (Invalidate Queries) sau khi thực hiện mutations (thêm/sửa/xóa). Ví dụ: Khi thêm chương học mới, React Query sẽ tự động gọi lại API lấy curriculum để cập nhật giao diện mà không cần reload trang.
 
 ---
 
-## 🛡️ Phân Quyền Người Dùng & Các Tính Năng Core
+## 👤 Phân Quyền Người Dùng & Luồng Nghiệp Vụ Chi Tiết (RBAC Workflows)
 
-SkillMetrix LMS triển khai hệ thống phân quyền chặt chẽ thông qua **Role-Based Access Control (RBAC)** với 4 vai trò chính:
+SkillMetrix LMS phân quyền chặt chẽ thông qua **Role-Based Access Control (RBAC)** với 4 vai trò nghiệp vụ hoàn chỉnh:
 
-*   **Học viên (Student):** Tìm kiếm, xem chi tiết và đăng ký khóa học qua cổng thanh toán giả lập; học các bài học (Video, Tài liệu đính kèm); ghi chép bài học cá nhân; tham gia đặt câu hỏi/thảo luận trong diễn đàn bài học; thực hiện làm bài kiểm tra trắc nghiệm; theo dõi tiến độ và tải chứng chỉ hoàn thành khóa học.
-*   **Giảng viên (Instructor):** Quản lý các khóa học do mình tạo ra; xây dựng khung chương trình học (Chương, Bài học, Tài liệu học liệu); thiết lập ngân hàng câu hỏi trắc nghiệm; theo dõi thống kê doanh thu bán khóa học và số lượng học viên đăng ký qua Dashboard biểu đồ chuyên sâu.
-*   **Điều hành viên (Moderator):** Kiểm duyệt nội dung các khóa học mới do Giảng viên gửi yêu cầu xuất bản để đảm bảo chất lượng giảng dạy và tính phù hợp trước khi xuất hiện trên trang chủ công cộng.
-*   **Quản trị viên (Admin):** Toàn quyền kiểm soát hệ thống; quản lý danh sách người dùng (Kích hoạt/Khóa tài khoản, Thay đổi Role); cấu hình hệ thống và xem báo cáo tài chính tổng quan.
+```mermaid
+graph TD
+    A[Khách vãng lai] -->|Đăng ký / Đăng nhập| B(Học viên - Student)
+    B -->|Mua khóa học| C[Học tập: Video, Tài liệu, Ghi chú, Hỏi đáp]
+    B -->|Hoàn thành bài học & Quiz| D[Nhận chứng chỉ tự động]
+    E[Giảng viên - Instructor] -->|Quản lý giáo trình| F[Tạo khóa học, chương, bài học, quiz]
+    E -->|Theo dõi số liệu| G[Dashboard doanh thu & Học viên]
+    H[Điều hành viên - Moderator] -->|Kiểm duyệt| I[Duyệt xuất bản / Từ chối khóa học]
+    K[Quản trị viên - Admin] -->|Quản lý| L[Quản lý người dùng, đổi quyền, xem doanh thu tổng]
+```
+
+### 1. Phân hệ Học viên (Student Workflow)
+*   **Đăng ký & Thanh toán:** Duyệt danh sách khóa học -> Nhấp mua khóa học -> Hệ thống mô phỏng giao dịch tài chính thông qua bảng `Transactions` và tự động cấp quyền truy cập (`Enrollment`).
+*   **Học tập tương tác:** Xem video bài học, tải các tài liệu đính kèm. Giao diện bài học tích hợp thanh ghi chép cá nhân (Notes) và bảng thảo luận hỏi đáp trực tiếp với giảng viên.
+*   **Đo lường tiến độ:** Khi học viên xem hết bài học hoặc đánh dấu hoàn thành, hệ thống cập nhật tiến trình vào bảng `UserLessonProgress`.
+*   **Làm Quiz & Nhận chứng chỉ:** Học viên làm các bài kiểm tra trắc nghiệm cuối chương/khóa học. Khi đạt điểm số yêu cầu (Passing Score) và hoàn thành 100% bài học, hệ thống tự động sinh mã chứng chỉ số duy nhất (`CertificateCode`) để học viên tải về dưới dạng chứng nhận tốt nghiệp.
+
+### 2. Phân hệ Giảng viên (Instructor Workflow)
+*   **Quản lý giáo trình trực quan:** Trình chỉnh sửa giáo trình (Curriculum Editor) cho phép tạo Chương, kéo thả sắp xếp thứ tự hiển thị của các Chương học bằng thư viện `@dnd-kit`.
+*   **Đăng tải học liệu nâng cao:** Giảng viên có thể tải lên các file video bài giảng chất lượng cao. Thời lượng video được trình duyệt tự động trích xuất trước khi tải lên để lưu trữ trực tiếp trên **Supabase Storage**.
+*   **Xây dựng Quiz:** Thiết lập ngân hàng câu hỏi trắc nghiệm kèm theo tùy chỉnh điểm số đạt, thời gian làm bài tối đa và số lượt thi lại tối đa.
+*   **Dashboard Phân tích dữ liệu:** Biểu đồ phân tích sử dụng **Recharts** trực quan hóa doanh thu hàng tháng và tốc độ tăng trưởng học viên đăng ký mới.
+
+### 3. Phân hệ Điều hành viên (Moderator Workflow)
+*   **Kiểm duyệt nội dung xuất bản:** Tiếp nhận các yêu cầu xét duyệt khóa học từ giảng viên. Xem xét chi tiết nội dung khóa học và đưa ra quyết định Phê duyệt (Publish) hoặc Từ chối (Reject) kèm lý do cụ thể gửi về bảng tin của Giảng viên.
+
+### 4. Phân hệ Quản trị viên (Admin Workflow)
+*   **Quản trị tài khoản & Hệ thống:** Cho phép xem danh sách toàn bộ người dùng, thực hiện kích hoạt/khóa tài khoản hoặc nâng hạ vai trò người dùng (Admin, Moderator, Instructor, Student). Xem báo cáo thống kê doanh thu toàn sàn học tập.
 
 ---
 
 ## 💾 Thiết Kế Cơ Sở Dữ Liệu & Tối Ưu Hóa (Database Optimization)
-
-<details>
-<summary><b>🗄️ Chi tiết Thiết kế Cơ sở dữ liệu (Click để mở rộng)</b></summary>
 
 Cấu trúc cơ sở dữ liệu PostgreSQL được cấu hình chi tiết tại [ApplicationDbContext.cs](file:///Users/aiumimi/Developer/FullStack/SkillMetrix-LMS/api/Infrastructure/Persistence/ApplicationDbContext.cs):
 *   **Tối ưu bộ nhớ lưu trữ:** Cấu hình các cột Enum sử dụng kiểu dữ liệu nguyên phù hợp trong database thay vì lưu chuỗi text nhằm tiết kiệm không gian lưu trữ và tăng hiệu năng truy vấn.
@@ -101,8 +125,6 @@ Cấu trúc cơ sở dữ liệu PostgreSQL được cấu hình chi tiết tạ
     *   Tạo Composite Index tối ưu cho các truy vấn ghép phức tạp: `new { Status, IsDeleted, PublishedAt }` (Hiển thị các khóa học đang hoạt động trên trang chủ), `new { UserId, LastUpdatedAt }` (Tính toán chuỗi streak học tập hàng ngày).
     *   Sử dụng Unique Index để ràng buộc tính toàn vẹn dữ liệu: `new { UserId, CourseId }` trên bảng `Enrollments` (Ngăn chặn một người đăng ký học trùng lặp một khóa học), `CertificateCode` trên bảng `Certificates` (Tăng tốc độ tra cứu xác minh chứng chỉ).
 *   **Thiết lập Cascade Delete an toàn:** Cấu hình `DeleteBehavior.Restrict` đối với các mối quan hệ liên quan đến lịch sử tài chính và học tập như `Transactions`, `Enrollments`, `Certificates` nhằm tránh tình trạng mất dữ liệu lịch sử quan trọng do vô tình xóa tài khoản người dùng hoặc khóa học.
-
-</details>
 
 ---
 
